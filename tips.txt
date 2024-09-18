@@ -1,0 +1,2 @@
+ent_fire csgo_viewmodel alpha 255 - makes your weapons invisible
+
