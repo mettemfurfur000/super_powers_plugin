@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
@@ -8,65 +9,132 @@ using Microsoft.VisualBasic;
 namespace super_powers_plugin;
 public interface ISuperPower
 {
-    string PowerName { get; }
     Type TriggerEventType { get; }
     List<CCSPlayerController> Users { get; set; }
-    void Execute(GameEvent gameEvent);
+    HookResult Execute(GameEvent gameEvent);
+    void Update();
+    void ParseCfg(Dictionary<string, string> cfg);
 }
 
 public class SuperPowerController
 {
     private HashSet<ISuperPower> Powers = new HashSet<ISuperPower>();
+
     public SuperPowerController(SuperPowerConfig cfg)
     {
-        Powers.Add(new StartHealth(cfg.args));
-        Powers.Add(new StartArmor(cfg.args));
-        Powers.Add(new InstantDefuse(cfg.args));
+        Powers.Add(new StartHealth());
+        Powers.Add(new StartArmor());
+        Powers.Add(new InstantDefuse());
+        Powers.Add(new InstantPlant());
+        Powers.Add(new FoodSpawner());
+        Powers.Add(new InfiniteAmmo());
+        Powers.Add(new SonicSpeed());
+        Powers.Add(new SteelHead());
     }
+
+    public IEnumerable<ISuperPower> SelectPowers(string pattern)
+    {
+        string r_pattern = TemUtils.WildCardToRegular(pattern);
+
+        return Powers.Where(p => Regex.IsMatch(TemUtils.GetPowerName(p), r_pattern));
+    }
+
     public List<string> GetPowerList()
     {
         List<string> list = new List<string>();
         foreach (var p in Powers)
-            list.Add(p.PowerName);
+            list.Add(TemUtils.GetPowerName(p));
         return list;
     }
-    public void ExecutePower(GameEvent gameEvent)
+
+    public List<Type> GetPowerTriggerEvents()
     {
+        List<Type> list = new List<Type>();
+        foreach (var p in Powers)
+            list.Add(p.TriggerEventType);
+        return list;
+    }
+
+    public void Update()
+    {
+        foreach (var power in Powers)
+            power.Update();
+    }
+
+    public HookResult ExecutePower(GameEvent gameEvent)
+    {
+        HookResult ret = HookResult.Continue;
         Type type = gameEvent.GetType();
         foreach (var power in Powers)
             if (power.TriggerEventType == type || type == typeof(GameEvent))
-            {
-                Server.PrintToChatAll($"Executing {power.PowerName} for {type}");
-                power.Execute(gameEvent);
-            }
+                if (power.Execute(gameEvent) == HookResult.Stop)
+                    ret = HookResult.Stop;
+
+        return ret;
     }
-    public void AddPower(ISuperPower power)
+
+    public void AddNewPower(ISuperPower power)
     {
         Powers.Add(power);
     }
-    public int AddUser(CCSPlayerController? player, string type)
+
+    public string AddPowers(string player_name_pattern, string power_name_pattern, bool now = false)
     {
-        if (player == null)
-            return -1;
+        var status_message = "";
 
-        var power = Powers.FirstOrDefault(p => p.PowerName.Contains(type));
-        if (power == null)
-            return -1;
+        var players = TemUtils.SelectPlayers(player_name_pattern);
+        if (players == null)
+            return "Error: Player(s) not found";
 
-        if (power.Users.Contains(player))
-            return 0;
+        var powers = SelectPowers(power_name_pattern);
+        if (powers == null)
+            return "Error: Power(s) not found";
 
-        power.Users.Add(player);
-        return 0;
+        foreach (var power in powers)
+        {
+            var powerName = TemUtils.GetPowerName(power);
+            foreach (var player in players)
+            {
+                if (power.Users.Contains(player))
+                {
+                    status_message += $"{player.PlayerName} already has {powerName}\n";
+                    continue;
+                }
+                power.Users.Add(player);
+                status_message += $"Added {powerName} to {player.PlayerName}\n";
+            }
+
+            if (now)
+                power.Execute(new GameEvent(-1));
+        }
+
+        return status_message;
     }
-    public int RemoveUser(CCSPlayerController? player)
+
+    public string RemovePowers(string player_name_pattern, string power_name_pattern)
     {
-        if (player == null)
-            return -1;
+        var status_message = "";
 
-        foreach (var p in Powers)
-            p.Users.Remove(player);
+        var players = TemUtils.SelectPlayers(player_name_pattern);
+        if (players == null)
+            return "Error: Player(s) not found";
 
-        return 0;
+        var powers = SelectPowers(power_name_pattern);
+        if (powers == null)
+            return "Error: Power(s) not found";
+
+        foreach (var power in powers)
+        {
+            var powerName = TemUtils.GetPowerName(power);
+            foreach (var player in players)
+            {
+                if (power.Users.Contains(player))
+                {
+                    power.Users.Remove(player);
+                    status_message += $"Removed {powerName} from {player.PlayerName}\n";
+                }
+            }
+        }
+        return status_message;
     }
 }

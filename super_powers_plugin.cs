@@ -1,9 +1,11 @@
+using System.Text.RegularExpressions;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Events;
+using CounterStrikeSharp.API.Modules.Utils;
 namespace super_powers_plugin;
 
 /*
@@ -30,123 +32,98 @@ namespace super_powers_plugin;
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 {
     public override string ModuleName => "super_powers_plugin";
-    public override string ModuleVersion => "0.0.3";
+    public override string ModuleVersion => "0.1.0";
     public override string ModuleAuthor => "tem";
+
     public SuperPowerConfig Config { get; set; } = new();
     public SuperPowerController? controller;
+
     public void smwprint(CCSPlayerController? player, string s)
     {
         if (player == null)
             Console.WriteLine(s);
         else
-            player.PrintToChat(s);
+            player.PrintToConsole(s);
     }
 
-    private CCSPlayerController? FindPlayer(string name)
-    {
-        var players = Utilities.GetPlayers().Where(p => p.PlayerName.Contains(name)).ToList();
-        if (players.Count != 1)
-            return null;
-        return players.First();
-    }
     public override void Load(bool hotReload)
     {
-        controller = new SuperPowerController(Config);
+        controller = new SuperPowerController(Config)!;
 
-        RegisterEventHandler<EventRoundStart>((@event, info) =>
-        {
-            controller.ExecutePower(@event);
-            return HookResult.Continue;
-        });
+        RegisterListener<Listeners.OnServerPrecacheResources>(OnServerPrecacheResources);
 
-        RegisterEventHandler<EventBombBegindefuse>((@event, info) =>
-        {
-            controller.ExecutePower(@event);
-            return HookResult.Continue;
-        });
-
-        RegisterEventHandler<EventGrenadeThrown>((@event, info) =>
-        {
-            return HookResult.Continue;
-        });
-
-
+        RegisterEventHandler<EventRoundStart>((@event, info) => controller.ExecutePower(@event));
+        RegisterEventHandler<EventBombBegindefuse>((@event, info) => controller.ExecutePower(@event));
+        RegisterEventHandler<EventBombBeginplant>((@event, info) => controller.ExecutePower(@event));
+        RegisterEventHandler<EventWeaponFire>((@event, info) => controller.ExecutePower(@event));
+        RegisterEventHandler<EventGrenadeThrown>((@event, info) => controller.ExecutePower(@event));
+        RegisterEventHandler<EventPlayerHurt>((@event, info) => controller.ExecutePower(@event));
 
         RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
         {
-            controller.RemoveUser(@event.Userid);
+            controller.RemovePowers(@event.Userid!.PlayerName, "*");
             return HookResult.Continue;
         });
+
+        RegisterListener<Listeners.OnTick>(() =>
+        {
+            controller.Update();
+        });
+    }
+
+    private void OnServerPrecacheResources(ResourceManifest manifest)
+    {
+        /*
+        models/props/de_nuke/crate_extrasmall.
+        */
+        manifest.AddResource("models/food/pizza/pizza_1.vmdl");
+        manifest.AddResource("models/food/fruits/banana01a.vmdl");
     }
 
     public override void Unload(bool hotReload)
     {
     }
 
-    // Commands can also be registered using the `Command` attribute.
-    [ConsoleCommand("sp_add", "Adds a superpower to specified player. both name of player and superpower have autocompletion if theres only 1 option")]
-    // The `CommandHelper` attribute can be used to provide additional information about the command.
-    [CommandHelper(minArgs: 2, usage: "[player] [power]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [ConsoleCommand("sp_add", "Adds a superpower to specified player. both name of player and superpower have autocompletion if theres only 1 option. \nflag \"now\" will trigger the power instantly")]
+    [CommandHelper(minArgs: 2, usage: "[player] [power] optional: (now)", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
     //[RequiresPermissions("@css/cvar")]
     public void OnPowerAdd(CCSPlayerController? caller, CommandInfo commandInfo)
     {
-        var playerName = commandInfo.GetArg(1);
-        var powerName = commandInfo.GetArg(2);
+        var playerNamePattern = commandInfo.GetArg(1);
+        var powerNamePattern = commandInfo.GetArg(2);
+        var now_flag = false;
+        if (commandInfo.ArgCount == 4)
+            now_flag = commandInfo.GetArg(3).ToLower().Contains("now");
 
-        var player = FindPlayer(playerName);
-        if (player == null)
-        {
-            smwprint(caller, "Player not found or found multiple players matching the same pattern");
-            return;
-        }
-
-        if (controller?.AddUser(player, powerName) == 0)
-            smwprint(caller, $"Added {powerName} to {playerName}");
-        else
-            smwprint(caller, $"Failed to add {powerName} to {playerName}");
+        smwprint(caller, controller!.AddPowers(playerNamePattern, powerNamePattern, now_flag));
     }
 
-    // Commands can also be registered using the `Command` attribute.
+    [ConsoleCommand("sp_remove", "Removes a superpower from specified player. both name of player and superpower have autocompletion if theres only 1 option.")]
+    [CommandHelper(minArgs: 2, usage: "[player/*] [power/*]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    //[RequiresPermissions("@css/cvar")]
+    public void OnPowerRemove(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var playerNamePattern = commandInfo.GetArg(1);
+        var powerNamePattern = commandInfo.GetArg(2);
+        smwprint(caller, controller!.RemovePowers(playerNamePattern, powerNamePattern));
+    }
+
     [ConsoleCommand("sp_list", "lists all posibl powers")]
-    // The `CommandHelper` attribute can be used to provide additional information about the command.
     [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
     //[RequiresPermissions("@css/cvar")]
     public void OnPowerList(CCSPlayerController? player, CommandInfo commandInfo)
     {
         var powers = controller?.GetPowerList();
-        if (powers != null)
-            foreach (var item in powers)
-                smwprint(player, $"{item}");
+        var types = controller?.GetPowerTriggerEvents();
+        var out_table = "";
+        if (powers != null && types != null)
+            for (int i = 0; i < powers.Count; i++)
+                out_table += $"\n\t{powers[i]}\t{types[i].ToString().Split(".").Last()}";
+        smwprint(player, $"\tsuperpowers\ttriggers\n{out_table}");
     }
 
-    // Commands can also be registered using the `Command` attribute.
-    [ConsoleCommand("sp_trigger", "triggers power right now")]
-    // The `CommandHelper` attribute can be used to provide additional information about the command.
-    [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    //[RequiresPermissions("@css/cvar")]
-    public void OnDebugForcePower(CCSPlayerController? player, CommandInfo commandInfo)
-    {
-        // var pawn = player.Pawn.Value;
-
-        // if (pawn != null)
-        // {
-        //     //pawn.MaxHealth = 500;
-        //     //Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iMaxHealth");
-        //     pawn.Health = 500;
-        //     Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
-        // }
-        // else
-        // {
-        //     smwprint(player, "No pawn!");
-        // }
-    }
     public void OnConfigParsed(SuperPowerConfig config)
     {
-        if (config.Version < Config.Version)
-        {
-            // Logger.LogWarning("Update plugin config. New version: {Version}", Config.Version);
-        }
-
         Config = config;
     }
 }
