@@ -110,9 +110,8 @@ public class InstantDefuse : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public void ParseCfg(Dictionary<string, string> cfg) { value = int.Parse(cfg["value"]); }
+    public void ParseCfg(Dictionary<string, string> cfg) { }
     private string PowerName => this.GetType().ToString().Split(".").Last();
-    private int value = 404;
 }
 
 public class InstantPlant : ISuperPower
@@ -147,9 +146,8 @@ public class InstantPlant : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public void ParseCfg(Dictionary<string, string> cfg) { value = int.Parse(cfg["value"]); }
+    public void ParseCfg(Dictionary<string, string> cfg) { }
     private string PowerName => this.GetType().ToString().Split(".").Last();
-    private int value = 404;
 }
 
 public class FoodSpawner : ISuperPower
@@ -204,9 +202,8 @@ public class FoodSpawner : ISuperPower
 
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public void ParseCfg(Dictionary<string, string> cfg) { value = int.Parse(cfg["value"]); }
+    public void ParseCfg(Dictionary<string, string> cfg) { }
     private string PowerName => this.GetType().ToString().Split(".").Last();
-    private int value = 404;
 }
 
 public class InfiniteAmmo : ISuperPower
@@ -239,9 +236,8 @@ public class InfiniteAmmo : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public void ParseCfg(Dictionary<string, string> cfg) { value = int.Parse(cfg["value"]); }
+    public void ParseCfg(Dictionary<string, string> cfg) { }
     private string PowerName => this.GetType().ToString().Split(".").Last();
-    private int value = 404;
 }
 
 public class SonicSpeed : ISuperPower
@@ -297,7 +293,6 @@ public class SteelHead : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public void ParseCfg(Dictionary<string, string> cfg) { value = int.Parse(cfg["value"]); }
+    public void ParseCfg(Dictionary<string, string> cfg) { }
     private string PowerName => this.GetType().ToString().Split(".").Last();
-    private int value = 404;
 }

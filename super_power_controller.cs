@@ -30,6 +30,8 @@ public class SuperPowerController
         Powers.Add(new InfiniteAmmo());
         Powers.Add(new SonicSpeed());
         Powers.Add(new SteelHead());
+
+        FeedTheConfig(cfg);
     }
 
     public IEnumerable<ISuperPower> SelectPowers(string pattern)
@@ -59,6 +61,13 @@ public class SuperPowerController
     {
         foreach (var power in Powers)
             power.Update();
+    }
+
+    public void FeedTheConfig(SuperPowerConfig cfg)
+    {
+        foreach (var power in Powers)
+            try { power.ParseCfg(cfg.args[TemUtils.GetPowerName(power)]); }
+            catch { }
     }
 
     public HookResult ExecutePower(GameEvent gameEvent)
