@@ -32,6 +32,7 @@ public class SuperPowerController
         Powers.Add(new SteelHead());
         Powers.Add(new InfiniteMoney());
         Powers.Add(new NukeNades());
+        Powers.Add(new EvilAura());
 
         FeedTheConfig(cfg);
     }

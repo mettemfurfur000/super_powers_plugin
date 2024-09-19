@@ -344,3 +344,57 @@ public class NukeNades : ISuperPower
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
 }
+
+public class EvilAura : ISuperPower
+{
+    public Type TriggerEventType => typeof(EventRoundStart);
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        return HookResult.Continue;
+    }
+    public void Update()
+    {
+        if (Server.TickCount % period != 0)
+            return;
+        var players = Utilities.GetPlayers();
+        foreach (var user in Users)
+        {
+            var pawn = user.PlayerPawn.Value;
+            if (pawn == null)
+                continue;
+
+            var playersInRadius = players.Where(p => p.PlayerPawn.Value != null && CalcDistance(p.PlayerPawn.Value.AbsOrigin!, pawn.AbsOrigin!) <= distance);
+
+            foreach (var player_to_harm in playersInRadius)
+            {
+                if (player_to_harm.TeamNum == user.TeamNum) // skip teammates
+                    continue;
+                if (player_to_harm.TeamNum == 1) // skip spectators, just in case
+                    continue;
+                var harm_pawn = player_to_harm.PlayerPawn.Value!;
+                if (harm_pawn.Health <= 1)
+                    continue;
+
+                harm_pawn.Health -= (int)damage;
+                user.PrintToCenter($"You have harmed {player_to_harm.PlayerName} for {damage} damage");
+                player_to_harm.PrintToCenter($"You have been hurt by {user.PlayerName}'s evil aura");
+                if (harm_pawn.Health <= 0)
+                    harm_pawn.Health = 1;
+            }
+        }
+    }
+    public void ParseCfg(Dictionary<string, string> cfg)
+    {
+        distance = float.Parse(cfg["distance"]);
+        damage = float.Parse(cfg["damage"]);
+        period = int.Parse(cfg["period"]);
+    }
+    private float CalcDistance(CounterStrikeSharp.API.Modules.Utils.Vector v1, CounterStrikeSharp.API.Modules.Utils.Vector v2)
+    {
+        return (float)Math.Sqrt(Math.Pow(v1.X - v2.X, 2) + Math.Pow(v1.Y - v2.Y, 2) + Math.Pow(v1.Z - v2.Z, 2));
+    }
+    private float distance = 500;
+    private float damage = 1;
+    private int period = 20;
+    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+}
