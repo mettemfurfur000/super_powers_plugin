@@ -217,12 +217,12 @@ public class InfiniteAmmo : ISuperPower
         if (player != null && player.IsValid && player.PawnIsAlive)
         {
             if (!Users.Where(p => p.UserId == player.UserId).Any())
-                return HookResult.Continue; ;
+                return HookResult.Continue;
 
             CBasePlayerWeapon? activeWeapon = player?.PlayerPawn.Value?.WeaponServices?.ActiveWeapon.Value;
 
             if (activeWeapon == null)
-                return HookResult.Continue; ;
+                return HookResult.Continue;
 
             if (activeWeapon.Clip1 < 5)
                 activeWeapon.Clip1 = 5;

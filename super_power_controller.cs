@@ -109,12 +109,16 @@ public class SuperPowerController
                     status_message += $"{player.PlayerName} already has {powerName}\n";
                     continue;
                 }
-                power.Users.Add(player);
+                try { power.Users.Add(player); }
+                catch { status_message += $"Something bad happened while adding {powerName} to {player.PlayerName}, ignoring it\n"; }
+
                 status_message += $"Added {powerName} to {player.PlayerName}\n";
             }
 
             if (now)
-                power.Execute(new GameEvent(-1));
+                try
+                { power.Execute(new GameEvent(-1)); }
+                catch { status_message += $"Something bad happened while triggering {powerName}, ignoring it\n"; }
         }
 
         return status_message;
@@ -139,7 +143,8 @@ public class SuperPowerController
             {
                 if (power.Users.Contains(player))
                 {
-                    power.Users.Remove(player);
+                    try { power.Users.Remove(player); }
+                    catch { status_message += $"Something bad happened while removing {powerName} from {player.PlayerName}, ignoring it\n"; }
                     status_message += $"Removed {powerName} from {player.PlayerName}\n";
                 }
             }
