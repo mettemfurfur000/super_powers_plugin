@@ -30,6 +30,8 @@ public class SuperPowerController
         Powers.Add(new InfiniteAmmo());
         Powers.Add(new SonicSpeed());
         Powers.Add(new SteelHead());
+        Powers.Add(new InfiniteMoney());
+        Powers.Add(new NukeNades());
 
         FeedTheConfig(cfg);
     }

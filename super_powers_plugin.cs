@@ -122,6 +122,17 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         smwprint(player, $"\tsuperpowers\ttriggers\n{out_table}");
     }
 
+    [ConsoleCommand("sp_status", "lists all users of certain powers")]
+    [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    //[RequiresPermissions("@css/cvar")]
+    public void OnPowerStatus(CCSPlayerController? player, CommandInfo commandInfo)
+    {
+        var powers = controller?.GetPowerList();
+        var types = controller?.GetPowerTriggerEvents();
+        var out_table = "";
+        smwprint(player, $"{out_table}");
+    }
+
     public void OnConfigParsed(SuperPowerConfig config)
     {
         Config = config;

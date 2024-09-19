@@ -296,3 +296,51 @@ public class SteelHead : ISuperPower
     public void ParseCfg(Dictionary<string, string> cfg) { }
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
+
+public class InfiniteMoney : ISuperPower
+{
+    public Type TriggerEventType => typeof(EventRoundStart);
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        return HookResult.Continue;
+    }
+    public void ParseCfg(Dictionary<string, string> cfg) { }
+    public void Update()
+    {
+        if (Server.TickCount % 32 != 0)
+            return;
+        foreach (var user in Users)
+        {
+            user.InGameMoneyServices!.Account = 90000;
+            Utilities.SetStateChanged(user, "CCSPlayerController", "m_pInGameMoneyServices");
+        }
+    }
+    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+}
+
+public class NukeNades : ISuperPower
+{
+    public Type TriggerEventType => typeof(EventGrenadeThrown);
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        var realEvent = (EventGrenadeThrown)gameEvent;
+        var player = realEvent.Userid;
+        if (player == null || !player.IsValid)
+            return HookResult.Continue;
+
+        if (!Users.Where(p => p.UserId == player.UserId).Any())
+            return HookResult.Continue;
+
+        var grenade = Utilities.FindAllEntitiesByDesignerName<CHEGrenadeProjectile>("hegrenade_projectile").First();
+        if (player.UserId == grenade.Thrower.Value!.OriginalController.Value!.UserId)
+        {
+            grenade.Damage *= 10;
+            grenade.DmgRadius *= 10;
+        }
+
+        return HookResult.Continue;
+    }
+    public void ParseCfg(Dictionary<string, string> cfg) { }
+    public void Update() { }
+    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+}
