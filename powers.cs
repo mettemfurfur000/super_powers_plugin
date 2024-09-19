@@ -257,7 +257,19 @@ public class SonicSpeed : ISuperPower
         return HookResult.Continue;
     }
 
-    public void Update() { }
+    public void Update()
+    {
+        if (Server.TickCount % 16 != 0) return;
+        foreach (var user in Users)
+        {
+            var pawn = user.PlayerPawn.Value;
+            if (pawn == null)
+                return;
+
+            pawn.MovementServices!.Maxspeed = value;
+            pawn.VelocityModifier = (float)(value / 240);
+        }
+    }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
     public void ParseCfg(Dictionary<string, string> cfg) { value = int.Parse(cfg["value"]); }
     private string PowerName => this.GetType().ToString().Split(".").Last();
@@ -376,6 +388,7 @@ public class EvilAura : ISuperPower
                     continue;
 
                 harm_pawn.Health -= (int)damage;
+                Utilities.SetStateChanged(harm_pawn, "CBaseEntity", "m_iHealth");
                 user.PrintToCenter($"You have harmed {player_to_harm.PlayerName} for {damage} damage");
                 player_to_harm.PrintToCenter($"You have been hurt by {user.PlayerName}'s evil aura");
                 if (harm_pawn.Health <= 0)
@@ -398,3 +411,60 @@ public class EvilAura : ISuperPower
     private int period = 20;
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
 }
+
+public class DormantPower : ISuperPower
+{
+    public Type TriggerEventType => typeof(EventRoundStart);
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        if (gameEvent.Handle == 0)
+            return HookResult.Continue; // prevent recursive call
+
+        var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
+
+        HashSet<string> power_commands = [];
+        try
+        {
+            power_commands = dormant_power_rules[gameRules.TotalRoundsPlayed];
+        }
+        catch
+        {
+            return HookResult.Continue;
+        }
+
+        foreach (var user in Users)
+        {
+            var pawn = user.PlayerPawn.Value;
+            if (pawn == null)
+                continue;
+
+            foreach (var command in power_commands)
+            {
+                Server.NextFrame(() =>
+                {
+                    var real_command = command.Replace("user", user.PlayerName);
+                    Server.ExecuteCommand(real_command);
+                    Server.PrintToConsole($"Executed command {real_command} for {user.PlayerName}");
+                });
+            }
+        }
+        return HookResult.Continue;
+    }
+    public void Update() { }
+    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    private Dictionary<int, HashSet<string>> dormant_power_rules = [];
+    public void ParseCfg(Dictionary<string, string> cfg)
+    {
+        foreach (var entry_line in cfg)
+        {
+            var round_number = int.Parse(entry_line.Key);
+            var rules = entry_line.Value;
+            var power_commands = rules.Split(";").ToHashSet();
+
+            dormant_power_rules.Add(round_number, power_commands);
+        }
+    }
+}
+
+
+

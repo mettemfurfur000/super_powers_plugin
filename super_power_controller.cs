@@ -33,6 +33,7 @@ public class SuperPowerController
         Powers.Add(new InfiniteMoney());
         Powers.Add(new NukeNades());
         Powers.Add(new EvilAura());
+        Powers.Add(new DormantPower());
 
         FeedTheConfig(cfg);
     }
@@ -71,6 +72,13 @@ public class SuperPowerController
         foreach (var power in Powers)
             try { power.ParseCfg(cfg.args[TemUtils.GetPowerName(power)]); }
             catch { }
+    }
+
+    public void Reconfigure(Dictionary<string, string> configuration, string power_name_pattern)
+    {
+        var powers = SelectPowers(power_name_pattern);
+        foreach (var power in powers)
+            power.ParseCfg(configuration);
     }
 
     public HookResult ExecutePower(GameEvent gameEvent)
@@ -116,11 +124,14 @@ public class SuperPowerController
                 catch { status_message += $"Something bad happened while adding {powerName} to {player.PlayerName}, ignoring it\n"; }
 
                 status_message += $"Added {powerName} to {player.PlayerName}\n";
+                var now_tip = now ? ", Effects will be applied now" : "";
+                player.PrintToChat($"You have been given {powerName} by the server{now_tip}!");
+                player.ExecuteClientCommand("play sounds/ui/panorama/claim_gift_01.vsnd");
             }
 
             if (now)
                 try
-                { power.Execute(new GameEvent(-1)); }
+                { power.Execute(new GameEvent(0)); }
                 catch { status_message += $"Something bad happened while triggering {powerName}, ignoring it\n"; }
         }
 

@@ -92,7 +92,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         var playerNamePattern = commandInfo.GetArg(1);
         var powerNamePattern = commandInfo.GetArg(2);
         var now_flag = false;
-        if (commandInfo.ArgCount == 4)
+        if (commandInfo.ArgCount >= 4)
             now_flag = commandInfo.GetArg(3).ToLower().Contains("now");
 
         smwprint(caller, controller!.AddPowers(playerNamePattern, powerNamePattern, now_flag));
@@ -131,6 +131,22 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         var types = controller?.GetPowerTriggerEvents();
         var out_table = "";
         smwprint(player, $"{out_table}");
+    }
+
+    [ConsoleCommand("sp_reconfigure", "parses your input as a config and applies it")]
+    [CommandHelper(minArgs: 2, usage: "[power] [key1] [value1] [key2] [value2] ...", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    //[RequiresPermissions("@css/cvar")]
+    public void OnReconfigure(CCSPlayerController? player, CommandInfo commandInfo)
+    {
+        Dictionary<string, string> forced_cfg = [];
+        for (int i = 2; i < commandInfo.ArgCount; i += 2) // iterate over all args, except 0 and 1, which is just the name of the command and name of power
+        {
+            Server.PrintToConsole(commandInfo.GetArg(i));
+            var key = commandInfo.GetArg(i);
+            var value = commandInfo.GetArg(i + 1);
+            forced_cfg[key] = value;
+        }
+        controller?.Reconfigure(forced_cfg, commandInfo.GetArg(1));
     }
 
     public void OnConfigParsed(SuperPowerConfig config)
