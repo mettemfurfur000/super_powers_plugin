@@ -138,7 +138,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             {
                 out_table += $"\n\t{powers[i]}\t";
                 foreach (var type in types[i])
-                    out_table += $"{TemUtils.GetPowerName((Type)type)}, ";
+                    out_table += $"{TemUtils.GetSnakeName(type)}, ";
             }
 
         smwprint(player, $"\tsuperpowers\ttriggers\n{out_table}");
@@ -176,7 +176,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     public void OnConfigParsed(SuperPowerConfig config)
     {
-        Server.PrintToConsole($"Config parsed!");
         Config = config;
+
+        SuperPowerController.FeedTheConfig(Config);
     }
 }

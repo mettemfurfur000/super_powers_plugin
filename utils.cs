@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.RegularExpressions;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
@@ -25,14 +26,14 @@ public class TemUtils
                 : char.ToLower(c).ToString()));
     }
 
-    public static string GetPowerName(ISuperPower type)
+    public static string GetPowerName(ISuperPower power)
     {
-        return ToSnakeCase(type.GetType().ToString()).Split(".").Last();
+        return ToSnakeCase(power.GetType().ToString()).Split(".").Last();
     }
 
-    public static string GetPowerName(Type type)
+    public static string GetSnakeName(Type type)
     {
-        return ToSnakeCase(type.GetType().ToString()).Split(".").Last();
+        return ToSnakeCase(type.ToString()).Split(".").Last();
     }
 
     public static String WildCardToRegular(String value)
@@ -46,5 +47,37 @@ public class TemUtils
 
         return Utilities.GetPlayers()
             .Where(player => Regex.IsMatch(player.PlayerName, r_pattern, RegexOptions.IgnoreCase));
+    }
+
+    public static void ParseConfigReflective(ISuperPower power, Type type, Dictionary<string, string> cfg)
+    {
+        foreach (var field in cfg)
+        {
+            var fieldInfo = type.GetField(field.Key, BindingFlags.Instance | BindingFlags.NonPublic);
+
+            if (fieldInfo == null)
+            {
+                Server.PrintToConsole($"Error occured while processing {type} : Field '{field.Key}' not found");
+                var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+                var found_fields = "";
+                foreach (var f in fields)
+                {
+                    found_fields += "\n\"" + f.Name + "\"";
+                }
+                Server.PrintToConsole($"All Availiable fields: {found_fields}");
+                continue;
+            }
+
+            try
+            {
+                try { fieldInfo.SetValue(power, Convert.ChangeType(field.Value, fieldInfo.FieldType)); }
+                catch (InvalidCastException ex) { Server.PrintToConsole($"Error occured while processing {type} : Failed to convert value for {fieldInfo.Name}: {ex.Message}"); }
+                catch (FormatException ex) { Server.PrintToConsole($"Error occured while processing {type} : Invalid format for {fieldInfo.Name}: {ex.Message}"); }
+            }
+            catch
+            {
+                // aah whatever
+            }
+        }
     }
 }

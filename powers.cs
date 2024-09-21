@@ -25,7 +25,7 @@ public class TemplatePower : ISuperPower
 {
     public List<Type> Triggers => [typeof(EventRoundStart)];
     public HookResult Execute(GameEvent gameEvent) { return HookResult.Continue; }
-    public void ParseCfg(Dictionary<string, string> cfg) { value = int.Parse(cfg["value"]); }
+
     public void Update() { }
     int value = 404;
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
@@ -51,7 +51,7 @@ public class StartHealth : ISuperPower
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
     private int value = 404;
-    public void ParseCfg(Dictionary<string, string> cfg) { value = int.Parse(cfg["value"]); }
+
 }
 
 public class StartArmor : ISuperPower
@@ -74,7 +74,7 @@ public class StartArmor : ISuperPower
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
     private int value = 404;
-    public void ParseCfg(Dictionary<string, string> cfg) { value = int.Parse(cfg["value"]); }
+
 }
 
 public class InstantDefuse : ISuperPower
@@ -110,7 +110,7 @@ public class InstantDefuse : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public void ParseCfg(Dictionary<string, string> cfg) { }
+
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
 
@@ -146,7 +146,7 @@ public class InstantPlant : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public void ParseCfg(Dictionary<string, string> cfg) { }
+
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
 
@@ -202,7 +202,7 @@ public class FoodSpawner : ISuperPower
 
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public void ParseCfg(Dictionary<string, string> cfg) { }
+
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
 
@@ -236,7 +236,7 @@ public class InfiniteAmmo : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public void ParseCfg(Dictionary<string, string> cfg) { }
+
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
 
@@ -271,7 +271,7 @@ public class SonicSpeed : ISuperPower
         }
     }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public void ParseCfg(Dictionary<string, string> cfg) { value = int.Parse(cfg["value"]); }
+
     private string PowerName => this.GetType().ToString().Split(".").Last();
     private int value = 404;
 }
@@ -307,7 +307,7 @@ public class SteelHead : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public void ParseCfg(Dictionary<string, string> cfg) { }
+
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
 
@@ -318,7 +318,6 @@ public class InfiniteMoney : ISuperPower
     {
         return HookResult.Continue;
     }
-    public void ParseCfg(Dictionary<string, string> cfg) { }
     public void Update()
     {
         if (Server.TickCount % 32 != 0)
@@ -329,6 +328,7 @@ public class InfiniteMoney : ISuperPower
             Utilities.SetStateChanged(user, "CCSPlayerController", "m_pInGameMoneyServices");
         }
     }
+
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
 }
 
@@ -354,7 +354,7 @@ public class NukeNades : ISuperPower
 
         return HookResult.Continue;
     }
-    public void ParseCfg(Dictionary<string, string> cfg) { }
+
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
 }
@@ -398,12 +398,6 @@ public class EvilAura : ISuperPower
             }
         }
     }
-    public void ParseCfg(Dictionary<string, string> cfg)
-    {
-        distance = float.Parse(cfg["distance"]);
-        damage = float.Parse(cfg["damage"]);
-        period = int.Parse(cfg["period"]);
-    }
     private float CalcDistance(CounterStrikeSharp.API.Modules.Utils.Vector v1, CounterStrikeSharp.API.Modules.Utils.Vector v2)
     {
         return (float)Math.Sqrt(Math.Pow(v1.X - v2.X, 2) + Math.Pow(v1.Y - v2.Y, 2) + Math.Pow(v1.Z - v2.Z, 2));
@@ -411,6 +405,7 @@ public class EvilAura : ISuperPower
     private float distance = 500;
     private float damage = 1;
     private int period = 20;
+
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
 }
 
@@ -455,6 +450,8 @@ public class DormantPower : ISuperPower
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
     private Dictionary<int, HashSet<string>> dormant_power_rules = [];
+    private bool please_dont_edit_me_and_my_friends = true;
+
     public void ParseCfg(Dictionary<string, string> cfg)
     {
         foreach (var entry_line in cfg)
@@ -520,7 +517,6 @@ public class GlassCannon : ISuperPower
 
         return HookResult.Continue;
     }
-    public void ParseCfg(Dictionary<string, string> cfg) { multiplier = float.Parse(cfg["multiplier"]); }
     public void Update() { }
     private float multiplier = 5;
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();

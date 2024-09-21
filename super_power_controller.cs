@@ -15,7 +15,10 @@ public interface ISuperPower
     List<CCSPlayerController> Users { get; set; }
     HookResult Execute(GameEvent gameEvent);
     void Update();
-    void ParseCfg(Dictionary<string, string> cfg);
+    void ParseCfg(Dictionary<string, string> cfg)
+    {
+        TemUtils.ParseConfigReflective(this, this.GetType(), cfg);
+    }
 }
 
 public static class SuperPowerController
@@ -193,7 +196,7 @@ public static class SuperPowerController
                 status_message += $"Added {powerName} to {player.PlayerName}\n";
                 var now_tip = now ? ", Effects will be applied now" : "";
                 player.PrintToChat($"You have been given {powerName} by the server{now_tip}!");
-                //player.ExecuteClientCommand("play sounds/ui/panorama/claim_gift_01.vsnd");
+                player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
             }
 
             if (now)
