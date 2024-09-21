@@ -529,6 +529,7 @@ public class Vampirism : ISuperPower
     {
         var realEvent = (EventPlayerHurt)gameEvent;
         var attacker = realEvent.Attacker;
+        var victim = realEvent.Userid;
 
         if (attacker == null || !attacker.IsValid)
             return HookResult.Continue;
@@ -547,6 +548,8 @@ public class Vampirism : ISuperPower
 
         var sounds = vampireSounds.Split(";");
         attacker.ExecuteClientCommand("play " + sounds.ElementAt(new Random().Next(sounds.Length)));
+        if (victim != null && victim.IsValid)
+            victim.ExecuteClientCommand("play " + sounds.ElementAt(new Random().Next(sounds.Length)));
 
         return HookResult.Continue;
     }
@@ -556,3 +559,6 @@ public class Vampirism : ISuperPower
     private string vampireSounds = "sounds/physics/flesh/flesh_squishy_impact_hard4.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard3.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard2.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard1.vsnd";
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
 }
+
+
+
