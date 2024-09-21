@@ -9,6 +9,7 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Events;
+using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 
 namespace super_powers_plugin;
 
@@ -561,4 +562,12 @@ public class Vampirism : ISuperPower
 }
 
 
-
+public class Invisibility : ISuperPower
+{
+    public List<Type> Triggers => [];
+    public HookResult Execute(GameEvent gameEvent) { return HookResult.Continue; }
+    public void Update()
+    {
+    }
+    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+}

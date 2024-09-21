@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
@@ -5,6 +6,7 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Events;
+using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 namespace super_powers_plugin;
 
@@ -35,6 +37,12 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     public override string ModuleVersion => "0.1.0";
     public override string ModuleAuthor => "tem";
 
+    // invisibility stuff, custom hooks :p
+    private static readonly MemoryFunctionVoid<nint, nint, int, nint, int, short, int, bool> CheckTransmit = new(GameData.GetSignature("CheckTransmit"));
+    private static readonly MemoryFunctionVoid<nint, CSPlayerState> StateTransition = new(GameData.GetSignature("StateTransition"));
+    private readonly CSPlayerState[] _oldPlayerState = new CSPlayerState[65];
+    private readonly INetworkServerService networkServerService = new();
+
     public SuperPowerConfig? Config { get; set; } = null;
 
     public void smwprint(CCSPlayerController? player, string s)
@@ -58,6 +66,10 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
             return SuperPowerController.ExecutePower(@event);
         });
+
+        StateTransition.Hook(Hook_StateTransition, HookMode.Post);
+        CheckTransmit.Hook(Hook_CheckTransmit, HookMode.Post);
+
         RegisterEventHandler<EventBombBegindefuse>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBeginplant>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventWeaponFire>((@event, info) => SuperPowerController.ExecutePower(@event));
@@ -87,6 +99,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     public override void Unload(bool hotReload)
     {
+        StateTransition.Unhook(Hook_StateTransition, HookMode.Post);
+        CheckTransmit.Unhook(Hook_CheckTransmit, HookMode.Post);
     }
 
     [ConsoleCommand("sp_add", "Adds a superpower to specified player. both name of player and superpower have autocompletion if theres only 1 option. \nflag \"now\" will trigger the power instantly")]
@@ -180,4 +194,92 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         SuperPowerController.FeedTheConfig(Config);
     }
+
+    private unsafe HookResult Hook_CheckTransmit(DynamicHook hook)
+    {
+        nint* ppInfoList = (nint*)hook.GetParam<nint>(1);
+        int infoCount = hook.GetParam<int>(2);
+
+        var power = SuperPowerController.GetPowerUsers("invisibility");
+        if (power == null)
+        {
+            Server.PrintToConsole("Where is the invisibility power? huh?");
+            return HookResult.Continue;
+        }
+
+        var users = power.Users;
+
+        if (users.Count() == 0)
+            return HookResult.Continue;
+
+        for (int i = 0; i < infoCount; i++)
+        {
+            nint pInfo = ppInfoList[i];
+            byte slot = *(byte*)(pInfo + GameData.GetOffset("CheckTransmitPlayerSlot"));
+
+            var player = Utilities.GetPlayerFromSlot(slot);
+            var info = Marshal.PtrToStructure<CCheckTransmitInfo>(pInfo);
+
+            if (player == null || player.PlayerPawn.Value == null || player.IsHLTV)
+                continue;
+
+            foreach (var target in Utilities.GetPlayers()
+            .Where(p => p != null && p.PlayerPawn.Value != null))
+            {
+                var pawn = target.PlayerPawn.Value!;
+
+                #region fix client crash
+                if (target.Slot == slot && ((LifeState_t)pawn.LifeState != LifeState_t.LIFE_DEAD || pawn.PlayerState.HasFlag(CSPlayerState.STATE_DEATH_ANIM)))
+                    continue;
+
+                if (player.PlayerPawn.Value.PlayerState.HasFlag(CSPlayerState.STATE_DORMANT) && target.Slot != slot)
+                    continue;
+
+                if ((LifeState_t)pawn.LifeState != LifeState_t.LIFE_ALIVE)
+                {
+                    info.m_pTransmitEntity.Clear((int)pawn.Index);
+                    continue;
+                }
+                #endregion
+
+                if (users.Contains(target))
+                    info.m_pTransmitEntity.Clear((int)pawn.Index);
+            }
+        }
+
+        return HookResult.Continue;
+    }
+
+    private HookResult Hook_StateTransition(DynamicHook hook)
+    {
+        var pawn = new CCSPlayerPawn(hook.GetParam<nint>(0));
+
+        if (!pawn.IsValid) return HookResult.Continue;
+
+        var player = pawn.OriginalController.Value;
+        var state = hook.GetParam<CSPlayerState>(1);
+
+        if (player is null) return HookResult.Continue;
+
+        if (_oldPlayerState[player.Index] != CSPlayerState.STATE_OBSERVER_MODE && state == CSPlayerState.STATE_OBSERVER_MODE ||
+            _oldPlayerState[player.Index] == CSPlayerState.STATE_OBSERVER_MODE && state != CSPlayerState.STATE_OBSERVER_MODE)
+        {
+            ForceFullUpdate(player);
+        }
+
+        _oldPlayerState[player.Index] = state;
+
+        return HookResult.Continue;
+    }
+
+    private void ForceFullUpdate(CCSPlayerController? player)
+    {
+        if (player is null || !player.IsValid) return;
+
+        var networkGameServer = networkServerService.GetIGameServer();
+        networkGameServer.GetClientBySlot(player.Slot)?.ForceFullUpdate();
+
+        player.PlayerPawn.Value?.Teleport(null, player.PlayerPawn.Value.EyeAngles, null);
+    }
+
 }

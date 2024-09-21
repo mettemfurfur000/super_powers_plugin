@@ -49,6 +49,7 @@ public static class SuperPowerController
         Powers.Add(new DormantPower());
         Powers.Add(new GlassCannon());
         Powers.Add(new Vampirism());
+        Powers.Add(new Invisibility());
     }
 
     public static void SetMode(string _mode)
@@ -64,6 +65,12 @@ public static class SuperPowerController
     public static HashSet<ISuperPower> GetPowers()
     {
         return Powers;
+    }
+
+    public static ISuperPower GetPowerUsers(string name_pattern)
+    {
+        var found_powers = SelectPowers(name_pattern);
+        return found_powers.First();
     }
 
     public static List<string> GetPowerList()
