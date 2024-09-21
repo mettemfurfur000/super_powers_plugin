@@ -48,6 +48,7 @@ public static class SuperPowerController
         Powers.Add(new EvilAura());
         Powers.Add(new DormantPower());
         Powers.Add(new GlassCannon());
+        Powers.Add(new Vampirism());
     }
 
     public static void SetMode(string _mode)

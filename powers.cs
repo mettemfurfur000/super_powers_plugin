@@ -42,7 +42,7 @@ public class StartHealth : ISuperPower
             if (pawn == null)
                 continue;
 
-            pawn.Health = value;
+            pawn.Health *= multiplier;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
         return HookResult.Continue;
@@ -50,7 +50,7 @@ public class StartHealth : ISuperPower
 
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    private int value = 404;
+    private int multiplier = 5;
 
 }
 
@@ -65,7 +65,7 @@ public class StartArmor : ISuperPower
             if (pawn == null)
                 continue;
 
-            pawn.ArmorValue = value;
+            pawn.ArmorValue *= multiplier;
             Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
 
         }
@@ -73,7 +73,7 @@ public class StartArmor : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    private int value = 404;
+    private int multiplier = 2;
 
 }
 
@@ -490,7 +490,7 @@ public class GlassCannon : ISuperPower
                 return HookResult.Continue;
 
             pawn.Health -= (int)(realEvent.DmgHealth * (multiplier - 1));
-            pawn.ArmorValue -= (int)(realEvent.DmgArmor * (multiplier - 1));
+            //pawn.ArmorValue -= (int)(realEvent.DmgArmor * (multiplier - 1));
 
             if (pawn.Health <= 0)
                 pawn.Health = 0;
@@ -522,3 +522,37 @@ public class GlassCannon : ISuperPower
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
 }
 
+public class Vampirism : ISuperPower
+{
+    public List<Type> Triggers => [typeof(EventPlayerHurt)];
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        var realEvent = (EventPlayerHurt)gameEvent;
+        var attacker = realEvent.Attacker;
+
+        if (attacker == null || !attacker.IsValid)
+            return HookResult.Continue;
+
+        if (!Users.Where(p => p.UserId == attacker.UserId).Any())
+            return HookResult.Continue;
+
+        var attackerPawn = attacker.PlayerPawn.Value;
+        if (attackerPawn == null || !attackerPawn.IsValid)
+            return HookResult.Continue;
+
+        attackerPawn.Health += realEvent.DmgHealth / divisor;
+
+        Utilities.SetStateChanged(attackerPawn, "CBaseEntity", "m_iHealth");
+        //Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
+
+        var sounds = vampireSounds.Split(";");
+        attacker.ExecuteClientCommand("play " + sounds.ElementAt(new Random().Next(sounds.Length)));
+
+        return HookResult.Continue;
+    }
+
+    public void Update() { }
+    private int divisor = 5;
+    private string vampireSounds = "sounds/physics/flesh/flesh_squishy_impact_hard4.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard3.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard2.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard1.vsnd";
+    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+}
