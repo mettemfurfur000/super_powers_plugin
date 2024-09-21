@@ -23,7 +23,7 @@ namespace super_powers_plugin;
 
 public class TemplatePower : ISuperPower
 {
-    public Type TriggerEventType => typeof(EventRoundStart);
+    public List<Type> Triggers => [typeof(EventRoundStart)];
     public HookResult Execute(GameEvent gameEvent) { return HookResult.Continue; }
     public void ParseCfg(Dictionary<string, string> cfg) { value = int.Parse(cfg["value"]); }
     public void Update() { }
@@ -33,7 +33,7 @@ public class TemplatePower : ISuperPower
 
 public class StartHealth : ISuperPower
 {
-    public Type TriggerEventType => typeof(EventRoundStart);
+    public List<Type> Triggers => [typeof(EventRoundStart)];
     public HookResult Execute(GameEvent gameEvent)
     {
         foreach (var user in Users)
@@ -56,7 +56,7 @@ public class StartHealth : ISuperPower
 
 public class StartArmor : ISuperPower
 {
-    public Type TriggerEventType => typeof(EventRoundStart);
+    public List<Type> Triggers => [typeof(EventRoundStart)];
     public HookResult Execute(GameEvent gameEvent)
     {
         foreach (var user in Users)
@@ -79,7 +79,7 @@ public class StartArmor : ISuperPower
 
 public class InstantDefuse : ISuperPower
 {
-    public Type TriggerEventType => typeof(EventBombBegindefuse);
+    public List<Type> Triggers => [typeof(EventBombBegindefuse)];
     public HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventBombBegindefuse)gameEvent;
@@ -88,7 +88,7 @@ public class InstantDefuse : ISuperPower
         {
             if (!Users.Where(p => p.UserId == player.UserId).Any())
             {
-                //Server.PrintToChatAll("player is not in list");
+                //Server.PrintToConsole("player is not in list");
                 return HookResult.Continue; ;
             }
             var bomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").ToList().FirstOrDefault();
@@ -101,11 +101,11 @@ public class InstantDefuse : ISuperPower
             {
                 bomb.DefuseCountDown = 0;
                 Utilities.SetStateChanged(bomb, "CPlantedC4", "m_flDefuseCountDown");
-                //Server.PrintToChatAll($"Successful instant defuse by {player.PlayerName}");
+                //Server.PrintToConsole($"Successful instant defuse by {player.PlayerName}");
             });
         }
         else
-            Server.PrintToChatAll($"{PowerName} : player is null or not valid");
+            Server.PrintToConsole($"{PowerName} : player is null or not valid");
         return HookResult.Continue;
     }
     public void Update() { }
@@ -116,7 +116,7 @@ public class InstantDefuse : ISuperPower
 
 public class InstantPlant : ISuperPower
 {
-    public Type TriggerEventType => typeof(EventBombBeginplant);
+    public List<Type> Triggers => [typeof(EventBombBeginplant)];
     public HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventBombBeginplant)gameEvent;
@@ -125,7 +125,7 @@ public class InstantPlant : ISuperPower
         {
             if (!Users.Where(p => p.UserId == player.UserId).Any())
             {
-                //Server.PrintToChatAll("player is not in list");
+                //Server.PrintToConsole("player is not in list");
                 return HookResult.Continue; ;
             }
 
@@ -140,7 +140,7 @@ public class InstantPlant : ISuperPower
             bomb.ArmedTime = 0.0f;
         }
         else
-            Server.PrintToChatAll($"{PowerName} : player is null or not valid");
+            Server.PrintToConsole($"{PowerName} : player is null or not valid");
 
         return HookResult.Continue;
     }
@@ -152,7 +152,7 @@ public class InstantPlant : ISuperPower
 
 public class FoodSpawner : ISuperPower
 {
-    public Type TriggerEventType => typeof(EventRoundStart);
+    public List<Type> Triggers => [typeof(EventRoundStart)];
     public HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventRoundStart)gameEvent;
@@ -160,19 +160,19 @@ public class FoodSpawner : ISuperPower
         {
             if (user == null || !user.IsValid)
             {
-                Server.PrintToChatAll("user is null or not valid");
+                Server.PrintToConsole("user is null or not valid");
                 continue;
             }
             var pawn = user.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid)
             {
-                Server.PrintToChatAll("pawn is null or not valid");
+                Server.PrintToConsole("pawn is null or not valid");
                 continue;
             }
             var prop = Utilities.CreateEntityByName<CPhysicsPropMultiplayer>("prop_physics_multiplayer");
             if (prop == null)
             {
-                Server.PrintToChatAll("Failed to create prop");
+                Server.PrintToConsole("Failed to create a prop");
                 continue;
             }
             var pizza_id = TemUtils.RandomString(12);
@@ -183,7 +183,7 @@ public class FoodSpawner : ISuperPower
 
             if (prop.Collision != null && prop.Collision.EnablePhysics != 1)
             {
-                Server.PrintToChatAll("prop.Collision.EnablePhysics != 1");
+                Server.PrintToConsole("prop.Collision.EnablePhysics != 1");
                 prop.Collision.EnablePhysics = 1;
             }
 
@@ -208,7 +208,7 @@ public class FoodSpawner : ISuperPower
 
 public class InfiniteAmmo : ISuperPower
 {
-    public Type TriggerEventType => typeof(EventWeaponFire);
+    public List<Type> Triggers => [typeof(EventWeaponFire)];
     public HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventWeaponFire)gameEvent;
@@ -231,7 +231,7 @@ public class InfiniteAmmo : ISuperPower
 
         }
         else
-            Server.PrintToChatAll($"{PowerName} : player is null or not valid");
+            Server.PrintToConsole($"{PowerName} : player is null or not valid");
         return HookResult.Continue;
     }
     public void Update() { }
@@ -242,7 +242,7 @@ public class InfiniteAmmo : ISuperPower
 
 public class SonicSpeed : ISuperPower
 {
-    public Type TriggerEventType => typeof(EventRoundStart);
+    public List<Type> Triggers => [typeof(EventRoundStart)];
     public HookResult Execute(GameEvent gameEvent)
     {
         foreach (var user in Users)
@@ -278,7 +278,7 @@ public class SonicSpeed : ISuperPower
 
 public class SteelHead : ISuperPower
 {
-    public Type TriggerEventType => typeof(EventPlayerHurt);
+    public List<Type> Triggers => [typeof(EventPlayerHurt)];
     public HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventPlayerHurt)gameEvent;
@@ -298,7 +298,9 @@ public class SteelHead : ISuperPower
         if ((HitGroup_t)realEvent.Hitgroup == HitGroup_t.HITGROUP_HEAD)
         {
             pawn.Health += realEvent.DmgHealth;
+            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
             pawn.ArmorValue += realEvent.DmgArmor;
+            Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
         }
 
         return HookResult.Continue;
@@ -311,7 +313,7 @@ public class SteelHead : ISuperPower
 
 public class InfiniteMoney : ISuperPower
 {
-    public Type TriggerEventType => typeof(EventRoundStart);
+    public List<Type> Triggers => [typeof(EventRoundStart)];
     public HookResult Execute(GameEvent gameEvent)
     {
         return HookResult.Continue;
@@ -332,7 +334,7 @@ public class InfiniteMoney : ISuperPower
 
 public class NukeNades : ISuperPower
 {
-    public Type TriggerEventType => typeof(EventGrenadeThrown);
+    public List<Type> Triggers => [typeof(EventGrenadeThrown)];
     public HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventGrenadeThrown)gameEvent;
@@ -359,7 +361,7 @@ public class NukeNades : ISuperPower
 
 public class EvilAura : ISuperPower
 {
-    public Type TriggerEventType => typeof(EventRoundStart);
+    public List<Type> Triggers => [typeof(EventRoundStart)];
     public HookResult Execute(GameEvent gameEvent)
     {
         return HookResult.Continue;
@@ -414,7 +416,7 @@ public class EvilAura : ISuperPower
 
 public class DormantPower : ISuperPower
 {
-    public Type TriggerEventType => typeof(EventRoundStart);
+    public List<Type> Triggers => [typeof(EventRoundStart)];
     public HookResult Execute(GameEvent gameEvent)
     {
         if (gameEvent.Handle == 0)
@@ -466,5 +468,61 @@ public class DormantPower : ISuperPower
     }
 }
 
+public class GlassCannon : ISuperPower
+{
+    public List<Type> Triggers => [typeof(EventRoundStart), typeof(EventPlayerHurt)];
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        var eventType = gameEvent.GetType();
+        if (eventType == typeof(EventPlayerHurt))
+        {
+            var realEvent = (EventPlayerHurt)gameEvent;
+            var attacker = realEvent.Attacker;
 
+            if (attacker == null || !attacker.IsValid)
+                return HookResult.Continue;
+
+            if (!Users.Where(p => p.UserId == attacker.UserId).Any())
+                return HookResult.Continue;
+
+            var victim = realEvent.Userid;
+            if (victim == null || !victim.IsValid)
+                return HookResult.Continue;
+            var pawn = victim.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid)
+                return HookResult.Continue;
+
+            pawn.Health -= (int)(realEvent.DmgHealth * (multiplier - 1));
+            pawn.ArmorValue -= (int)(realEvent.DmgArmor * (multiplier - 1));
+
+            if (pawn.Health <= 0)
+                pawn.Health = 0;
+            //if (pawn.ArmorValue <= 0)
+            //    pawn.ArmorValue = 0;
+
+            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
+            //Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
+        }
+        else
+        {
+            foreach (var user in Users)
+            {
+                var pawn = user.PlayerPawn.Value;
+                if (pawn == null)
+                    continue;
+
+                pawn.Health = (int)((float)pawn.Health / multiplier);
+                //pawn.ArmorValue /= 5;
+                Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
+                //Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
+            }
+        }
+
+        return HookResult.Continue;
+    }
+    public void ParseCfg(Dictionary<string, string> cfg) { multiplier = float.Parse(cfg["multiplier"]); }
+    public void Update() { }
+    private float multiplier = 5;
+    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+}
 

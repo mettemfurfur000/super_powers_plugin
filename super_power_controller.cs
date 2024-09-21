@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.RegularExpressions;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
@@ -7,20 +8,29 @@ using CounterStrikeSharp.API.Modules.Events;
 using Microsoft.VisualBasic;
 
 namespace super_powers_plugin;
+// im not sure if i use the right thing here, not familiar with da oop u know big bro... i usualy write in C
 public interface ISuperPower
 {
-    Type TriggerEventType { get; }
+    List<Type> Triggers { get; }
     List<CCSPlayerController> Users { get; set; }
     HookResult Execute(GameEvent gameEvent);
     void Update();
     void ParseCfg(Dictionary<string, string> cfg);
 }
 
-public class SuperPowerController
+public static class SuperPowerController
 {
-    private HashSet<ISuperPower> Powers = new HashSet<ISuperPower>();
+    private static HashSet<ISuperPower> Powers = new HashSet<ISuperPower>();
+    private static string mode = "normal";
 
-    public SuperPowerController(SuperPowerConfig cfg)
+    public static IEnumerable<ISuperPower> SelectPowers(string pattern)
+    {
+        string r_pattern = TemUtils.WildCardToRegular(pattern);
+
+        return Powers.Where(p => Regex.IsMatch(TemUtils.GetPowerName(p), r_pattern));
+    }
+
+    static SuperPowerController()
     {
         Powers.Add(new StartHealth());
         Powers.Add(new StartArmor());
@@ -34,18 +44,25 @@ public class SuperPowerController
         Powers.Add(new NukeNades());
         Powers.Add(new EvilAura());
         Powers.Add(new DormantPower());
-
-        FeedTheConfig(cfg);
+        Powers.Add(new GlassCannon());
     }
 
-    public IEnumerable<ISuperPower> SelectPowers(string pattern)
+    public static void SetMode(string _mode)
     {
-        string r_pattern = TemUtils.WildCardToRegular(pattern);
-
-        return Powers.Where(p => Regex.IsMatch(TemUtils.GetPowerName(p), r_pattern));
+        mode = _mode;
     }
 
-    public List<string> GetPowerList()
+    public static string GetMode()
+    {
+        return mode;
+    }
+
+    public static HashSet<ISuperPower> GetPowers()
+    {
+        return Powers;
+    }
+
+    public static List<string> GetPowerList()
     {
         List<string> list = new List<string>();
         foreach (var p in Powers)
@@ -53,52 +70,102 @@ public class SuperPowerController
         return list;
     }
 
-    public List<Type> GetPowerTriggerEvents()
+    public static List<List<Type>> GetPowerTriggerEvents()
     {
-        List<Type> list = new List<Type>();
+        List<List<Type>> list = [];
         foreach (var p in Powers)
-            list.Add(p.TriggerEventType);
+            list.Add(p.Triggers);
         return list;
     }
 
-    public void Update()
+    public static string GetUsersTable()
+    {
+        string out_string = "";
+        foreach (var p in Powers)
+        {
+            out_string += TemUtils.GetPowerName(p) + ":\n";
+            var users = p.Users;
+            foreach (var user in users)
+            {
+                out_string += $"\t{user.PlayerName}\n";
+            }
+        }
+        return out_string;
+    }
+
+    public static void Update()
     {
         foreach (var power in Powers)
             power.Update();
     }
 
-    public void FeedTheConfig(SuperPowerConfig cfg)
+    public static void FeedTheConfig(SuperPowerConfig cfg)
     {
         foreach (var power in Powers)
             try { power.ParseCfg(cfg.args[TemUtils.GetPowerName(power)]); }
             catch { }
     }
 
-    public void Reconfigure(Dictionary<string, string> configuration, string power_name_pattern)
+    public static void Reconfigure(Dictionary<string, string> configuration, string power_name_pattern)
     {
         var powers = SelectPowers(power_name_pattern);
         foreach (var power in powers)
             power.ParseCfg(configuration);
     }
 
-    public HookResult ExecutePower(GameEvent gameEvent)
+    public static HookResult ExecutePower(GameEvent gameEvent)
     {
         HookResult ret = HookResult.Continue;
         Type type = gameEvent.GetType();
         foreach (var power in Powers)
-            if (power.TriggerEventType == type || type == typeof(GameEvent))
+            if (power.Triggers.Contains(type) || type == typeof(GameEvent))
                 if (power.Execute(gameEvent) == HookResult.Stop)
                     ret = HookResult.Stop;
 
         return ret;
     }
 
-    public void AddNewPower(ISuperPower power)
+    public static void AddNewPower(ISuperPower power)
     {
         Powers.Add(power);
     }
 
-    public string AddPowers(string player_name_pattern, string power_name_pattern, bool now = false)
+    public static void CleanPowers()
+    {
+        // clear all powers first
+        foreach (var p in Powers)
+            p.Users.Clear();
+    }
+
+    public static string AddPowerRandomlyToEveryone()
+    {
+        CleanPowers();
+
+        var players = Utilities.GetPlayers();
+        if (!players.Any())
+            return "Error: No players found";
+
+        List<string> blacklist = ["dormant_power"];
+
+        foreach (var player in players)
+        {
+            var power = Powers.ElementAt(new Random().Next(Powers.Count));
+
+            if (blacklist.Contains(TemUtils.GetPowerName(power)))
+                continue;
+
+            power.Users.Add(player);
+            player.PrintToCenterAlert($"You have been given a random power: {TemUtils.GetPowerName(power)}");
+
+            try
+            { power.Execute(new GameEvent(0)); }
+            catch { }
+        }
+
+        return "Successfully added random powers to everyone";
+    }
+
+    public static string AddPowers(string player_name_pattern, string power_name_pattern, bool now = false)
     {
         var status_message = "";
 
@@ -126,7 +193,7 @@ public class SuperPowerController
                 status_message += $"Added {powerName} to {player.PlayerName}\n";
                 var now_tip = now ? ", Effects will be applied now" : "";
                 player.PrintToChat($"You have been given {powerName} by the server{now_tip}!");
-                player.ExecuteClientCommand("play sounds/ui/panorama/claim_gift_01.vsnd");
+                //player.ExecuteClientCommand("play sounds/ui/panorama/claim_gift_01.vsnd");
             }
 
             if (now)
@@ -138,7 +205,7 @@ public class SuperPowerController
         return status_message;
     }
 
-    public string RemovePowers(string player_name_pattern, string power_name_pattern)
+    public static string RemovePowers(string player_name_pattern, string power_name_pattern)
     {
         var status_message = "";
 
@@ -164,5 +231,38 @@ public class SuperPowerController
             }
         }
         return status_message;
+    }
+
+    public static Dictionary<string, Dictionary<string, string>> GenerateDefaultConfig()
+    {
+        Dictionary<string, Dictionary<string, string>> args = new Dictionary<string, Dictionary<string, string>>();
+        foreach (var power in Powers)
+        {
+            var power_name = TemUtils.GetPowerName(power);
+            if (power_name == null)
+            {
+                continue;
+            }
+            //Server.PrintToConsole($"{power_name}:");
+            var fields = power.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+            args.Add(power_name, new Dictionary<string, string>());
+            foreach (var property in fields)
+            {
+                if (property.IsPublic) continue;
+                if (property.Name.Contains("Triggers")) continue;
+                if (property.Name.Contains("Users")) continue;
+
+                var property_name = property.Name;
+                var property_value = property.GetValue(power);
+
+                //Server.PrintToConsole($"\tField {property_name}");
+
+                if (property_value != null)
+                {
+                    args[power_name].Add(property_name, property_value.ToString() ?? "null");
+                }
+            }
+        }
+        return args;
     }
 }

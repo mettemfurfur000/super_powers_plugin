@@ -30,6 +30,11 @@ public class TemUtils
         return ToSnakeCase(type.GetType().ToString()).Split(".").Last();
     }
 
+    public static string GetPowerName(Type type)
+    {
+        return ToSnakeCase(type.GetType().ToString()).Split(".").Last();
+    }
+
     public static String WildCardToRegular(String value)
     {
         return "^" + Regex.Escape(value).Replace("\\*", ".*") + "$";

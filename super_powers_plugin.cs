@@ -35,8 +35,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     public override string ModuleVersion => "0.1.0";
     public override string ModuleAuthor => "tem";
 
-    public SuperPowerConfig Config { get; set; } = new();
-    public SuperPowerController? controller;
+    public SuperPowerConfig? Config { get; set; } = null;
 
     public void smwprint(CCSPlayerController? player, string s)
     {
@@ -48,26 +47,32 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     public override void Load(bool hotReload)
     {
-        controller = new SuperPowerController(Config)!;
-
         RegisterListener<Listeners.OnServerPrecacheResources>(OnServerPrecacheResources);
 
-        RegisterEventHandler<EventRoundStart>((@event, info) => controller.ExecutePower(@event));
-        RegisterEventHandler<EventBombBegindefuse>((@event, info) => controller.ExecutePower(@event));
-        RegisterEventHandler<EventBombBeginplant>((@event, info) => controller.ExecutePower(@event));
-        RegisterEventHandler<EventWeaponFire>((@event, info) => controller.ExecutePower(@event));
-        RegisterEventHandler<EventGrenadeThrown>((@event, info) => controller.ExecutePower(@event));
-        RegisterEventHandler<EventPlayerHurt>((@event, info) => controller.ExecutePower(@event));
+        RegisterEventHandler<EventRoundStart>((@event, info) =>
+        {
+            if (SuperPowerController.GetMode() == "random")
+                SuperPowerController.AddPowerRandomlyToEveryone();
+
+            smwprint(null, $"Round started, mode: {SuperPowerController.GetMode()}");
+
+            return SuperPowerController.ExecutePower(@event);
+        });
+        RegisterEventHandler<EventBombBegindefuse>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventBombBeginplant>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventWeaponFire>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventGrenadeThrown>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventPlayerHurt>((@event, info) => SuperPowerController.ExecutePower(@event));
 
         RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
         {
-            controller.RemovePowers(@event.Userid!.PlayerName, "*");
+            SuperPowerController.RemovePowers(@event.Userid!.PlayerName, "*");
             return HookResult.Continue;
         });
 
         RegisterListener<Listeners.OnTick>(() =>
         {
-            controller.Update();
+            SuperPowerController.Update();
         });
     }
 
@@ -95,7 +100,19 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         if (commandInfo.ArgCount >= 4)
             now_flag = commandInfo.GetArg(3).ToLower().Contains("now");
 
-        smwprint(caller, controller!.AddPowers(playerNamePattern, powerNamePattern, now_flag));
+        smwprint(caller, SuperPowerController.AddPowers(playerNamePattern, powerNamePattern, now_flag));
+    }
+
+    [ConsoleCommand("sp_mode", "todo")]
+    [CommandHelper(minArgs: 1, usage: "[mode] - normal, random", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    //[RequiresPermissions("@css/cvar")]
+    public void OnPowerMode(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var mode = commandInfo.GetArg(1);
+
+        SuperPowerController.SetMode(mode);
+
+        smwprint(caller, $"Mode {mode} set");
     }
 
     [ConsoleCommand("sp_remove", "Removes a superpower from specified player. both name of player and superpower have autocompletion if theres only 1 option.")]
@@ -105,7 +122,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     {
         var playerNamePattern = commandInfo.GetArg(1);
         var powerNamePattern = commandInfo.GetArg(2);
-        smwprint(caller, controller!.RemovePowers(playerNamePattern, powerNamePattern));
+        smwprint(caller, SuperPowerController.RemovePowers(playerNamePattern, powerNamePattern));
     }
 
     [ConsoleCommand("sp_list", "lists all posibl powers")]
@@ -113,12 +130,17 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     //[RequiresPermissions("@css/cvar")]
     public void OnPowerList(CCSPlayerController? player, CommandInfo commandInfo)
     {
-        var powers = controller?.GetPowerList();
-        var types = controller?.GetPowerTriggerEvents();
+        var powers = SuperPowerController.GetPowerList();
+        var types = SuperPowerController.GetPowerTriggerEvents();
         var out_table = "";
         if (powers != null && types != null)
             for (int i = 0; i < powers.Count; i++)
-                out_table += $"\n\t{powers[i]}\t{types[i].ToString().Split(".").Last()}";
+            {
+                out_table += $"\n\t{powers[i]}\t";
+                foreach (var type in types[i])
+                    out_table += $"{TemUtils.GetPowerName((Type)type)}, ";
+            }
+
         smwprint(player, $"\tsuperpowers\ttriggers\n{out_table}");
     }
 
@@ -127,10 +149,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     //[RequiresPermissions("@css/cvar")]
     public void OnPowerStatus(CCSPlayerController? player, CommandInfo commandInfo)
     {
-        var powers = controller?.GetPowerList();
-        var types = controller?.GetPowerTriggerEvents();
-        var out_table = "";
-        smwprint(player, $"{out_table}");
+        smwprint(player, $"{SuperPowerController.GetUsersTable()}");
     }
 
     [ConsoleCommand("sp_reconfigure", "parses your input as a config and applies it")]
@@ -146,11 +165,18 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             var value = commandInfo.GetArg(i + 1);
             forced_cfg[key] = value;
         }
-        controller?.Reconfigure(forced_cfg, commandInfo.GetArg(1));
+        SuperPowerController.Reconfigure(forced_cfg, commandInfo.GetArg(1));
+        smwprint(player, "Reconfigured!");
+    }
+
+    public super_powers_plugin()
+    {
+        Config = new SuperPowerConfig();
     }
 
     public void OnConfigParsed(SuperPowerConfig config)
     {
+        Server.PrintToConsole($"Config parsed!");
         Config = config;
     }
 }
