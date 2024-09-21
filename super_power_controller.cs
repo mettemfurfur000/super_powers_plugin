@@ -19,6 +19,10 @@ public interface ISuperPower
     {
         TemUtils.ParseConfigReflective(this, this.GetType(), cfg);
     }
+    void OnRemove(CCSPlayerController? player)
+    {
+
+    }
 }
 
 public static class SuperPowerController
@@ -145,7 +149,10 @@ public static class SuperPowerController
     {
         // clear all powers first
         foreach (var p in Powers)
+        {
+            p.OnRemove(null);
             p.Users.Clear();
+        }
     }
 
     public static string AddPowerRandomlyToEveryone()
@@ -167,6 +174,8 @@ public static class SuperPowerController
 
             power.Users.Add(player);
             player.PrintToCenterAlert($"You have been given a random power: {TemUtils.GetPowerName(power)}");
+            player.PrintToChat($"You have been given a random power: {TemUtils.GetPowerName(power)}");
+            player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
 
             try
             { power.Execute(new GameEvent(0)); }

@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using CounterStrikeSharp.API;
@@ -43,7 +44,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     private readonly CSPlayerState[] _oldPlayerState = new CSPlayerState[65];
     private readonly INetworkServerService networkServerService = new();
 
-    public SuperPowerConfig? Config { get; set; } = null;
+    public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
 
     public void smwprint(CCSPlayerController? player, string s)
     {
@@ -75,6 +76,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         RegisterEventHandler<EventWeaponFire>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventGrenadeThrown>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventPlayerHurt>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventPlayerSound>((@event, info) => SuperPowerController.ExecutePower(@event));
 
         RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
         {
@@ -183,11 +185,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         smwprint(player, "Reconfigured!");
     }
 
-    public super_powers_plugin()
-    {
-        Config = new SuperPowerConfig();
-    }
-
     public void OnConfigParsed(SuperPowerConfig config)
     {
         Config = config;
@@ -242,7 +239,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
                 }
                 #endregion
 
-                if (users.Contains(target))
+                if (users.Contains(target) && (target.BloodType == BloodType.ColorGreen || pawn.Render.A < 10))
                     info.m_pTransmitEntity.Clear((int)pawn.Index);
             }
         }
@@ -281,5 +278,4 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         player.PlayerPawn.Value?.Teleport(null, player.PlayerPawn.Value.EyeAngles, null);
     }
-
 }

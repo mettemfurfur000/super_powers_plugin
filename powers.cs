@@ -43,7 +43,7 @@ public class StartHealth : ISuperPower
             if (pawn == null)
                 continue;
 
-            pawn.Health *= multiplier;
+            pawn.Health = pawn.Health * multiplier;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
         return HookResult.Continue;
@@ -66,7 +66,7 @@ public class StartArmor : ISuperPower
             if (pawn == null)
                 continue;
 
-            pawn.ArmorValue *= multiplier;
+            pawn.ArmorValue = pawn.ArmorValue * multiplier;
             Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
 
         }
@@ -298,7 +298,7 @@ public class SteelHead : ISuperPower
 
         if ((HitGroup_t)realEvent.Hitgroup == HitGroup_t.HITGROUP_HEAD)
         {
-            pawn.Health += realEvent.DmgHealth;
+            pawn.Health = pawn.Health + realEvent.DmgHealth;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
             pawn.ArmorValue += realEvent.DmgArmor;
             Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
@@ -490,11 +490,15 @@ public class GlassCannon : ISuperPower
             if (pawn == null || !pawn.IsValid)
                 return HookResult.Continue;
 
-            pawn.Health -= (int)(realEvent.DmgHealth * (multiplier - 1));
+            pawn.Health = pawn.Health - (int)(realEvent.DmgHealth * (multiplier - 1));
             //pawn.ArmorValue -= (int)(realEvent.DmgArmor * (multiplier - 1));
 
             if (pawn.Health <= 0)
+            {
                 pawn.Health = 0;
+                //pawn.AcceptInput("Kill");
+                //victim.ExecuteClientCommandFromServer("kill");
+            }
             //if (pawn.ArmorValue <= 0)
             //    pawn.ArmorValue = 0;
 
@@ -509,7 +513,7 @@ public class GlassCannon : ISuperPower
                 if (pawn == null)
                     continue;
 
-                pawn.Health = (int)((float)pawn.Health / multiplier);
+                pawn.Health = (int)(pawn.Health / multiplier);
                 //pawn.ArmorValue /= 5;
                 Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
                 //Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
@@ -542,7 +546,7 @@ public class Vampirism : ISuperPower
         if (attackerPawn == null || !attackerPawn.IsValid)
             return HookResult.Continue;
 
-        attackerPawn.Health += realEvent.DmgHealth / divisor;
+        attackerPawn.Health = attackerPawn.Health + realEvent.DmgHealth / divisor;
 
         Utilities.SetStateChanged(attackerPawn, "CBaseEntity", "m_iHealth");
         //Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
@@ -564,10 +568,70 @@ public class Vampirism : ISuperPower
 
 public class Invisibility : ISuperPower
 {
-    public List<Type> Triggers => [];
-    public HookResult Execute(GameEvent gameEvent) { return HookResult.Continue; }
+    public List<Type> Triggers => [typeof(EventPlayerSound), typeof(EventWeaponFire)];
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        if (gameEvent is EventPlayerSound realEventSound)
+        {
+            HandleEvent(realEventSound.Userid);
+        }
+        else if (gameEvent is EventWeaponFire realEventFire)
+        {
+            HandleEvent(realEventFire.Userid);
+        }
+        return HookResult.Continue;
+    }
+
+    private void HandleEvent(CCSPlayerController? player)
+    {
+        if (player != null)
+        {
+            if (!Users.Contains(player))
+                return;
+
+            var idx = Users.IndexOf(player);
+            if (idx != -1)
+            {
+                levels[idx] = -1.0f; // will be visible for a few seconds or so
+                TemUtils.SetPlayerVisibilityLevel(player, 0.0f);
+            }
+        }
+    }
+
     public void Update()
     {
+        if (Server.TickCount % 8 != 0)
+            return;
+
+        for (int i = 0; i < Users.Count; i++)
+        {
+            var newValue = levels[i] < 1.0f ? levels[i] + 0.5 : 1.0f;
+
+            if (newValue != levels[i])
+                TemUtils.SetPlayerVisibilityLevel(Users[i], (float)newValue);
+
+            levels[i] = newValue;
+
+            Users[i].BloodType = levels[i] >= 1.0f ? BloodType.ColorGreen : BloodType.ColorRed; // green == full invisible, red == visible
+            Utilities.SetStateChanged(Users[i], "CBaseEntity", "m_nBloodType");
+        }
+    }
+
+    public void OnRemove(CCSPlayerController? player)
+    {
+        if (player == null)
+        {
+            foreach (var p in Users)
+            {
+                levels[Users.IndexOf(p)] = -1.0f;
+                TemUtils.SetPlayerVisibilityLevel(p, 0.0f);
+            }
+            return;
+        }
+
+        levels[Users.IndexOf(player)] = -1.0f;
+        TemUtils.SetPlayerVisibilityLevel(player, 0.0f);
     }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<double> levels = [65];
 }
