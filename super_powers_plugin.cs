@@ -107,7 +107,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     [ConsoleCommand("sp_add", "Adds a superpower to specified player. both name of player and superpower have autocompletion if theres only 1 option. \nflag \"now\" will trigger the power instantly")]
     [CommandHelper(minArgs: 2, usage: "[player] [power] optional: (now)", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    //[RequiresPermissions("@css/cvar")]
+    [RequiresPermissions("@css/root")]
     public void OnPowerAdd(CCSPlayerController? caller, CommandInfo commandInfo)
     {
         var playerNamePattern = commandInfo.GetArg(1);
@@ -121,7 +121,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     [ConsoleCommand("sp_mode", "todo")]
     [CommandHelper(minArgs: 1, usage: "[mode] - normal, random", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    //[RequiresPermissions("@css/cvar")]
+    [RequiresPermissions("@css/root")]
     public void OnPowerMode(CCSPlayerController? caller, CommandInfo commandInfo)
     {
         var mode = commandInfo.GetArg(1);
@@ -133,7 +133,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     [ConsoleCommand("sp_remove", "Removes a superpower from specified player. both name of player and superpower have autocompletion if theres only 1 option.")]
     [CommandHelper(minArgs: 2, usage: "[player/*] [power/*]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    //[RequiresPermissions("@css/cvar")]
+    [RequiresPermissions("@css/root")]
     public void OnPowerRemove(CCSPlayerController? caller, CommandInfo commandInfo)
     {
         var playerNamePattern = commandInfo.GetArg(1);
@@ -143,7 +143,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     [ConsoleCommand("sp_list", "lists all posibl powers")]
     [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    //[RequiresPermissions("@css/cvar")]
+    [RequiresPermissions("@css/root")]
     public void OnPowerList(CCSPlayerController? player, CommandInfo commandInfo)
     {
         var powers = SuperPowerController.GetPowerList();
@@ -162,7 +162,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     [ConsoleCommand("sp_status", "lists all users of certain powers")]
     [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    //[RequiresPermissions("@css/cvar")]
+    [RequiresPermissions("@css/root")]
     public void OnPowerStatus(CCSPlayerController? player, CommandInfo commandInfo)
     {
         smwprint(player, $"{SuperPowerController.GetUsersTable()}");
@@ -170,7 +170,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     [ConsoleCommand("sp_reconfigure", "parses your input as a config and applies it")]
     [CommandHelper(minArgs: 2, usage: "[power] [key1] [value1] [key2] [value2] ...", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    //[RequiresPermissions("@css/cvar")]
+    [RequiresPermissions("@css/root")]
     public void OnReconfigure(CCSPlayerController? player, CommandInfo commandInfo)
     {
         Dictionary<string, string> forced_cfg = [];
