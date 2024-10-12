@@ -9,6 +9,7 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Events;
+using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 
 namespace super_powers_plugin;
@@ -21,7 +22,7 @@ namespace super_powers_plugin;
     }
 
 */
-
+/*
 public class TemplatePower : ISuperPower
 {
     public List<Type> Triggers => [typeof(EventRoundStart)];
@@ -31,6 +32,7 @@ public class TemplatePower : ISuperPower
     int value = 404;
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
 }
+*/
 
 public class StartHealth : ISuperPower
 {
@@ -43,7 +45,7 @@ public class StartHealth : ISuperPower
             if (pawn == null)
                 continue;
 
-            pawn.Health = pawn.Health * multiplier;
+            pawn.Health = value;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
         return HookResult.Continue;
@@ -51,7 +53,7 @@ public class StartHealth : ISuperPower
 
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    private int multiplier = 5;
+    private int value = 250;
 
 }
 
@@ -66,7 +68,7 @@ public class StartArmor : ISuperPower
             if (pawn == null)
                 continue;
 
-            pawn.ArmorValue = pawn.ArmorValue * multiplier;
+            pawn.ArmorValue = value;
             Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
 
         }
@@ -74,7 +76,7 @@ public class StartArmor : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    private int multiplier = 2;
+    private int value = 250;
 
 }
 
@@ -277,7 +279,7 @@ public class SonicSpeed : ISuperPower
     private int value = 404;
 }
 
-public class SteelHead : ISuperPower
+public class HeadshotImmunity : ISuperPower
 {
     public List<Type> Triggers => [typeof(EventPlayerHurt)];
     public HookResult Execute(GameEvent gameEvent)
@@ -387,15 +389,11 @@ public class EvilAura : ISuperPower
                 if (player_to_harm.TeamNum == 1) // skip spectators, just in case
                     continue;
                 var harm_pawn = player_to_harm.PlayerPawn.Value!;
-                if (harm_pawn.Health <= 1)
-                    continue;
 
-                harm_pawn.Health -= (int)damage;
-                Utilities.SetStateChanged(harm_pawn, "CBaseEntity", "m_iHealth");
-                user.PrintToCenter($"You have harmed {player_to_harm.PlayerName} for {damage} damage");
+                TemUtils.Damage(harm_pawn, (int)damage);
+
+                user.PrintToCenter($"Harmed someone for {damage}...");
                 player_to_harm.PrintToCenter($"You have been hurt by {user.PlayerName}'s evil aura");
-                if (harm_pawn.Health <= 0)
-                    harm_pawn.Health = 1;
             }
         }
     }
@@ -419,6 +417,11 @@ public class DormantPower : ISuperPower
             return HookResult.Continue; // prevent recursive call
 
         var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
+
+        if (dormant_power_rules.Count == 0)
+        {
+            SplitMasterRule();
+        }
 
         HashSet<string> power_commands = [];
         try
@@ -450,18 +453,25 @@ public class DormantPower : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    private Dictionary<int, HashSet<string>> dormant_power_rules = [];
-    private bool please_dont_edit_me_and_my_friends = true;
+    private Dictionary<int, HashSet<string>> dormant_power_rules = new();
 
-    public void ParseCfg(Dictionary<string, string> cfg)
+    private string master_rule = "fill_me";
+    private string round_rule_separator = "|";
+    private string command_separator = ";";
+
+    private void SplitMasterRule()
     {
-        foreach (var entry_line in cfg)
-        {
-            var round_number = int.Parse(entry_line.Key);
-            var rules = entry_line.Value;
-            var power_commands = rules.Split(";").ToHashSet();
+        var round_rules = master_rule.Split(round_rule_separator).ToHashSet();
+        if (round_rules.Count == 0)
+            return;
 
-            dormant_power_rules.Add(round_number, power_commands);
+        foreach (var rule in round_rules)
+        {
+            var power_commands = rule.Split(command_separator);
+
+            int round_number = int.Parse(power_commands[0]);
+
+            dormant_power_rules.Add(round_number, power_commands.ToHashSet());
         }
     }
 }
@@ -490,22 +500,10 @@ public class GlassCannon : ISuperPower
             if (pawn == null || !pawn.IsValid)
                 return HookResult.Continue;
 
-            pawn.Health = pawn.Health - (int)(realEvent.DmgHealth * (multiplier - 1));
-            //pawn.ArmorValue -= (int)(realEvent.DmgArmor * (multiplier - 1));
-
-            if (pawn.Health <= 0)
-            {
-                pawn.Health = 0;
-                //pawn.AcceptInput("Kill");
-                //victim.ExecuteClientCommandFromServer("kill");
-            }
-            //if (pawn.ArmorValue <= 0)
-            //    pawn.ArmorValue = 0;
-
-            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
-            //Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
+            TemUtils.Damage(pawn, (int)(realEvent.DmgHealth * damage_multiplier));
         }
-        else
+
+        if (eventType == typeof(EventRoundStart))
         {
             foreach (var user in Users)
             {
@@ -513,17 +511,16 @@ public class GlassCannon : ISuperPower
                 if (pawn == null)
                     continue;
 
-                pawn.Health = (int)(pawn.Health / multiplier);
-                //pawn.ArmorValue /= 5;
+                pawn.Health = health;
                 Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
-                //Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
             }
         }
 
         return HookResult.Continue;
     }
     public void Update() { }
-    private float multiplier = 5;
+    private int health = 50;
+    private int damage_multiplier = 2;
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
 }
 
@@ -634,4 +631,43 @@ public class Invisibility : ISuperPower
     }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
     public List<double> levels = [65];
+}
+
+
+public class SuperJump : ISuperPower
+{
+    public List<Type> Triggers => [typeof(EventPlayerJump)];
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        EventPlayerJump realEvent = (EventPlayerJump)gameEvent;
+        var player = realEvent.Userid;
+        if (player == null)
+            return HookResult.Continue;
+
+        var pawn = player.Pawn.Value;
+        if (pawn == null)
+            return HookResult.Continue;
+
+        //pawn.Teleport(null, null, new CounterStrikeSharp.API.Modules.Utils.Vector(pawn.AbsVelocity.X, pawn.AbsVelocity.Y, pawn.AbsVelocity.Z + 300));
+
+        if (pawn.V_angle.X < -55)
+            Server.NextFrame(() =>
+            {
+                pawn.AbsVelocity.Z *= multiplier;
+                if (pawn.AbsVelocity.Z < 300 * multiplier)
+                    Server.NextFrame(() =>
+                    {
+                        pawn.AbsVelocity.Z *= multiplier;
+                    });
+            });
+
+        //pawn.MovementServices.Impulse;
+        // Server.PrintToChatAll($"{pawn.MovementServices.Impulse}");
+
+        return HookResult.Continue;
+    }
+
+    public void Update() { }
+    private float multiplier = 2;
+    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
 }

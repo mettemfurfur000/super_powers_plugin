@@ -138,4 +138,16 @@ public class TemUtils
                 }
             }
     }
+
+
+    public static void Damage(CBasePlayerPawn player, int value)
+    {
+        Server.NextFrame(() =>
+        {
+            player.Health -= value;
+            if (player.Health < 1)
+                player.Health = -1;
+            Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
+        });
+    }
 }

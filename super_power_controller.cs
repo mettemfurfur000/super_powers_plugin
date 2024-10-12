@@ -46,14 +46,16 @@ public static class SuperPowerController
         Powers.Add(new FoodSpawner());
         Powers.Add(new InfiniteAmmo());
         Powers.Add(new SonicSpeed());
-        Powers.Add(new SteelHead());
+        Powers.Add(new HeadshotImmunity());
         Powers.Add(new InfiniteMoney());
         Powers.Add(new NukeNades());
         Powers.Add(new EvilAura());
         Powers.Add(new DormantPower());
         Powers.Add(new GlassCannon());
         Powers.Add(new Vampirism());
-        Powers.Add(new Invisibility());
+        Powers.Add(new SuperJump());
+        // unable to make it work for now, wait for this https://github.com/roflmuffin/CounterStrikeSharp/pull/608
+        // Powers.Add(new Invisibility()); 
     }
 
     public static void SetMode(string _mode)
@@ -163,11 +165,21 @@ public static class SuperPowerController
         if (!players.Any())
             return "Error: No players found";
 
-        List<string> blacklist = ["dormant_power"];
+        List<string> blacklist = ["dormant_power", "food_spawner", "nuke_nades"];
+        List<string> ct_black_list = ["instant_plant"];
+        List<string> t_black_list = ["instant_defuse"];
 
         foreach (var player in players)
         {
             var power = Powers.ElementAt(new Random().Next(Powers.Count));
+
+            if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.Terrorist)
+                if (t_black_list.Contains(TemUtils.GetPowerName(power)))
+                    continue;
+
+            if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.CounterTerrorist)
+                if (ct_black_list.Contains(TemUtils.GetPowerName(power)))
+                    continue;
 
             if (blacklist.Contains(TemUtils.GetPowerName(power)))
                 continue;

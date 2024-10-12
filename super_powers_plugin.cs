@@ -1,3 +1,5 @@
+#define DON_DO_INVIS
+
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -30,8 +32,6 @@ namespace super_powers_plugin;
 [ ] - Poison gas / Proximity ( Closer to the player the more damage you take )
 */
 
-
-
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 {
     public override string ModuleName => "super_powers_plugin";
@@ -39,10 +39,12 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     public override string ModuleAuthor => "tem";
 
     // invisibility stuff, custom hooks :p
+#if !DON_DO_INVIS
     private static readonly MemoryFunctionVoid<nint, nint, int, nint, int, short, int, bool> CheckTransmit = new(GameData.GetSignature("CheckTransmit"));
     private static readonly MemoryFunctionVoid<nint, CSPlayerState> StateTransition = new(GameData.GetSignature("StateTransition"));
     private readonly CSPlayerState[] _oldPlayerState = new CSPlayerState[65];
     private readonly INetworkServerService networkServerService = new();
+#endif
 
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
 
@@ -67,9 +69,10 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
             return SuperPowerController.ExecutePower(@event);
         });
-
+#if !DON_DO_INVIS
         StateTransition.Hook(Hook_StateTransition, HookMode.Post);
         CheckTransmit.Hook(Hook_CheckTransmit, HookMode.Post);
+#endif
 
         RegisterEventHandler<EventBombBegindefuse>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBeginplant>((@event, info) => SuperPowerController.ExecutePower(@event));
@@ -77,6 +80,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         RegisterEventHandler<EventGrenadeThrown>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventPlayerHurt>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventPlayerSound>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventPlayerJump>((@event, info) => SuperPowerController.ExecutePower(@event));
 
         RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
         {
@@ -101,8 +105,10 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     public override void Unload(bool hotReload)
     {
+#if !DON_DO_INVIS
         StateTransition.Unhook(Hook_StateTransition, HookMode.Post);
         CheckTransmit.Unhook(Hook_CheckTransmit, HookMode.Post);
+#endif
     }
 
     [ConsoleCommand("sp_add", "Adds a superpower to specified player. both name of player and superpower have autocompletion if theres only 1 option. \nflag \"now\" will trigger the power instantly")]
@@ -191,7 +197,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         SuperPowerController.FeedTheConfig(Config);
     }
-
+#if !DON_DO_INVIS
     private unsafe HookResult Hook_CheckTransmit(DynamicHook hook)
     {
         nint* ppInfoList = (nint*)hook.GetParam<nint>(1);
@@ -278,4 +284,5 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         player.PlayerPawn.Value?.Teleport(null, player.PlayerPawn.Value.EyeAngles, null);
     }
+#endif
 }
