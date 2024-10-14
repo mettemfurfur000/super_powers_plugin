@@ -140,14 +140,57 @@ public class TemUtils
     }
 
 
-    public static void Damage(CBasePlayerPawn player, int value)
+    public static void Damage(CCSPlayerPawn player, uint value)
     {
         Server.NextFrame(() =>
         {
-            player.Health -= value;
-            if (player.Health < 1)
-                player.Health = -1;
+            if (value >= player.Health)
+            {
+                var controller = player.OriginalController.Value!;
+                controller.ExecuteClientCommandFromServer($"hurtme {value}");
+            }
+            else
+            {
+                player.Health -= (int)value;
+            }
+
             Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
         });
+    }
+
+    public static void MakeModelGlow(CBaseEntity entity)
+    {
+        CBaseModelEntity? modelGlow = Utilities.CreateEntityByName<CBaseModelEntity>("prop_dynamic");
+        CBaseModelEntity? modelRelay = Utilities.CreateEntityByName<CBaseModelEntity>("prop_dynamic");
+
+        if (modelGlow == null || modelRelay == null)
+            return;
+
+        if (entity.CBodyComponent?.SceneNode == null)
+        {
+            Server.PrintToChatAll("Failed to make pawn glow: CBodyComponent or SceneNode is null.");
+            return;
+        }
+
+        string modelName = entity.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName;
+
+        modelRelay.SetModel(modelName);
+        modelRelay.Spawnflags = 256u;
+        modelRelay.RenderMode = RenderMode_t.kRenderNone;
+        modelRelay.DispatchSpawn();
+
+        modelGlow.SetModel(modelName);
+        modelGlow.Spawnflags = 256u;
+        modelGlow.DispatchSpawn();
+
+        modelGlow.Glow.GlowColorOverride = Color.Red;
+
+        modelGlow.Glow.GlowRange = 5000;
+        modelGlow.Glow.GlowTeam = 0;
+        modelGlow.Glow.GlowType = 3;
+        modelGlow.Glow.GlowRangeMin = 100;
+
+        modelRelay.AcceptInput("FollowEntity", entity, modelRelay, "!activator");
+        modelGlow.AcceptInput("FollowEntity", modelRelay, modelGlow, "!activator");
     }
 }

@@ -63,7 +63,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         RegisterEventHandler<EventRoundStart>((@event, info) =>
         {
             if (SuperPowerController.GetMode() == "random")
-                SuperPowerController.AddPowerRandomlyToEveryone();
+                SuperPowerController.AddPowerRandomlyToEveryone(Config);
 
             smwprint(null, $"Round started, mode: {SuperPowerController.GetMode()}");
 
@@ -81,6 +81,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         RegisterEventHandler<EventPlayerHurt>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventPlayerSound>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventPlayerJump>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventPlayerDeath>((@event, info) => SuperPowerController.ExecutePower(@event));
 
         RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
         {

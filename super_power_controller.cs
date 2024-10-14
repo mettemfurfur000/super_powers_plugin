@@ -8,7 +8,7 @@ using CounterStrikeSharp.API.Modules.Events;
 using Microsoft.VisualBasic;
 
 namespace super_powers_plugin;
-// im not sure if i use the right thing here, not familiar with da oop u know big bro... i usualy write in C
+
 public interface ISuperPower
 {
     List<Type> Triggers { get; }
@@ -39,13 +39,13 @@ public static class SuperPowerController
 
     static SuperPowerController()
     {
-        Powers.Add(new StartHealth());
-        Powers.Add(new StartArmor());
+        Powers.Add(new BonusHealth());
+        Powers.Add(new BonusArmor());
         Powers.Add(new InstantDefuse());
         Powers.Add(new InstantPlant());
-        Powers.Add(new FoodSpawner());
+        Powers.Add(new Banana());
         Powers.Add(new InfiniteAmmo());
-        Powers.Add(new SonicSpeed());
+        Powers.Add(new SuperSpeed());
         Powers.Add(new HeadshotImmunity());
         Powers.Add(new InfiniteMoney());
         Powers.Add(new NukeNades());
@@ -56,6 +56,9 @@ public static class SuperPowerController
         Powers.Add(new SuperJump());
         // unable to make it work for now, wait for this https://github.com/roflmuffin/CounterStrikeSharp/pull/608
         // Powers.Add(new Invisibility()); 
+        Powers.Add(new ExplosionUponDeath());
+        Powers.Add(new Regeneration());
+        Powers.Add(new WarpPeek());
     }
 
     public static void SetMode(string _mode)
@@ -157,7 +160,7 @@ public static class SuperPowerController
         }
     }
 
-    public static string AddPowerRandomlyToEveryone()
+    public static string AddPowerRandomlyToEveryone(SuperPowerConfig cfg)
     {
         CleanPowers();
 
@@ -165,23 +168,19 @@ public static class SuperPowerController
         if (!players.Any())
             return "Error: No players found";
 
-        List<string> blacklist = ["dormant_power", "food_spawner", "nuke_nades"];
-        List<string> ct_black_list = ["instant_plant"];
-        List<string> t_black_list = ["instant_defuse"];
-
         foreach (var player in players)
         {
             var power = Powers.ElementAt(new Random().Next(Powers.Count));
 
             if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.Terrorist)
-                if (t_black_list.Contains(TemUtils.GetPowerName(power)))
+                if (cfg.t_black_list.Contains(TemUtils.GetPowerName(power)))
                     continue;
 
             if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.CounterTerrorist)
-                if (ct_black_list.Contains(TemUtils.GetPowerName(power)))
+                if (cfg.ct_black_list.Contains(TemUtils.GetPowerName(power)))
                     continue;
 
-            if (blacklist.Contains(TemUtils.GetPowerName(power)))
+            if (cfg.blacklist.Contains(TemUtils.GetPowerName(power)))
                 continue;
 
             power.Users.Add(player);
@@ -209,29 +208,44 @@ public static class SuperPowerController
         if (powers == null)
             return "Error: Power(s) not found";
 
-        foreach (var power in powers)
+        foreach (var player in players)
         {
-            var powerName = TemUtils.GetPowerName(power);
-            foreach (var player in players)
+            string added_powers_feedback = "Server added the following powers to you:\n";
+            foreach (var power in powers)
             {
+                var powerName = TemUtils.GetPowerName(power);
+
                 if (power.Users.Contains(player))
                 {
                     status_message += $"{player.PlayerName} already has {powerName}\n";
                     continue;
                 }
-                try { power.Users.Add(player); }
+
+                try
+                {
+                    power.Users.Add(player);
+                    added_powers_feedback += $" {powerName}";
+                }
                 catch { status_message += $"Something bad happened while adding {powerName} to {player.PlayerName}, ignoring it\n"; }
 
-                status_message += $"Added {powerName} to {player.PlayerName}\n";
-                var now_tip = now ? ", Effects will be applied now" : "";
-                player.PrintToChat($"You have been given {powerName} by the server{now_tip}!");
-                player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
+                var now_tip = now ? ", now" : "";
+
+                if (now)
+                    try
+                    {
+                        power.Execute(new GameEvent(0));
+                        status_message += $"Added {powerName} to {player.PlayerName}{now_tip}\n";
+                        added_powers_feedback += "(NOW)";
+                    }
+                    catch
+                    {
+                        status_message += $"Something bad happened while triggering {powerName}, ignoring it\n";
+                        added_powers_feedback += "(FAILED)";
+                    }
             }
 
-            if (now)
-                try
-                { power.Execute(new GameEvent(0)); }
-                catch { status_message += $"Something bad happened while triggering {powerName}, ignoring it\n"; }
+            player.PrintToCenterAlert(added_powers_feedback);
+            player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
         }
 
         return status_message;
@@ -249,18 +263,26 @@ public static class SuperPowerController
         if (powers == null)
             return "Error: Power(s) not found";
 
-        foreach (var power in powers)
+        foreach (var player in players)
         {
-            var powerName = TemUtils.GetPowerName(power);
-            foreach (var player in players)
+            string removed_powers_feedback = "Server removed the following powers from you:\n";
+            foreach (var power in powers)
             {
+                var powerName = TemUtils.GetPowerName(power);
+
                 if (power.Users.Contains(player))
                 {
-                    try { power.Users.Remove(player); }
+                    try
+                    {
+                        power.Users.Remove(player);
+                        removed_powers_feedback += $"{TemUtils.GetPowerName(power)} ";
+                        status_message += $"Removed {powerName} from {player.PlayerName}\n";
+                    }
                     catch { status_message += $"Something bad happened while removing {powerName} from {player.PlayerName}, ignoring it\n"; }
-                    status_message += $"Removed {powerName} from {player.PlayerName}\n";
                 }
             }
+
+            player.PrintToCenterAlert(removed_powers_feedback);
         }
         return status_message;
     }
