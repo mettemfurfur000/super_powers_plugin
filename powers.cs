@@ -436,13 +436,13 @@ public class EvilAura : ISuperPower
             }
         }
     }
-    private float CalcDistance(CounterStrikeSharp.API.Modules.Utils.Vector v1, CounterStrikeSharp.API.Modules.Utils.Vector v2)
+    private float CalcDistance(Vector v1, Vector v2)
     {
         return (float)Math.Sqrt(Math.Pow(v1.X - v2.X, 2) + Math.Pow(v1.Y - v2.Y, 2) + Math.Pow(v1.Z - v2.Z, 2));
     }
-    private float distance = 500;
+    private float distance = 250;
     private float damage = 1;
-    private int period = 20;
+    private int period = 16;
 
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
 }
@@ -691,13 +691,13 @@ public class SuperJump : ISuperPower
         if (pawn == null)
             return HookResult.Continue;
 
-        //pawn.Teleport(null, null, new CounterStrikeSharp.API.Modules.Utils.Vector(pawn.AbsVelocity.X, pawn.AbsVelocity.Y, pawn.AbsVelocity.Z + 300));
+        //pawn.Teleport(null, null, new CVector(pawn.AbsVelocity.X, pawn.AbsVelocity.Y, pawn.AbsVelocity.Z + 300));
 
         if (pawn.V_angle.X < -55)
             Server.NextFrame(() =>
             {
                 pawn.AbsVelocity.Z *= multiplier;
-                if (pawn.AbsVelocity.Z < 300 * multiplier)
+                if (pawn.AbsVelocity.Z < 290 * multiplier)
                     Server.NextFrame(() =>
                     {
                         pawn.AbsVelocity.Z *= multiplier;
@@ -740,13 +740,13 @@ public class ExplosionUponDeath : ISuperPower
         if (heProjectile == null || !heProjectile.IsValid) return HookResult.Continue;
 
         var node = pawn.CBodyComponent!.SceneNode;
-        CounterStrikeSharp.API.Modules.Utils.Vector pos = node!.AbsOrigin;
+        Vector pos = node!.AbsOrigin;
         pos.Z += 10;
         heProjectile.TicksAtZeroVelocity = 100;
         heProjectile.TeamNum = pawn.TeamNum;
         heProjectile.Damage = damage;
         heProjectile.DmgRadius = radius;
-        heProjectile.Teleport(pos, node!.AbsRotation, new CounterStrikeSharp.API.Modules.Utils.Vector(0, 0, -10));
+        heProjectile.Teleport(pos, node!.AbsRotation, new Vector(0, 0, -10));
         heProjectile.DispatchSpawn();
         heProjectile.AcceptInput("InitializeSpawnFromWorld", player.PlayerPawn.Value!, player.PlayerPawn.Value!, "");
         heProjectile.DetonateTime = 0;
