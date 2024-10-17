@@ -28,9 +28,22 @@ public class TemUtils
                 : char.ToLower(c).ToString()));
     }
 
+    public static string ToReadableCase(string input)
+    {
+        return string.Concat(input.Select((c, i) =>
+            i > 0 && char.IsUpper(c) && char.IsLower(input[i - 1])
+                ? " " + c
+                : c.ToString()));
+    }
+
+    public static string GetPowerNameReadable(ISuperPower power)
+    {
+        return ToReadableCase(power.GetType().ToString().Split(".").Last());
+    }
+
     public static string GetPowerName(ISuperPower power)
     {
-        return ToSnakeCase(power.GetType().ToString()).Split(".").Last();
+        return ToSnakeCase(power.GetType().ToString().Split(".").Last());
     }
 
     public static string GetSnakeName(Type type)
@@ -49,6 +62,24 @@ public class TemUtils
 
         return Utilities.GetPlayers()
             .Where(player => Regex.IsMatch(player.PlayerName, r_pattern, RegexOptions.IgnoreCase));
+    }
+
+    public static IEnumerable<CCSPlayerController> SelectTeam(CsTeam team)
+    {
+        return Utilities.GetPlayers()
+            .Where(player => player.Team == team);
+    }
+
+    public static CsTeam ParseTeam(string s)
+    {
+        CsTeam csteam = CsTeam.None;
+
+        if (s.ToLower().Equals("ct"))
+            csteam = CsTeam.CounterTerrorist;
+        if (s.ToLower().Equals("t"))
+            csteam = CsTeam.Terrorist;
+
+        return csteam;
     }
 
     public static void ParseConfigReflective(ISuperPower power, Type type, Dictionary<string, string> cfg)

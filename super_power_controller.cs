@@ -5,6 +5,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Events;
+using CounterStrikeSharp.API.Modules.Utils;
 using Microsoft.VisualBasic;
 
 namespace super_powers_plugin;
@@ -184,8 +185,8 @@ public static class SuperPowerController
                 continue;
 
             power.Users.Add(player);
-            player.PrintToCenterAlert($"You have been given a random power: {TemUtils.GetPowerName(power)}");
-            player.PrintToChat($"You have been given a random power: {TemUtils.GetPowerName(power)}");
+            string alert = $"Your power for this round:\n{ChatColors.Blue}{TemUtils.GetPowerNameReadable(power)}";
+            player.PrintToChat(alert);
             player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
 
             try
@@ -196,17 +197,24 @@ public static class SuperPowerController
         return "Successfully added random powers to everyone";
     }
 
-    public static string AddPowers(string player_name_pattern, string power_name_pattern, bool now = false)
+    public static string AddPowers(string player_name_pattern, string power_name_pattern, bool now = false, CsTeam team = CsTeam.None)
     {
         var status_message = "";
+        IEnumerable<CCSPlayerController>? players = null;
 
-        var players = TemUtils.SelectPlayers(player_name_pattern);
+        if (team != CsTeam.None)
+            players = TemUtils.SelectTeam(team);
+        else
+            players = TemUtils.SelectPlayers(player_name_pattern);
+
         if (players == null)
             return "Error: Player(s) not found";
 
         var powers = SelectPowers(power_name_pattern);
         if (powers == null)
             return "Error: Power(s) not found";
+
+        int added_powers = 0;
 
         foreach (var player in players)
         {
@@ -224,7 +232,8 @@ public static class SuperPowerController
                 try
                 {
                     power.Users.Add(player);
-                    added_powers_feedback += $" {powerName}";
+                    added_powers_feedback += $" {ChatColors.Blue}{TemUtils.GetPowerNameReadable(power)}{ChatColors.White},";
+                    added_powers++;
                 }
                 catch { status_message += $"Something bad happened while adding {powerName} to {player.PlayerName}, ignoring it\n"; }
 
@@ -235,33 +244,43 @@ public static class SuperPowerController
                     {
                         power.Execute(new GameEvent(0));
                         status_message += $"Added {powerName} to {player.PlayerName}{now_tip}\n";
-                        added_powers_feedback += "(NOW)";
+                        added_powers_feedback += $"{ChatColors.Green}(NOW)";
                     }
                     catch
                     {
                         status_message += $"Something bad happened while triggering {powerName}, ignoring it\n";
-                        added_powers_feedback += "(FAILED)";
+                        added_powers_feedback += $"{ChatColors.Red}(FAILED)";
                     }
             }
 
-            player.PrintToCenterAlert(added_powers_feedback);
+            added_powers_feedback = added_powers_feedback.TrimEnd(',');
+
+            if (added_powers != 0)
+                player.PrintToChat(added_powers_feedback);
             player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
         }
 
         return status_message;
     }
 
-    public static string RemovePowers(string player_name_pattern, string power_name_pattern)
+    public static string RemovePowers(string player_name_pattern, string power_name_pattern, CsTeam team = CsTeam.None)
     {
         var status_message = "";
+        IEnumerable<CCSPlayerController>? players = null;
 
-        var players = TemUtils.SelectPlayers(player_name_pattern);
+        if (team != CsTeam.None)
+            players = TemUtils.SelectTeam(team);
+        else
+            players = TemUtils.SelectPlayers(player_name_pattern);
+
         if (players == null)
             return "Error: Player(s) not found";
 
         var powers = SelectPowers(power_name_pattern);
         if (powers == null)
             return "Error: Power(s) not found";
+
+        int removed_powers = 0;
 
         foreach (var player in players)
         {
@@ -275,14 +294,17 @@ public static class SuperPowerController
                     try
                     {
                         power.Users.Remove(player);
-                        removed_powers_feedback += $"{TemUtils.GetPowerName(power)} ";
+                        removed_powers_feedback += $" {ChatColors.Red}{TemUtils.GetPowerNameReadable(power)}{ChatColors.White},";
                         status_message += $"Removed {powerName} from {player.PlayerName}\n";
+                        removed_powers++;
                     }
                     catch { status_message += $"Something bad happened while removing {powerName} from {player.PlayerName}, ignoring it\n"; }
                 }
             }
 
-            player.PrintToCenterAlert(removed_powers_feedback);
+            removed_powers_feedback = removed_powers_feedback.TrimEnd(',');
+            if (removed_powers != 0)
+                player.PrintToChat(removed_powers_feedback);
         }
         return status_message;
     }

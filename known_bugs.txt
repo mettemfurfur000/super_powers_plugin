@@ -1,0 +1,2 @@
+speed power is not resetting after pover removal
+no sound clue on power removal

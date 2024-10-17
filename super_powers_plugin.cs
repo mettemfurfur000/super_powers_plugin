@@ -113,7 +113,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 #endif
     }
 
-    [ConsoleCommand("sp_add", "Adds a superpower to specified player. both name of player and superpower have autocompletion if theres only 1 option. \nflag \"now\" will trigger the power instantly")]
+    [ConsoleCommand("sp_add", "Adds a superpower to specified player, supports wildcards")]
     [CommandHelper(minArgs: 2, usage: "[player] [power] optional: (now)", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
     [RequiresPermissions("@css/root")]
     public void OnPowerAdd(CCSPlayerController? caller, CommandInfo commandInfo)
@@ -125,6 +125,39 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             now_flag = commandInfo.GetArg(3).ToLower().Contains("now");
 
         smwprint(caller, SuperPowerController.AddPowers(playerNamePattern, powerNamePattern, now_flag));
+    }
+
+    [ConsoleCommand("sp_add_team", "Adds a superpower to specified team, supports wildcards")]
+    [CommandHelper(minArgs: 2, usage: "[ct/t] [power/*] optional: (now)", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnPowerAddTeam(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var teamStr = commandInfo.GetArg(1);
+        var powerNamePattern = commandInfo.GetArg(2);
+        var now_flag = false;
+        if (commandInfo.ArgCount >= 4)
+            now_flag = commandInfo.GetArg(3).ToLower().Contains("now");
+
+        CsTeam csteam = TemUtils.ParseTeam(teamStr);
+        if (csteam == CsTeam.None)
+            smwprint(caller, $"Unrecognized option: {teamStr}");
+        else
+            smwprint(caller, SuperPowerController.AddPowers("unused", powerNamePattern, now_flag, csteam));
+    }
+
+    [ConsoleCommand("sp_remove_team", "Removes a superpower from specified team, supports wildcards")]
+    [CommandHelper(minArgs: 2, usage: "[ct/t] [power/*]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnPowerRemoveTeam(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var teamStr = commandInfo.GetArg(1);
+        var powerNamePattern = commandInfo.GetArg(2);
+
+        CsTeam csteam = TemUtils.ParseTeam(teamStr);
+        if (csteam == CsTeam.None)
+            smwprint(caller, $"Unrecognized option: {teamStr}");
+        else
+            smwprint(caller, SuperPowerController.RemovePowers("unused", powerNamePattern, csteam));
     }
 
     [ConsoleCommand("sp_mode", "todo")]
@@ -139,7 +172,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         smwprint(caller, $"Mode {mode} set");
     }
 
-    [ConsoleCommand("sp_remove", "Removes a superpower from specified player. both name of player and superpower have autocompletion if theres only 1 option.")]
+    [ConsoleCommand("sp_remove", "Removes a superpower from specified player, supports wildcards")]
     [CommandHelper(minArgs: 2, usage: "[player/*] [power/*]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
     [RequiresPermissions("@css/root")]
     public void OnPowerRemove(CCSPlayerController? caller, CommandInfo commandInfo)
