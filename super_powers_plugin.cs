@@ -35,7 +35,7 @@ namespace super_powers_plugin;
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 {
     public override string ModuleName => "super_powers_plugin";
-    public override string ModuleVersion => "0.2.0";
+    public override string ModuleVersion => "0.2.1";
     public override string ModuleAuthor => "tem";
 
     // invisibility stuff, custom hooks :p
@@ -86,7 +86,18 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
         {
-            SuperPowerController.RemovePowers(@event.Userid!.PlayerName, "*");
+            //SuperPowerUsersStorage.OnPlayerDisconnected(@event.Userid!);
+            Server.PrintToConsole($"guy disconencted - {@event.Userid!.PlayerName}");
+            Server.PrintToConsole($"userid disconencted - {@event.Userid!.SteamID}");
+            Server.PrintToConsole(SuperPowerController.RemovePowers(@event.Userid!.PlayerName, "*", CsTeam.None, true, true)); // FIX ME
+            return HookResult.Continue;
+        });
+
+        RegisterEventHandler<EventPlayerConnectFull>((@event, info) =>
+        {
+            Server.PrintToConsole($"guy joined - {@event.Userid!.PlayerName}");
+            SuperPowerController.Rejoined(@event.Userid!);
+            //SuperPowerUsersStorage.OnPlayerConnected(@event.Userid!);
             return HookResult.Continue;
         });
 

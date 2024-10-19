@@ -2,11 +2,8 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Core.Attributes.Registration;
-using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Utils;
-using Microsoft.VisualBasic;
 
 namespace super_powers_plugin;
 
@@ -14,20 +11,52 @@ public interface ISuperPower
 {
     List<Type> Triggers { get; }
     List<CCSPlayerController> Users { get; set; }
+    List<ulong> UsersSteamIDs { get; set; }
+
     HookResult Execute(GameEvent gameEvent);
     void Update();
-    void ParseCfg(Dictionary<string, string> cfg)
-    {
-        TemUtils.ParseConfigReflective(this, this.GetType(), cfg);
-    }
-    void OnRemove(CCSPlayerController? player)
-    {
+    void ParseCfg(Dictionary<string, string> cfg) { TemUtils.ParseConfigReflective(this, this.GetType(), cfg); }
 
+    void OnRemove(CCSPlayerController? player, bool reasonDisconnect) // called if player should be removed from power
+    {
+        if (player == null)
+        {
+            Users.Clear();
+            UsersSteamIDs.Clear();
+            return;
+        }
+
+        Server.PrintToConsole("reasonDisconnect = " + reasonDisconnect);
+
+        Users.Remove(player);
+        if (reasonDisconnect == false)
+        {
+            Server.PrintToConsole($"eebug removed {player.SteamID}");
+            UsersSteamIDs.Remove(player.SteamID);
+        }
+    }
+
+    void OnAdd(CCSPlayerController player) // called if player should be added to power
+    {
+        Users.Add(player);
+        UsersSteamIDs.Add(player.SteamID);
+        Server.PrintToConsole($"me added {player.SteamID}");
+    }
+
+    void OnRejoin(CCSPlayerController player)
+    {
+        Server.PrintToConsole($"Triggered Rejoin for {player.SteamID}");
+        if (UsersSteamIDs.Contains(player.SteamID))
+        {
+            Server.PrintToConsole($"restored {player.SteamID}");
+            Users.Add(player);
+        }
     }
 }
 
 public static class SuperPowerController
 {
+    //private static Dictionary<ulong, List<ISuperPower>> backup_powers = new Dictionary<ulong, List<ISuperPower>>();
     private static HashSet<ISuperPower> Powers = new HashSet<ISuperPower>();
     private static string mode = "normal";
 
@@ -101,16 +130,24 @@ public static class SuperPowerController
 
     public static string GetUsersTable()
     {
-        string out_string = "";
+        string out_string = "Active:";
         foreach (var p in Powers)
-        {
-            out_string += TemUtils.GetPowerName(p) + ":\n";
-            var users = p.Users;
-            foreach (var user in users)
+            if (p.Users.Count != 0)
             {
-                out_string += $"\t{user.PlayerName}\n";
+                out_string += "\n\t" + TemUtils.GetPowerName(p) + ":";
+                foreach (var user in p.Users)
+                    out_string += $"\t{user.PlayerName} ";
             }
-        }
+
+        out_string += "\nSaved:";
+        foreach (var p in Powers)
+            if (p.UsersSteamIDs.Count != 0)
+            {
+                out_string += "\n\t" + TemUtils.GetPowerName(p) + ":";
+                foreach (var id in p.UsersSteamIDs)
+                    out_string += $"\t{id} ";
+            }
+
         return out_string;
     }
 
@@ -118,6 +155,12 @@ public static class SuperPowerController
     {
         foreach (var power in Powers)
             power.Update();
+    }
+
+    public static void Rejoined(CCSPlayerController player)
+    {
+        foreach (var power in Powers)
+            power.OnRejoin(player);
     }
 
     public static void FeedTheConfig(SuperPowerConfig cfg)
@@ -156,12 +199,12 @@ public static class SuperPowerController
         // clear all powers first
         foreach (var p in Powers)
         {
-            p.OnRemove(null);
+            p.OnRemove(null, false);
             p.Users.Clear();
         }
     }
 
-    public static string AddPowerRandomlyToEveryone(SuperPowerConfig cfg)
+    public static string AddPowerRandomlyToEveryone(SuperPowerConfig cfg, bool silent = true)
     {
         CleanPowers();
 
@@ -184,10 +227,13 @@ public static class SuperPowerController
             if (cfg.blacklist.Contains(TemUtils.GetPowerName(power)))
                 continue;
 
-            power.Users.Add(player);
+            //power.Users.Add(player);
+
+            power.OnAdd(player);
             string alert = $"Your power for this round:\n{ChatColors.Blue}{TemUtils.GetPowerNameReadable(power)}";
             player.PrintToChat(alert);
-            player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
+            if (!silent)
+                player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
 
             try
             { power.Execute(new GameEvent(0)); }
@@ -197,7 +243,7 @@ public static class SuperPowerController
         return "Successfully added random powers to everyone";
     }
 
-    public static string AddPowers(string player_name_pattern, string power_name_pattern, bool now = false, CsTeam team = CsTeam.None)
+    public static string AddPowers(string player_name_pattern, string power_name_pattern, bool now = false, CsTeam team = CsTeam.None, bool silent = true)
     {
         var status_message = "";
         IEnumerable<CCSPlayerController>? players = null;
@@ -231,7 +277,8 @@ public static class SuperPowerController
 
                 try
                 {
-                    power.Users.Add(player);
+                    //power.Users.Add(player);
+                    power.OnAdd(player);
                     added_powers_feedback += $" {ChatColors.Blue}{TemUtils.GetPowerNameReadable(power)}{ChatColors.White},";
                     added_powers++;
                 }
@@ -253,18 +300,22 @@ public static class SuperPowerController
                     }
             }
 
-            added_powers_feedback = added_powers_feedback.TrimEnd(',');
-
             if (added_powers != 0)
+            {
+                added_powers_feedback = added_powers_feedback.TrimEnd(',');
+
                 player.PrintToChat(added_powers_feedback);
-            player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
+                if (!silent)
+                    player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
+            }
         }
 
         return status_message;
     }
 
-    public static string RemovePowers(string player_name_pattern, string power_name_pattern, CsTeam team = CsTeam.None)
+    public static string RemovePowers(string player_name_pattern, string power_name_pattern, CsTeam team = CsTeam.None, bool silent = true, bool reasonDisconnect = false)
     {
+        Server.PrintToConsole("args: " + player_name_pattern + " " + power_name_pattern + " " + team + " " + silent + " " + reasonDisconnect);
         var status_message = "";
         IEnumerable<CCSPlayerController>? players = null;
 
@@ -293,7 +344,8 @@ public static class SuperPowerController
                 {
                     try
                     {
-                        power.Users.Remove(player);
+                        //power.Users.Remove(player);
+                        power.OnRemove(player, reasonDisconnect);
                         removed_powers_feedback += $" {ChatColors.Red}{TemUtils.GetPowerNameReadable(power)}{ChatColors.White},";
                         status_message += $"Removed {powerName} from {player.PlayerName}\n";
                         removed_powers++;
@@ -303,8 +355,13 @@ public static class SuperPowerController
             }
 
             removed_powers_feedback = removed_powers_feedback.TrimEnd(',');
-            if (removed_powers != 0)
+
+            if (removed_powers != 0 && reasonDisconnect == false)
+            {
                 player.PrintToChat(removed_powers_feedback);
+                if (!silent)
+                    player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
+            }
         }
         return status_message;
     }

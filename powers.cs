@@ -54,6 +54,7 @@ public class BonusHealth : ISuperPower
 
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
     private int value = 250;
 
 }
@@ -85,6 +86,7 @@ public class Regeneration : ISuperPower
     }
 
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
     private int increment = 10;
     private int limit = 75;
     private int period = 128;
@@ -109,6 +111,7 @@ public class BonusArmor : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
     private int value = 250;
 }
 
@@ -143,6 +146,7 @@ public class InstantDefuse : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
 
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
@@ -176,6 +180,7 @@ public class InstantPlant : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
 
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
@@ -232,6 +237,7 @@ public class Banana : ISuperPower
 
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
 
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
@@ -269,6 +275,7 @@ public class InfiniteAmmo : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
 
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
@@ -276,23 +283,16 @@ public class InfiniteAmmo : ISuperPower
 public class SuperSpeed : ISuperPower
 {
     public List<Type> Triggers => [typeof(EventRoundStart)];
-    public HookResult Execute(GameEvent gameEvent)
-    {
-        foreach (var user in Users)
-        {
-            var pawn = user.PlayerPawn.Value;
-            if (pawn == null)
-                return HookResult.Continue; ;
-
-            pawn.MovementServices!.Maxspeed = value;
-            pawn.VelocityModifier = (float)(value / 240);
-        }
-        return HookResult.Continue;
-    }
+    public HookResult Execute(GameEvent gameEvent) { return HookResult.Continue; }
 
     public void Update()
     {
-        if (Server.TickCount % 16 != 0) return;
+        if (Server.TickCount % period != 0) return;
+        ApplySpeed();
+    }
+
+    private void ApplySpeed()
+    {
         foreach (var user in Users)
         {
             var pawn = user.PlayerPawn.Value;
@@ -300,13 +300,31 @@ public class SuperSpeed : ISuperPower
                 return;
 
             pawn.MovementServices!.Maxspeed = value;
-            pawn.VelocityModifier = (float)(value / 240);
+            pawn.VelocityModifier = (float)(value / 320);
         }
     }
+
+    void OnRemove(CCSPlayerController? player)
+    {
+        if (player != null)
+        {
+            if (Users.Contains(player))
+            {
+                var pawn = player.PlayerPawn.Value!;
+
+                pawn.MovementServices!.Maxspeed = default_velocity_max;
+                pawn.VelocityModifier = 1;
+            }
+        }
+    }
+
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
 
     private string PowerName => this.GetType().ToString().Split(".").Last();
-    private int value = 404;
+    private int value = 500;
+    private int period = 16;
+    public const int default_velocity_max = 250;
 }
 
 public class HeadshotImmunity : ISuperPower
@@ -340,6 +358,7 @@ public class HeadshotImmunity : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
 
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
@@ -363,6 +382,7 @@ public class InfiniteMoney : ISuperPower
     }
 
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
 }
 
 public class NukeNades : ISuperPower
@@ -378,7 +398,11 @@ public class NukeNades : ISuperPower
         if (!Users.Where(p => p.UserId == player.UserId).Any())
             return HookResult.Continue;
 
-        var grenade = Utilities.FindAllEntitiesByDesignerName<CHEGrenadeProjectile>("hegrenade_projectile").First();
+        var all_grenades = Utilities.FindAllEntitiesByDesignerName<CHEGrenadeProjectile>("hegrenade_projectile");
+        if (all_grenades.Count() == 0)
+            return HookResult.Continue;
+
+        var grenade = all_grenades.First();
         if (player.UserId == grenade.Thrower.Value!.OriginalController.Value!.UserId)
         {
             grenade.Damage *= 10;
@@ -394,6 +418,7 @@ public class NukeNades : ISuperPower
 
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
 }
 
 public class EvilAura : ISuperPower
@@ -445,6 +470,7 @@ public class EvilAura : ISuperPower
     private int period = 16;
 
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
 }
 
 public class DormantPower : ISuperPower
@@ -492,6 +518,7 @@ public class DormantPower : ISuperPower
     }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
     private Dictionary<int, HashSet<string>> dormant_power_rules = new();
 
     private string master_rule = "fill_me";
@@ -562,6 +589,7 @@ public class GlassCannon : ISuperPower
     private int health = 50;
     private int damage_multiplier = 2;
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
 }
 
 public class Vampirism : ISuperPower
@@ -600,6 +628,7 @@ public class Vampirism : ISuperPower
     private int divisor = 5;
     private string vampireSounds = "sounds/physics/flesh/flesh_squishy_impact_hard4.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard3.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard2.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard1.vsnd";
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
 }
 
 
@@ -670,6 +699,7 @@ public class Invisibility : ISuperPower
         TemUtils.SetPlayerVisibilityLevel(player, 0.0f);
     }
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
     public List<double> levels = [65];
 }
 
@@ -713,6 +743,7 @@ public class SuperJump : ISuperPower
     public void Update() { }
     private float multiplier = 2;
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
 }
 
 public class ExplosionUponDeath : ISuperPower
@@ -759,6 +790,7 @@ public class ExplosionUponDeath : ISuperPower
     private float damage = 125f;
 
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
 }
 
 // supposed to warp players back a few seconds after they get hurt
@@ -832,6 +864,7 @@ public class WarpPeek : ISuperPower
     }
 
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
+    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
     // each user must have their own position history
     // has a static array for memory economy
     public Dictionary<CCSPlayerController, Dictionary<int, Tuple<Vector, QAngle>>> positions = new();
