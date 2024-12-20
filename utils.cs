@@ -9,6 +9,31 @@ namespace super_powers_plugin;
 
 public class TemUtils
 {
+    public static string Formatter(string message, char color)
+    {
+        return $"[{ChatColors.Gold} Super Powers {ChatColors.Default}] {color} {message}";
+    }
+
+    public static void Print(string message, char color)
+    {
+        Server.PrintToConsole(Formatter(message, color));
+    }
+
+    public static void AlertError(string message)
+    {
+        Print(message, ChatColors.Red);
+    }
+
+    public static void Warning(string message)
+    {
+        Print(message, ChatColors.Yellow);
+    }
+
+    public static void Log(string message)
+    {
+        Print(message, ChatColors.Default);
+    }
+
     public static string RandomString(int length)
     {
         const string chars = "0123456789";
@@ -82,6 +107,34 @@ public class TemUtils
         return csteam;
     }
 
+    public static string? InspectPowerReflective(ISuperPower power, Type type)
+    {
+        string output = "";
+
+        var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+        int total = 0;
+        foreach (var field in fields)
+        {
+            var fieldInfo = type.GetField(field.Name, BindingFlags.Instance | BindingFlags.NonPublic);
+
+            if (fieldInfo != null)
+            {
+                if (fieldInfo.IsPublic) continue;
+                if (fieldInfo.Name.Contains("Triggers")) continue;
+                if (fieldInfo.Name.Contains("Users")) continue;
+                output += $"{field.Name}: {fieldInfo.GetValue(power)}\n";
+                total++;
+            }
+            else
+                output += $"{field.Name}: null\n";
+        }
+
+        if (total == 0)
+            return null;
+
+        return output;
+    }
+
     public static void ParseConfigReflective(ISuperPower power, Type type, Dictionary<string, string> cfg)
     {
         foreach (var field in cfg)
@@ -90,22 +143,22 @@ public class TemUtils
 
             if (fieldInfo == null)
             {
-                Server.PrintToConsole($"Error occured while processing {type} : Field '{field.Key}' not found");
+                TemUtils.AlertError($"Error occured while processing {type} : Field '{field.Key}' not found");
                 var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
                 var found_fields = "";
                 foreach (var f in fields)
                 {
                     found_fields += "\n\"" + f.Name + "\"";
                 }
-                Server.PrintToConsole($"All Availiable fields: {found_fields}");
+                TemUtils.Log($"All Availiable fields: {found_fields}");
                 continue;
             }
 
             try
             {
                 try { fieldInfo.SetValue(power, Convert.ChangeType(field.Value, fieldInfo.FieldType)); }
-                catch (InvalidCastException ex) { Server.PrintToConsole($"Error occured while processing {type} : Failed to convert value for {fieldInfo.Name}: {ex.Message}"); }
-                catch (FormatException ex) { Server.PrintToConsole($"Error occured while processing {type} : Invalid format for {fieldInfo.Name}: {ex.Message}"); }
+                catch (InvalidCastException ex) { TemUtils.AlertError($"Error occured while processing {type} : Failed to convert value for {fieldInfo.Name}: {ex.Message}"); }
+                catch (FormatException ex) { TemUtils.AlertError($"Error occured while processing {type} : Invalid format for {fieldInfo.Name}: {ex.Message}"); }
             }
             catch
             {
@@ -127,8 +180,11 @@ public class TemUtils
         alpha = alpha > 255 ? 255 : alpha < 0 ? 0 : alpha; // >:3
         var fadeColor = Color.FromArgb(alpha, 255, 255, 255);
 
+        //Server.PrintToConsole("alpha for " + player.PlayerName + " is " + alpha);
+
         playerPawnValue.Render = fadeColor;
         Utilities.SetStateChanged(playerPawnValue, "CBaseModelEntity", "m_clrRender");
+        Utilities.SetStateChanged(playerPawnValue, "CCSPlayer_ViewModelServices", "m_hViewModel");
 
         var viewModel = playerPawnValue.ViewModelServices!.Pawn.Value;
         viewModel.Render = fadeColor;

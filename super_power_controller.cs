@@ -84,8 +84,8 @@ public static class SuperPowerController
         Powers.Add(new GlassCannon());
         Powers.Add(new Vampirism());
         Powers.Add(new SuperJump());
-        // unable to make it work for now, wait for this https://github.com/roflmuffin/CounterStrikeSharp/pull/608
-        // Powers.Add(new Invisibility()); 
+
+        Powers.Add(new Invisibility());
         Powers.Add(new ExplosionUponDeath());
         Powers.Add(new Regeneration());
         Powers.Add(new WarpPeek());
@@ -217,14 +217,14 @@ public static class SuperPowerController
             var power = Powers.ElementAt(new Random().Next(Powers.Count));
 
             if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.Terrorist)
-                if (cfg.t_black_list.Contains(TemUtils.GetPowerName(power)))
+                if (cfg.t_blacklist.Contains(TemUtils.GetPowerName(power)))
                     continue;
 
             if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.CounterTerrorist)
-                if (cfg.ct_black_list.Contains(TemUtils.GetPowerName(power)))
+                if (cfg.ct_blacklist.Contains(TemUtils.GetPowerName(power)))
                     continue;
 
-            if (cfg.blacklist.Contains(TemUtils.GetPowerName(power)))
+            if (cfg.power_blacklist.Contains(TemUtils.GetPowerName(power)))
                 continue;
 
             //power.Users.Add(player);
@@ -315,7 +315,6 @@ public static class SuperPowerController
 
     public static string RemovePowers(string player_name_pattern, string power_name_pattern, CsTeam team = CsTeam.None, bool silent = true, bool reasonDisconnect = false)
     {
-        Server.PrintToConsole("args: " + player_name_pattern + " " + power_name_pattern + " " + team + " " + silent + " " + reasonDisconnect);
         var status_message = "";
         IEnumerable<CCSPlayerController>? players = null;
 

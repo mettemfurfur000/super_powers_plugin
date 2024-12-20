@@ -53,8 +53,8 @@ public class BonusHealth : ISuperPower
     }
 
     public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
     private int value = 250;
 
 }
@@ -85,8 +85,8 @@ public class Regeneration : ISuperPower
         }
     }
 
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
     private int increment = 10;
     private int limit = 75;
     private int period = 128;
@@ -110,8 +110,8 @@ public class BonusArmor : ISuperPower
         return HookResult.Continue;
     }
     public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
     private int value = 250;
 }
 
@@ -130,23 +130,21 @@ public class InstantDefuse : ISuperPower
             var bomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").ToList().FirstOrDefault();
             if (bomb == null)
             {
-                //player.PrintToCenter("Failed to find bomb for you, buddy... my bad!");
                 return HookResult.Continue; ;
             }
             Server.NextFrame(() =>
             {
                 bomb.DefuseCountDown = 0;
                 Utilities.SetStateChanged(bomb, "CPlantedC4", "m_flDefuseCountDown");
-                //Server.PrintToConsole($"Successful instant defuse by {player.PlayerName}");
+
             });
         }
-        else
-            Server.PrintToConsole($"{PowerName} : player is null or not valid");
+
         return HookResult.Continue;
     }
     public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
 
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
@@ -166,21 +164,18 @@ public class InstantPlant : ISuperPower
             var bomb = Utilities.FindAllEntitiesByDesignerName<CC4>("weapon_c4").ToList().FirstOrDefault();
             if (bomb == null)
             {
-                //player.PrintToCenter("Failed to find bomb for you, buddy... my bad!");
                 return HookResult.Continue; ;
             }
 
             bomb.BombPlacedAnimation = false;
             bomb.ArmedTime = 0.0f;
         }
-        else
-            Server.PrintToConsole($"{PowerName} : player is null or not valid");
 
         return HookResult.Continue;
     }
     public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
 
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
@@ -195,19 +190,16 @@ public class Banana : ISuperPower
         {
             if (user == null || !user.IsValid)
             {
-                Server.PrintToConsole("user is null or not valid");
                 continue;
             }
             var pawn = user.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid)
             {
-                Server.PrintToConsole("pawn is null or not valid");
                 continue;
             }
             var prop = Utilities.CreateEntityByName<CPhysicsPropMultiplayer>("prop_physics_multiplayer");
             if (prop == null)
             {
-                Server.PrintToConsole("Failed to create a prop");
                 continue;
             }
             var pizza_id = TemUtils.RandomString(12);
@@ -218,7 +210,6 @@ public class Banana : ISuperPower
 
             if (prop.Collision != null && prop.Collision.EnablePhysics != 1)
             {
-                Server.PrintToConsole("prop.Collision.EnablePhysics != 1");
                 prop.Collision.EnablePhysics = 1;
             }
 
@@ -229,15 +220,14 @@ public class Banana : ISuperPower
             }
 
             prop.AddEntityIOEvent("SetScale", null, null, "5");
-
             prop.DispatchSpawn();
         }
         return HookResult.Continue;
     }
 
     public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
 
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
@@ -269,13 +259,12 @@ public class InfiniteAmmo : ISuperPower
                 activeWeapon.Clip1 += 1;
 
         }
-        else
-            Server.PrintToConsole($"{PowerName} : player is null or not valid");
+
         return HookResult.Continue;
     }
     public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
 
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
@@ -318,8 +307,8 @@ public class SuperSpeed : ISuperPower
         }
     }
 
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
 
     private string PowerName => this.GetType().ToString().Split(".").Last();
     private int value = 500;
@@ -344,8 +333,6 @@ public class HeadshotImmunity : ISuperPower
         if (pawn == null)
             return HookResult.Continue;
 
-        // player.PrintToConsole($"Hit group is {realEvent.Hitgroup}");
-
         if ((HitGroup_t)realEvent.Hitgroup == HitGroup_t.HITGROUP_HEAD)
         {
             pawn.Health = pawn.Health + realEvent.DmgHealth;
@@ -357,8 +344,8 @@ public class HeadshotImmunity : ISuperPower
         return HookResult.Continue;
     }
     public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
 
     private string PowerName => this.GetType().ToString().Split(".").Last();
 }
@@ -381,8 +368,8 @@ public class InfiniteMoney : ISuperPower
         }
     }
 
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
 }
 
 public class NukeNades : ISuperPower
@@ -417,8 +404,8 @@ public class NukeNades : ISuperPower
     }
 
     public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
 }
 
 public class EvilAura : ISuperPower
@@ -469,8 +456,8 @@ public class EvilAura : ISuperPower
     private float damage = 1;
     private int period = 16;
 
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
 }
 
 public class DormantPower : ISuperPower
@@ -485,18 +472,18 @@ public class DormantPower : ISuperPower
 
         if (dormant_power_rules.Count == 0)
         {
-            SplitMasterRule();
+            ParseMasterRule();
         }
 
         HashSet<string> power_commands = [];
-        try
+
+        if (dormant_power_rules.Count == 0)
         {
-            power_commands = dormant_power_rules[gameRules.TotalRoundsPlayed];
-        }
-        catch
-        {
+            Server.PrintToConsole($"No rules for {gameRules.TotalRoundsPlayed} rounds");
             return HookResult.Continue;
         }
+
+        power_commands = dormant_power_rules[gameRules.TotalRoundsPlayed];
 
         foreach (var user in Users)
         {
@@ -510,30 +497,36 @@ public class DormantPower : ISuperPower
                 {
                     var real_command = command.Replace("user", user.PlayerName);
                     Server.ExecuteCommand(real_command);
-                    Server.PrintToConsole($"Executed command {real_command} for {user.PlayerName}");
+                    TemUtils.Log($"{ChatColors.Blue}Executed command {real_command} for {user.PlayerName}");
                 });
             }
         }
         return HookResult.Continue;
     }
     public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
-    private Dictionary<int, HashSet<string>> dormant_power_rules = new();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
+    private Dictionary<int, HashSet<string>> dormant_power_rules = [];
 
     private string master_rule = "fill_me";
     private string round_rule_separator = "|";
-    private string command_separator = ";";
+    private string power_separator = ";";
 
-    private void SplitMasterRule()
+    private void ParseMasterRule()
     {
+        if (master_rule == "fill_me")
+        {
+            TemUtils.AlertError("Master rule is not set");
+            return;
+        }
+
         var round_rules = master_rule.Split(round_rule_separator).ToHashSet();
         if (round_rules.Count == 0)
             return;
 
         foreach (var rule in round_rules)
         {
-            var power_commands = rule.Split(command_separator);
+            var power_commands = rule.Split(power_separator);
 
             int round_number = int.Parse(power_commands[0]);
 
@@ -588,8 +581,8 @@ public class GlassCannon : ISuperPower
     public void Update() { }
     private int health = 50;
     private int damage_multiplier = 2;
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
 }
 
 public class Vampirism : ISuperPower
@@ -627,8 +620,8 @@ public class Vampirism : ISuperPower
     public void Update() { }
     private int divisor = 5;
     private string vampireSounds = "sounds/physics/flesh/flesh_squishy_impact_hard4.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard3.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard2.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard1.vsnd";
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
 }
 
 
@@ -638,48 +631,64 @@ public class Invisibility : ISuperPower
     public HookResult Execute(GameEvent gameEvent)
     {
         if (gameEvent is EventPlayerSound realEventSound)
-        {
-            HandleEvent(realEventSound.Userid);
-        }
-        else if (gameEvent is EventWeaponFire realEventFire)
-        {
-            HandleEvent(realEventFire.Userid);
-        }
+            HandleEvent(realEventSound.Userid, 0.4);
+        if (gameEvent is EventWeaponFire realEventFire)
+            HandleEvent(realEventFire.Userid, 0.2);
         return HookResult.Continue;
     }
 
-    private void HandleEvent(CCSPlayerController? player)
+    private void HandleEvent(CCSPlayerController? player, double duration = 1.0)
     {
-        if (player != null)
-        {
-            if (!Users.Contains(player))
-                return;
+        if (player == null)
+            return;
 
-            var idx = Users.IndexOf(player);
-            if (idx != -1)
-            {
-                levels[idx] = -1.0f; // will be visible for a few seconds or so
-                TemUtils.SetPlayerVisibilityLevel(player, 0.0f);
-            }
-        }
+        if (!Users.Contains(player))
+            return;
+
+        var idx = Users.IndexOf(player);
+        if (idx == -1)
+            return;
+
+        Levels[idx] = -duration;
     }
 
     public void Update()
     {
+        for (int i = 0; i < Users.Count; i++)
+        {
+            if (Levels[i] < 0.5)
+                continue;
+
+            var player = Users[i];
+
+            if (player.PlayerPawn != null && player.PlayerPawn.Value != null)
+            {
+                var pawn = player.PlayerPawn.Value;
+
+                pawn.EntitySpottedState.SpottedByMask[0] = 0;
+                pawn.EntitySpottedState.SpottedByMask[1] = 0;
+                pawn.EntitySpottedState.Spotted = false;
+
+                Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_entitySpottedState", Schema.GetSchemaOffset("EntitySpottedState_t", "m_bSpotted"));
+                Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_entitySpottedState", Schema.GetSchemaOffset("EntitySpottedState_t", "m_bSpottedByMask"));
+            }
+
+        }
+
         if (Server.TickCount % 8 != 0)
             return;
 
         for (int i = 0; i < Users.Count; i++)
         {
-            var newValue = levels[i] < 1.0f ? levels[i] + 0.5 : 1.0f;
+            var newValue = Levels[i] < 1.0f ? Levels[i] + 0.1 : 1.0f;
 
-            if (newValue != levels[i])
-                TemUtils.SetPlayerVisibilityLevel(Users[i], (float)newValue);
+            if (newValue != Levels[i])
+            {
+                var player = Users[i];
+                TemUtils.SetPlayerVisibilityLevel(player, (float)newValue);
 
-            levels[i] = newValue;
-
-            Users[i].BloodType = levels[i] >= 1.0f ? BloodType.ColorGreen : BloodType.ColorRed; // green == full invisible, red == visible
-            Utilities.SetStateChanged(Users[i], "CBaseEntity", "m_nBloodType");
+                Levels[i] = newValue;
+            }
         }
     }
 
@@ -689,18 +698,18 @@ public class Invisibility : ISuperPower
         {
             foreach (var p in Users)
             {
-                levels[Users.IndexOf(p)] = -1.0f;
+                Levels[Users.IndexOf(p)] = -1.0f;
                 TemUtils.SetPlayerVisibilityLevel(p, 0.0f);
             }
             return;
         }
 
-        levels[Users.IndexOf(player)] = -1.0f;
+        Levels[Users.IndexOf(player)] = -1.0f;
         TemUtils.SetPlayerVisibilityLevel(player, 0.0f);
     }
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
-    public List<double> levels = [65];
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
+    public double[] Levels = new double[65];
 }
 
 
@@ -721,8 +730,6 @@ public class SuperJump : ISuperPower
         if (pawn == null)
             return HookResult.Continue;
 
-        //pawn.Teleport(null, null, new CVector(pawn.AbsVelocity.X, pawn.AbsVelocity.Y, pawn.AbsVelocity.Z + 300));
-
         if (pawn.V_angle.X < -55)
             Server.NextFrame(() =>
             {
@@ -734,16 +741,13 @@ public class SuperJump : ISuperPower
                     });
             });
 
-        //pawn.MovementServices.Impulse;
-        // Server.PrintToChatAll($"{pawn.MovementServices.Impulse}");
-
         return HookResult.Continue;
     }
 
     public void Update() { }
     private float multiplier = 2;
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
 }
 
 public class ExplosionUponDeath : ISuperPower
@@ -789,8 +793,8 @@ public class ExplosionUponDeath : ISuperPower
     private int radius = 500;
     private float damage = 125f;
 
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
 }
 
 // supposed to warp players back a few seconds after they get hurt
@@ -844,7 +848,7 @@ public class WarpPeek : ISuperPower
             if (absOrigin == null) continue;
 
             if (!positions.ContainsKey(user))
-                positions[user] = new Dictionary<int, Tuple<Vector, QAngle>>();
+                positions[user] = [];
 
             positions[user][current_index] = new Tuple<Vector, QAngle>(
                 new Vector(pawn.AbsOrigin!.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z),
@@ -863,12 +867,12 @@ public class WarpPeek : ISuperPower
             current_index = 0;
     }
 
-    public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
-    public List<ulong> UsersSteamIDs { get; set; } = new List<ulong>();
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
     // each user must have their own position history
     // has a static array for memory economy
-    public Dictionary<CCSPlayerController, Dictionary<int, Tuple<Vector, QAngle>>> positions = new();
-    public Dictionary<CCSPlayerController, int> timeouts = new();
+    public Dictionary<CCSPlayerController, Dictionary<int, Tuple<Vector, QAngle>>> positions = [];
+    public Dictionary<CCSPlayerController, int> timeouts = [];
     public int current_index = 0;
     private int max_index = 10;
     private int period = 16;

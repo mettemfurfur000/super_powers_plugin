@@ -38,20 +38,12 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     public override string ModuleVersion => "0.2.1";
     public override string ModuleAuthor => "tem";
 
-    // invisibility stuff, custom hooks :p
-#if !DON_DO_INVIS
-    private static readonly MemoryFunctionVoid<nint, nint, int, nint, int, short, int, bool> CheckTransmit = new(GameData.GetSignature("CheckTransmit"));
-    private static readonly MemoryFunctionVoid<nint, CSPlayerState> StateTransition = new(GameData.GetSignature("StateTransition"));
-    private readonly CSPlayerState[] _oldPlayerState = new CSPlayerState[65];
-    private readonly INetworkServerService networkServerService = new();
-#endif
-
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
 
     public void smwprint(CCSPlayerController? player, string s)
     {
         if (player == null)
-            Console.WriteLine(s);
+            TemUtils.Print(s, ChatColors.Default);
         else
             player.PrintToConsole(s);
     }
@@ -69,10 +61,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
             return SuperPowerController.ExecutePower(@event);
         });
-#if !DON_DO_INVIS
-        StateTransition.Hook(Hook_StateTransition, HookMode.Post);
-        CheckTransmit.Hook(Hook_CheckTransmit, HookMode.Post);
-#endif
 
         RegisterEventHandler<EventBombBegindefuse>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBeginplant>((@event, info) => SuperPowerController.ExecutePower(@event));
@@ -87,15 +75,15 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
         {
             //SuperPowerUsersStorage.OnPlayerDisconnected(@event.Userid!);
-            Server.PrintToConsole($"guy disconencted - {@event.Userid!.PlayerName}");
-            Server.PrintToConsole($"userid disconencted - {@event.Userid!.SteamID}");
+            // Server.PrintToConsole($"guy disconencted - {@event.Userid!.PlayerName}");
+            // Server.PrintToConsole($"userid disconencted - {@event.Userid!.SteamID}");
             Server.PrintToConsole(SuperPowerController.RemovePowers(@event.Userid!.PlayerName, "*", CsTeam.None, true, true)); // FIX ME
             return HookResult.Continue;
         });
 
         RegisterEventHandler<EventPlayerConnectFull>((@event, info) =>
         {
-            Server.PrintToConsole($"guy joined - {@event.Userid!.PlayerName}");
+            //Server.PrintToConsole($"guy joined - {@event.Userid!.PlayerName}");
             SuperPowerController.Rejoined(@event.Userid!);
             //SuperPowerUsersStorage.OnPlayerConnected(@event.Userid!);
             return HookResult.Continue;
@@ -118,10 +106,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     public override void Unload(bool hotReload)
     {
-#if !DON_DO_INVIS
-        StateTransition.Unhook(Hook_StateTransition, HookMode.Post);
-        CheckTransmit.Unhook(Hook_CheckTransmit, HookMode.Post);
-#endif
     }
 
     [ConsoleCommand("sp_add", "Adds a superpower to specified player, supports wildcards")]
@@ -237,98 +221,32 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         smwprint(player, "Reconfigured!");
     }
 
+    [ConsoleCommand("sp_inspect", "reflects on a power class and dumps its values")]
+    [CommandHelper(minArgs: 1, usage: "[power]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnInspect(CCSPlayerController? player, CommandInfo commandInfo)
+    {
+        var powerNamePattern = commandInfo.GetArg(1);
+
+        var powers = SuperPowerController.SelectPowers(powerNamePattern);
+        if (powers == null)
+        {
+            smwprint(player, $"No powers found for {powerNamePattern}");
+            return;
+        }
+
+        foreach (var power in powers)
+        {
+            string? power_field_values = TemUtils.InspectPowerReflective(power, power.GetType());
+            if (power_field_values != null)
+                smwprint(player, TemUtils.GetPowerNameReadable(power) + ":\n" + power_field_values);
+        }
+    }
+
     public void OnConfigParsed(SuperPowerConfig config)
     {
         Config = config;
 
         SuperPowerController.FeedTheConfig(Config);
     }
-#if !DON_DO_INVIS
-    private unsafe HookResult Hook_CheckTransmit(DynamicHook hook)
-    {
-        nint* ppInfoList = (nint*)hook.GetParam<nint>(1);
-        int infoCount = hook.GetParam<int>(2);
-
-        var power = SuperPowerController.GetPowerUsers("invisibility");
-        if (power == null)
-        {
-            Server.PrintToConsole("Where is the invisibility power? huh?");
-            return HookResult.Continue;
-        }
-
-        var users = power.Users;
-
-        if (users.Count() == 0)
-            return HookResult.Continue;
-
-        for (int i = 0; i < infoCount; i++)
-        {
-            nint pInfo = ppInfoList[i];
-            byte slot = *(byte*)(pInfo + GameData.GetOffset("CheckTransmitPlayerSlot"));
-
-            var player = Utilities.GetPlayerFromSlot(slot);
-            var info = Marshal.PtrToStructure<CCheckTransmitInfo>(pInfo);
-
-            if (player == null || player.PlayerPawn.Value == null || player.IsHLTV)
-                continue;
-
-            foreach (var target in Utilities.GetPlayers()
-            .Where(p => p != null && p.PlayerPawn.Value != null))
-            {
-                var pawn = target.PlayerPawn.Value!;
-
-                #region fix client crash
-                if (target.Slot == slot && ((LifeState_t)pawn.LifeState != LifeState_t.LIFE_DEAD || pawn.PlayerState.HasFlag(CSPlayerState.STATE_DEATH_ANIM)))
-                    continue;
-
-                if (player.PlayerPawn.Value.PlayerState.HasFlag(CSPlayerState.STATE_DORMANT) && target.Slot != slot)
-                    continue;
-
-                if ((LifeState_t)pawn.LifeState != LifeState_t.LIFE_ALIVE)
-                {
-                    info.m_pTransmitEntity.Clear((int)pawn.Index);
-                    continue;
-                }
-                #endregion
-
-                if (users.Contains(target) && (target.BloodType == BloodType.ColorGreen || pawn.Render.A < 10))
-                    info.m_pTransmitEntity.Clear((int)pawn.Index);
-            }
-        }
-
-        return HookResult.Continue;
-    }
-
-    private HookResult Hook_StateTransition(DynamicHook hook)
-    {
-        var pawn = new CCSPlayerPawn(hook.GetParam<nint>(0));
-
-        if (!pawn.IsValid) return HookResult.Continue;
-
-        var player = pawn.OriginalController.Value;
-        var state = hook.GetParam<CSPlayerState>(1);
-
-        if (player is null) return HookResult.Continue;
-
-        if (_oldPlayerState[player.Index] != CSPlayerState.STATE_OBSERVER_MODE && state == CSPlayerState.STATE_OBSERVER_MODE ||
-            _oldPlayerState[player.Index] == CSPlayerState.STATE_OBSERVER_MODE && state != CSPlayerState.STATE_OBSERVER_MODE)
-        {
-            ForceFullUpdate(player);
-        }
-
-        _oldPlayerState[player.Index] = state;
-
-        return HookResult.Continue;
-    }
-
-    private void ForceFullUpdate(CCSPlayerController? player)
-    {
-        if (player is null || !player.IsValid) return;
-
-        var networkGameServer = networkServerService.GetIGameServer();
-        networkGameServer.GetClientBySlot(player.Slot)?.ForceFullUpdate();
-
-        player.PlayerPawn.Value?.Teleport(null, player.PlayerPawn.Value.EyeAngles, null);
-    }
-#endif
 }
