@@ -3,3 +3,4 @@ obj/*
 *.zip
 *.dll
 *.pdb
+*.txt
