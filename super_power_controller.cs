@@ -16,6 +16,7 @@ public interface ISuperPower
     HookResult Execute(GameEvent gameEvent);
     void Update();
     void ParseCfg(Dictionary<string, string> cfg) { TemUtils.ParseConfigReflective(this, this.GetType(), cfg); }
+    bool IsUser(CCSPlayerController player) { return Users.Contains(player); }
 
     void OnRemove(CCSPlayerController? player, bool reasonDisconnect) // called if player should be removed from power
     {
@@ -26,31 +27,22 @@ public interface ISuperPower
             return;
         }
 
-        Server.PrintToConsole("reasonDisconnect = " + reasonDisconnect);
-
         Users.Remove(player);
         if (reasonDisconnect == false)
-        {
-            Server.PrintToConsole($"eebug removed {player.SteamID}");
             UsersSteamIDs.Remove(player.SteamID);
-        }
+
     }
 
     void OnAdd(CCSPlayerController player) // called if player should be added to power
     {
         Users.Add(player);
         UsersSteamIDs.Add(player.SteamID);
-        Server.PrintToConsole($"me added {player.SteamID}");
     }
 
     void OnRejoin(CCSPlayerController player)
     {
-        Server.PrintToConsole($"Triggered Rejoin for {player.SteamID}");
         if (UsersSteamIDs.Contains(player.SteamID))
-        {
-            Server.PrintToConsole($"restored {player.SteamID}");
             Users.Add(player);
-        }
     }
 }
 
@@ -89,6 +81,9 @@ public static class SuperPowerController
         Powers.Add(new ExplosionUponDeath());
         Powers.Add(new Regeneration());
         Powers.Add(new WarpPeek());
+
+        Powers.Add(new KillerBonus());
+        //Powers.Add(new ShootModifier());
     }
 
     public static void SetMode(string _mode)

@@ -124,7 +124,7 @@ public class InstantDefuse : ISuperPower
         var player = realEvent.Userid;
         if (player != null && player.IsValid && player.PawnIsAlive)
         {
-            if (!Users.Where(p => p.UserId == player.UserId).Any())
+            if (!Users.Contains(player))
                 return HookResult.Continue;
 
             var bomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").ToList().FirstOrDefault();
@@ -145,8 +145,6 @@ public class InstantDefuse : ISuperPower
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
-
-    private string PowerName => this.GetType().ToString().Split(".").Last();
 }
 
 public class InstantPlant : ISuperPower
@@ -158,7 +156,7 @@ public class InstantPlant : ISuperPower
         var player = realEvent.Userid;
         if (player != null && player.IsValid && player.PawnIsAlive)
         {
-            if (!Users.Where(p => p.UserId == player.UserId).Any())
+            if (!Users.Contains(player))
                 return HookResult.Continue;
 
             var bomb = Utilities.FindAllEntitiesByDesignerName<CC4>("weapon_c4").ToList().FirstOrDefault();
@@ -176,8 +174,6 @@ public class InstantPlant : ISuperPower
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
-
-    private string PowerName => this.GetType().ToString().Split(".").Last();
 }
 
 public class Banana : ISuperPower
@@ -228,8 +224,6 @@ public class Banana : ISuperPower
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
-
-    private string PowerName => this.GetType().ToString().Split(".").Last();
 }
 
 public class InfiniteAmmo : ISuperPower
@@ -243,7 +237,7 @@ public class InfiniteAmmo : ISuperPower
         if (player == null || !player.IsValid)
             return HookResult.Continue;
 
-        if (!Users.Where(p => p.UserId == player.UserId).Any())
+        if (!Users.Contains(player))
             return HookResult.Continue;
 
         if (player != null && player.IsValid && player.PawnIsAlive)
@@ -265,8 +259,6 @@ public class InfiniteAmmo : ISuperPower
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
-
-    private string PowerName => this.GetType().ToString().Split(".").Last();
 }
 
 public class SuperSpeed : ISuperPower
@@ -310,9 +302,8 @@ public class SuperSpeed : ISuperPower
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
 
-    private string PowerName => this.GetType().ToString().Split(".").Last();
-    private int value = 500;
-    private int period = 16;
+    private int value = 600;
+    private int period = 8;
     public const int default_velocity_max = 250;
 }
 
@@ -326,7 +317,7 @@ public class HeadshotImmunity : ISuperPower
         if (player == null || !player.IsValid)
             return HookResult.Continue;
 
-        if (!Users.Where(p => p.UserId == player.UserId).Any())
+        if (!Users.Contains(player))
             return HookResult.Continue;
 
         var pawn = player.PlayerPawn.Value;
@@ -346,8 +337,6 @@ public class HeadshotImmunity : ISuperPower
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
-
-    private string PowerName => this.GetType().ToString().Split(".").Last();
 }
 
 public class InfiniteMoney : ISuperPower
@@ -382,7 +371,7 @@ public class NukeNades : ISuperPower
         if (player == null || !player.IsValid)
             return HookResult.Continue;
 
-        if (!Users.Where(p => p.UserId == player.UserId).Any())
+        if (!Users.Contains(player))
             return HookResult.Continue;
 
         var all_grenades = Utilities.FindAllEntitiesByDesignerName<CHEGrenadeProjectile>("hegrenade_projectile");
@@ -441,7 +430,8 @@ public class EvilAura : ISuperPower
                 if (harm_pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) // only harm alive specimens
                     continue;
 
-                TemUtils.Damage(harm_pawn, (uint)damage);
+                harm_pawn.Health = harm_pawn.Health - damage;
+                Utilities.SetStateChanged(harm_pawn, "CBaseEntity", "m_iHealth");
 
                 user.PrintToCenter($"Harmed someone for {damage}...");
                 player_to_harm.PrintToCenter($"You have been hurt by {user.PlayerName}'s evil aura");
@@ -453,7 +443,7 @@ public class EvilAura : ISuperPower
         return (float)Math.Sqrt(Math.Pow(v1.X - v2.X, 2) + Math.Pow(v1.Y - v2.Y, 2) + Math.Pow(v1.Z - v2.Z, 2));
     }
     private float distance = 250;
-    private float damage = 1;
+    private int damage = 1;
     private int period = 16;
 
     public List<CCSPlayerController> Users { get; set; } = [];
@@ -549,7 +539,7 @@ public class GlassCannon : ISuperPower
             if (attacker == null || !attacker.IsValid)
                 return HookResult.Continue;
 
-            if (!Users.Where(p => p.UserId == attacker.UserId).Any())
+            if (!Users.Contains(attacker))
                 return HookResult.Continue;
 
             var victim = realEvent.Userid;
@@ -560,7 +550,8 @@ public class GlassCannon : ISuperPower
             if (pawn == null || !pawn.IsValid)
                 return HookResult.Continue;
 
-            TemUtils.Damage(pawn, (uint)(realEvent.DmgHealth * damage_multiplier));
+            pawn.Health = pawn.Health - realEvent.DmgHealth * damage_multiplier;
+            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
 
         if (eventType == typeof(EventRoundStart))
@@ -811,7 +802,7 @@ public class WarpPeek : ISuperPower
         if (player == null)
             return HookResult.Continue;
 
-        if (!Users.Where(p => p.UserId == player.UserId).Any())
+        if (!Users.Contains(player))
             return HookResult.Continue;
 
         if (timeouts.ContainsKey(player))
@@ -877,4 +868,66 @@ public class WarpPeek : ISuperPower
     private int max_index = 10;
     private int period = 16;
     private int timeout = 30;
+}
+
+public class KillerBonus : ISuperPower
+{
+    public List<Type> Triggers => [typeof(EventPlayerDeath), typeof(EventRoundStart), typeof(EventPlayerHurt)];
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        Type type = gameEvent.GetType();
+
+        if (type == typeof(EventPlayerDeath)) // each  time he kills someone, he gets a heal bonus
+        {
+            EventPlayerDeath realEvent = (EventPlayerDeath)gameEvent;
+
+            var player = realEvent.Attacker;
+            if (player == null)
+                return HookResult.Continue;
+
+            if (!Users.Contains(player))
+                return HookResult.Continue;
+
+            var pawn = player.Pawn.Value!;
+            pawn.Health = pawn.Health + base_heal_bonus;
+            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
+        }
+        else if (type == typeof(EventPlayerHurt))
+        {
+            EventPlayerHurt realEvent = (EventPlayerHurt)gameEvent;
+
+            var player = realEvent.Attacker!;
+
+            if (!Users.Contains(player))
+                return HookResult.Continue;
+
+            float damage_mult_bonus = Math.Min(player.ActionTrackingServices!.MatchStats.Kills * base_damage_bonus, max_damage_bonus);
+            int bonus_damage = (int)(realEvent.DmgHealth * damage_mult_bonus);
+
+            var pawn = realEvent.Userid!.Pawn.Value!;
+            pawn.Health = pawn.Health - bonus_damage;
+            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
+        }
+        else if (type == typeof(EventRoundStart))
+        {
+            Users.ForEach(user =>
+            {
+                var pawn = user.PlayerPawn.Value!;
+                pawn.Health = pawn.Health + Math.Min(user.ActionTrackingServices!.MatchStats.Kills * base_heal_bonus, max_health_bonus);
+                Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
+            });
+        }
+
+        return HookResult.Continue;
+    }
+
+    private int base_heal_bonus = 5;
+    private float base_damage_bonus = 0.02f;
+
+    private int max_health_bonus = 250;
+    private float max_damage_bonus = 0.20f;
+
+    public void Update() { }
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
 }

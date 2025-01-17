@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
@@ -167,6 +168,47 @@ public class TemUtils
         }
     }
 
+    public static string ReflectPrintClass(object thing)
+    {
+        if (thing == null)
+            return string.Empty;
+
+        var classTypeDef = thing.GetType();
+
+        var output = new StringBuilder();
+        var properties = classTypeDef.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        var fields = classTypeDef.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+        foreach (var property in properties)
+        {
+            output.AppendLine($"Property: {property.Name}");
+            output.AppendLine($"  Type: {property.PropertyType}");
+            output.AppendLine($"  Can Read: {property.CanRead}");
+            output.AppendLine($"  Can Write: {property.CanWrite}");
+
+            if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
+            {
+                output.AppendLine("  Nested Properties:");
+                output.AppendLine(ReflectPrintClass(property.PropertyType).Replace(Environment.NewLine, Environment.NewLine + "    "));
+            }
+        }
+
+        foreach (var field in fields)
+        {
+            output.AppendLine($"Field: {field.Name}");
+            output.AppendLine($"  Type: {field.FieldType}");
+            output.AppendLine($"  Is Public: {field.IsPublic}");
+
+            if (field.FieldType.IsClass && field.FieldType != typeof(string))
+            {
+                output.AppendLine("  Nested Fields:");
+                output.AppendLine(ReflectPrintClass(field.FieldType).Replace(Environment.NewLine, Environment.NewLine + "    "));
+            }
+        }
+
+        return output.ToString();
+    }
+
     public static void SetPlayerVisibilityLevel(CCSPlayerController player, float invisibilityLevel)
     {
         var playerPawnValue = player.PlayerPawn.Value;
@@ -225,25 +267,6 @@ public class TemUtils
                     // }
                 }
             }
-    }
-
-
-    public static void Damage(CCSPlayerPawn player, uint value)
-    {
-        Server.NextFrame(() =>
-        {
-            if (value >= player.Health)
-            {
-                var controller = player.OriginalController.Value!;
-                controller.ExecuteClientCommandFromServer($"hurtme {value}");
-            }
-            else
-            {
-                player.Health -= (int)value;
-            }
-
-            Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
-        });
     }
 
     public static void MakeModelGlow(CBaseEntity entity)
