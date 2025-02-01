@@ -7,18 +7,21 @@ using CounterStrikeSharp.API.Modules.Utils;
 
 namespace super_powers_plugin;
 
+// correct me if im using interfaces in c# wrong :P
+
 public interface ISuperPower
 {
     List<Type> Triggers { get; }
     List<CCSPlayerController> Users { get; set; }
     List<ulong> UsersSteamIDs { get; set; }
+    List<string> NeededResources { get; set; }
 
     HookResult Execute(GameEvent gameEvent);
     void Update();
     void ParseCfg(Dictionary<string, string> cfg) { TemUtils.ParseConfigReflective(this, this.GetType(), cfg); }
     bool IsUser(CCSPlayerController player) { return Users.Contains(player); }
 
-    void OnRemove(CCSPlayerController? player, bool reasonDisconnect) // called if player should be removed from power
+    void OnRemove(CCSPlayerController? player, bool reasonDisconnect) // called each time player leaves the server
     {
         if (player == null)
         {
@@ -33,13 +36,13 @@ public interface ISuperPower
 
     }
 
-    void OnAdd(CCSPlayerController player) // called if player should be added to power
+    void OnAdd(CCSPlayerController player) // called to add player to power
     {
         Users.Add(player);
         UsersSteamIDs.Add(player.SteamID);
     }
 
-    void OnRejoin(CCSPlayerController player)
+    void OnRejoin(CCSPlayerController player) // called each time player joins to check if player has this power
     {
         if (UsersSteamIDs.Contains(player.SteamID))
             Users.Add(player);
@@ -84,6 +87,7 @@ public static class SuperPowerController
 
         Powers.Add(new KillerBonus());
         //Powers.Add(new ShootModifier());
+        Powers.Add(new ChargeJump());
     }
 
     public static void SetMode(string _mode)
@@ -391,5 +395,17 @@ public static class SuperPowerController
             }
         }
         return args;
+    }
+
+    public static void PrecachePowers(ResourceManifest manifest)
+    {
+        foreach (var power in Powers)
+        {
+            var model_list = power.NeededResources;
+            foreach (var model in model_list)
+            {
+                manifest.AddResource(model);
+            }
+        }
     }
 }

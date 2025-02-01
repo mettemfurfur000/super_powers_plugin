@@ -9,6 +9,8 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Events;
+using CounterStrikeSharp.API.Modules.Extensions;
+using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 namespace super_powers_plugin;
@@ -94,19 +96,41 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         {
             SuperPowerController.Update();
         });
+
+        VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Hook(OnTakeDamage, HookMode.Pre);
     }
 
     private void OnServerPrecacheResources(ResourceManifest manifest)
     {
-        /*
-        models/props/de_nuke/crate_extrasmall.
-        */
-        manifest.AddResource("models/food/pizza/pizza_1.vmdl");
-        manifest.AddResource("models/food/fruits/banana01a.vmdl");
+        SuperPowerController.PrecachePowers(manifest);
     }
 
     public override void Unload(bool hotReload)
     {
+        VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Unhook(OnTakeDamage, HookMode.Pre);
+    }
+
+    [ConsoleCommand("sp_help", "should help in most cases")]
+    [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnHelp(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        const string player_select_format = "<player>";
+        const string power_select_format = "<power>";
+        const string team_format = "[t,ct]";
+        smwprint(caller, $"Availiable commands:");
+        smwprint(caller, $"  sp_help \t\t\t\t\t\t - should help in most cases");
+        smwprint(caller, $"  sp_add {player_select_format} {power_select_format} (now) \t\t\t - adds power to player");
+        smwprint(caller, $"  sp_add_team {team_format} {power_select_format} (now)  \t\t\t - adds power to all players of team");
+        smwprint(caller, $"  sp_remove {player_select_format} {power_select_format} (now) \t\t\t - removes power from player");
+        smwprint(caller, $"  sp_remove_team {team_format}  {power_select_format} (now) \t\t - removes power from all players of team");
+        smwprint(caller, $"  sp_list {player_select_format}  \t\t\t\t\t - lists powers of player");
+        smwprint(caller, $"  sp_mode [normal, random] \t\t\t\t - sets a special gamemode");
+        smwprint(caller, $"flag 'now' triggers the power immediaty");
+        smwprint(caller, $"Advanced commands:");
+        smwprint(caller, $"  sp_status \t\t\t\t\t\t - prints status of all powers and its users");
+        smwprint(caller, $"  sp_inspect {power_select_format} \t\t\t\t\t - prints info about power and its parameters");
+        smwprint(caller, $"  sp_reconfigure {power_select_format} {power_select_format} [key1] [value1] ... \t - reconfigures power");
     }
 
     [ConsoleCommand("sp_add", "Adds a superpower to specified player, supports wildcards")]
@@ -141,6 +165,16 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             smwprint(caller, SuperPowerController.AddPowers("unused", powerNamePattern, now_flag, csteam));
     }
 
+    [ConsoleCommand("sp_remove", "Removes a superpower from specified player, supports wildcards")]
+    [CommandHelper(minArgs: 2, usage: "[player/*] [power/*]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnPowerRemove(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var playerNamePattern = commandInfo.GetArg(1);
+        var powerNamePattern = commandInfo.GetArg(2);
+        smwprint(caller, SuperPowerController.RemovePowers(playerNamePattern, powerNamePattern));
+    }
+
     [ConsoleCommand("sp_remove_team", "Removes a superpower from specified team, supports wildcards")]
     [CommandHelper(minArgs: 2, usage: "[ct/t] [power/*]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
     [RequiresPermissions("@css/root")]
@@ -168,15 +202,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         smwprint(caller, $"Mode {mode} set");
     }
 
-    [ConsoleCommand("sp_remove", "Removes a superpower from specified player, supports wildcards")]
-    [CommandHelper(minArgs: 2, usage: "[player/*] [power/*]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    [RequiresPermissions("@css/root")]
-    public void OnPowerRemove(CCSPlayerController? caller, CommandInfo commandInfo)
-    {
-        var playerNamePattern = commandInfo.GetArg(1);
-        var powerNamePattern = commandInfo.GetArg(2);
-        smwprint(caller, SuperPowerController.RemovePowers(playerNamePattern, powerNamePattern));
-    }
+
 
     [ConsoleCommand("sp_list", "lists all posibl powers")]
     [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
@@ -213,12 +239,13 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         Dictionary<string, string> forced_cfg = [];
         for (int i = 2; i < commandInfo.ArgCount; i += 2) // iterate over all args, except 0 and 1, which is just the name of the command and name of power
         {
-            Server.PrintToConsole(commandInfo.GetArg(i));
             var key = commandInfo.GetArg(i);
             var value = commandInfo.GetArg(i + 1);
             forced_cfg[key] = value;
         }
         SuperPowerController.Reconfigure(forced_cfg, commandInfo.GetArg(1));
+        Config.args = SuperPowerController.GenerateDefaultConfig();
+        TemConfigExtensions.Update(Config);
         smwprint(player, "Reconfigured!");
     }
 
@@ -250,4 +277,10 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         SuperPowerController.FeedTheConfig(Config);
     }
+
+    private static HookResult OnTakeDamage(DynamicHook hook)
+    {
+        return HookResult.Continue;
+    }
+
 }
