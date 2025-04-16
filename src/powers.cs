@@ -12,8 +12,10 @@ using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
+using System.Threading;
+using CS2_GameHUDAPI;
 
-namespace super_powers_plugin;
+namespace super_powers_plugin.src;
 
 /*
 
@@ -52,7 +54,10 @@ public class BonusHealth : ISuperPower
         return HookResult.Continue;
     }
 
+    public string GetDescription() => $"+{value - 100} HP on the start of each round";
+
     public void Update() { }
+    public void OnRemovePower(CCSPlayerController? player) { }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
     public List<string> NeededResources { get; set; } = [];
@@ -85,6 +90,10 @@ public class Regeneration : ISuperPower
         }
     }
 
+    public string GetDescription() => $"Regenerate {increment} HP if less than {limit} every {(float)(period / 64)} seconds";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
+
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
     public List<string> NeededResources { get; set; } = [];
@@ -110,6 +119,11 @@ public class BonusArmor : ISuperPower
         }
         return HookResult.Continue;
     }
+
+    public string GetDescription() => $"Obtain {value} armor each round, head armor not included";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
+
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
@@ -144,6 +158,10 @@ public class InstantDefuse : ISuperPower
 
         return HookResult.Continue;
     }
+
+    public string GetDescription() => $"Defuse bombs instantly (even withot defuse kit)";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
@@ -174,6 +192,10 @@ public class InstantPlant : ISuperPower
 
         return HookResult.Continue;
     }
+
+    public string GetDescription() => $"Plant a bomb with no delay";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
@@ -185,7 +207,6 @@ public class Banana : ISuperPower
     public List<Type> Triggers => [typeof(EventRoundStart)];
     public HookResult Execute(GameEvent gameEvent)
     {
-        var realEvent = (EventRoundStart)gameEvent;
         foreach (var user in Users)
         {
             if (user == null || !user.IsValid)
@@ -205,7 +226,7 @@ public class Banana : ISuperPower
             var pizza_id = TemUtils.RandomString(12);
 
             prop.Globalname = pizza_id;
-            prop.SetModel("models/food/fruits/banana01a.vmdl");
+            prop.SetModel(NeededResources[0]);
             prop.Teleport(pawn.AbsOrigin, pawn.AbsRotation, pawn.AbsVelocity);
 
             if (prop.Collision != null && prop.Collision.EnablePhysics != 1)
@@ -216,15 +237,20 @@ public class Banana : ISuperPower
             if (prop.Collision != null)
             {
                 prop.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
-                prop.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_INTERACTIVE_DEBRIS;
+                prop.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PROPS;
             }
 
             prop.AddEntityIOEvent("SetScale", null, null, "5");
             prop.DispatchSpawn();
+
+            //Server.PrintToChatAll("banana");
         }
         return HookResult.Continue;
     }
 
+    public string GetDescription() => $"Spawns a banana each round, not edible";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
@@ -261,6 +287,10 @@ public class InfiniteAmmo : ISuperPower
 
         return HookResult.Continue;
     }
+
+    public string GetDescription() => $"Zeus included, nades not included";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
@@ -287,11 +317,11 @@ public class SuperSpeed : ISuperPower
                 return;
 
             pawn.MovementServices!.Maxspeed = value;
-            pawn.VelocityModifier = (float)(value / 320);
+            pawn.VelocityModifier = (float)value / default_velocity_max;
         }
     }
 
-    void OnRemove(CCSPlayerController? player)
+    public void OnRemovePower(CCSPlayerController? player)
     {
         if (player != null)
         {
@@ -303,14 +333,26 @@ public class SuperSpeed : ISuperPower
                 pawn.VelocityModifier = 1;
             }
         }
+        else
+        {
+            Users.ForEach(p =>
+            {
+                var pawn = p.PlayerPawn.Value!;
+
+                pawn.MovementServices!.Maxspeed = default_velocity_max;
+                pawn.VelocityModifier = 1;
+            });
+        }
     }
+
+    public string GetDescription() => $"Increased walking speed ({(float)value / default_velocity_max})";
 
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
     public List<string> NeededResources { get; set; } = [];
 
-    private int value = 600;
-    private int period = 8;
+    private int value = 700;
+    private int period = 4;
     public const int default_velocity_max = 250;
 }
 
@@ -341,6 +383,10 @@ public class HeadshotImmunity : ISuperPower
 
         return HookResult.Continue;
     }
+
+    public string GetDescription() => $"Calcels all headshots, landed on your head";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
@@ -356,7 +402,7 @@ public class InfiniteMoney : ISuperPower
     }
     public void Update()
     {
-        if (Server.TickCount % 64 != 0)
+        if (Server.TickCount % 32 != 0)
             return;
         foreach (var user in Users)
         {
@@ -364,6 +410,21 @@ public class InfiniteMoney : ISuperPower
             Utilities.SetStateChanged(user, "CCSPlayerController", "m_pInGameMoneyServices");
         }
     }
+
+    public void OnRemovePower(CCSPlayerController? player)
+    {
+        if (player != null)
+            player.InGameMoneyServices!.Account = 800;
+        else
+        {
+            Users.ForEach(p =>
+            {
+                p.InGameMoneyServices!.Account = 800;
+            });
+        }
+    }
+
+    public string GetDescription() => $"Near infinite supply of money";
 
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
@@ -390,8 +451,8 @@ public class NukeNades : ISuperPower
         var grenade = all_grenades.First();
         if (player.UserId == grenade.Thrower.Value!.OriginalController.Value!.UserId)
         {
-            grenade.Damage *= 10;
-            grenade.DmgRadius *= 10;
+            grenade.Damage *= multiplier;
+            grenade.DmgRadius *= multiplier;
 
             //grenade.DetonateTime *= 3;
 
@@ -401,10 +462,15 @@ public class NukeNades : ISuperPower
         return HookResult.Continue;
     }
 
+    public string GetDescription() => $"HE grenades, but {multiplier} times more explosive";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
     public List<string> NeededResources { get; set; } = [];
+
+    private float multiplier = 10;
 }
 
 public class EvilAura : ISuperPower
@@ -439,6 +505,8 @@ public class EvilAura : ISuperPower
                 var harm_pawn = player_to_harm.PlayerPawn.Value!;
                 if (harm_pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) // only harm alive specimens
                     continue;
+                if (harm_pawn.Health <= 2)
+                    continue;
 
                 harm_pawn.Health = harm_pawn.Health - damage;
                 Utilities.SetStateChanged(harm_pawn, "CBaseEntity", "m_iHealth");
@@ -455,6 +523,10 @@ public class EvilAura : ISuperPower
     private float distance = 250;
     private int damage = 1;
     private int period = 16;
+
+    public string GetDescription() => $"Slowly harm enemies close to you. Can't kill";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
 
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
@@ -484,7 +556,14 @@ public class DormantPower : ISuperPower
             return HookResult.Continue;
         }
 
-        power_commands = dormant_power_rules[gameRules.TotalRoundsPlayed];
+        try
+        {
+            power_commands = dormant_power_rules[gameRules.TotalRoundsPlayed];
+        }
+        catch (Exception)
+        {
+            return HookResult.Continue;
+        }
 
         foreach (var user in Users)
         {
@@ -505,10 +584,13 @@ public class DormantPower : ISuperPower
         return HookResult.Continue;
     }
     public void Update() { }
+    public void OnRemovePower(CCSPlayerController? player) { }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
     public List<string> NeededResources { get; set; } = [];
     private Dictionary<int, HashSet<string>> dormant_power_rules = [];
+
+    public string GetDescription() => $"Internal use only";
 
     private string master_rule = "fill_me";
     private string round_rule_separator = "|";
@@ -537,52 +619,39 @@ public class DormantPower : ISuperPower
     }
 }
 
-public class GlassCannon : ISuperPower
+public class DamageBonus : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventRoundStart), typeof(EventPlayerHurt)];
+    public List<Type> Triggers => [typeof(EventPlayerHurt)];
     public HookResult Execute(GameEvent gameEvent)
     {
-        var eventType = gameEvent.GetType();
-        if (eventType == typeof(EventPlayerHurt))
-        {
-            var realEvent = (EventPlayerHurt)gameEvent;
-            var attacker = realEvent.Attacker;
+        var realEvent = (EventPlayerHurt)gameEvent;
+        var attacker = realEvent.Attacker;
 
-            if (attacker == null || !attacker.IsValid)
-                return HookResult.Continue;
+        if (attacker == null || !attacker.IsValid)
+            return HookResult.Continue;
 
-            if (!Users.Contains(attacker))
-                return HookResult.Continue;
+        if (!Users.Contains(attacker))
+            return HookResult.Continue;
 
-            var victim = realEvent.Userid;
-            if (victim == null || !victim.IsValid)
-                return HookResult.Continue;
+        var victim = realEvent.Userid;
+        if (victim == null || !victim.IsValid)
+            return HookResult.Continue;
 
-            var pawn = victim.PlayerPawn.Value;
-            if (pawn == null || !pawn.IsValid)
-                return HookResult.Continue;
+        var pawn = victim.PlayerPawn.Value;
+        if (pawn == null || !pawn.IsValid)
+            return HookResult.Continue;
 
-            pawn.Health = pawn.Health - realEvent.DmgHealth * damage_multiplier;
-            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
-        }
-
-        if (eventType == typeof(EventRoundStart))
-        {
-            foreach (var user in Users)
-            {
-                var pawn = user.PlayerPawn.Value;
-                if (pawn == null)
-                    continue;
-
-                pawn.Health = health;
-                Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
-            }
-        }
+        pawn.Health = pawn.Health - realEvent.DmgHealth * damage_multiplier;
+        Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
 
         return HookResult.Continue;
     }
+
+    public string GetDescription() => $"All your damage is multiplied by {damage_multiplier}";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
     public void Update() { }
-    private int health = 50;
+
     private int damage_multiplier = 2;
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
@@ -615,11 +684,16 @@ public class Vampirism : ISuperPower
 
         var sounds = vampireSounds.Split(";");
         attacker.ExecuteClientCommand("play " + sounds.ElementAt(new Random().Next(sounds.Length)));
+        // TemUtils.EmitSound(attacker,) // dosn work aparently, requires source2viewer
         if (victim != null && victim.IsValid)
             victim.ExecuteClientCommand("play " + sounds.ElementAt(new Random().Next(sounds.Length)));
 
         return HookResult.Continue;
     }
+
+    public string GetDescription() => $"Gain {(int)(100 / divisor)}% of dealt damage, annoying sounds included";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
 
     public void Update() { }
     private int divisor = 5;
@@ -697,7 +771,7 @@ public class Invisibility : ISuperPower
         }
     }
 
-    public void OnRemove(CCSPlayerController? player)
+    public void OnRemovePower(CCSPlayerController? player)
     {
         if (player == null)
         {
@@ -712,6 +786,9 @@ public class Invisibility : ISuperPower
         Levels[Users.IndexOf(player)] = -1.0f;
         TemUtils.SetPlayerVisibilityLevel(player, 0.0f);
     }
+
+    public string GetDescription() => $"I cant really see you";
+
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
     public List<string> NeededResources { get; set; } = [];
@@ -749,6 +826,10 @@ public class SuperJump : ISuperPower
 
         return HookResult.Continue;
     }
+
+    public void OnRemovePower(CCSPlayerController? player) { }
+
+    public string GetDescription() => $"Look up and jump to get {multiplier} times higher";
 
     public void Update() { }
     private float multiplier = 2;
@@ -795,7 +876,11 @@ public class ExplosionUponDeath : ISuperPower
 
         return HookResult.Continue;
     }
+
+    public void OnRemovePower(CCSPlayerController? player) { }
     public void Update() { }
+
+    public string GetDescription() => $"Explode on death, dealing {damage} damage in a {radius} units radius";
 
     private int radius = 500;
     private float damage = 125f;
@@ -875,6 +960,10 @@ public class WarpPeek : ISuperPower
             current_index = 0;
     }
 
+    public string GetDescription() => $"Warp back in time when hit. Only position is saved";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
+
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
     public List<string> NeededResources { get; set; } = [];
@@ -941,11 +1030,15 @@ public class KillerBonus : ISuperPower
         return HookResult.Continue;
     }
 
+    public string GetDescription() => $"Each kill will give you {heal} more HP and {dmg_inc * 100}% more damage. Limited to {max_heal} HP and {max_dmg_inc * 100}% bonus damage";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
+
     private int heal = 5;
     private float dmg_inc = 0.02f;
 
-    private int max_heal = 250;
-    private float max_dmg_inc = 0.20f;
+    private int max_heal = 300;
+    private float max_dmg_inc = 1.00f;
 
     public void Update() { }
     public List<CCSPlayerController> Users { get; set; } = [];
@@ -988,9 +1081,238 @@ public class ChargeJump : ISuperPower
         return HookResult.Continue;
     }
 
+    public void OnRemovePower(CCSPlayerController? player) { }
+    public string GetDescription() => $"Jump while crouching to make a leap forward";
+
     private float jump_force = 600f;
 
     public void Update() { }
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
+    public List<string> NeededResources { get; set; } = [];
+}
+
+public class SmallSize : ISuperPower
+{
+    public List<Type> Triggers => [typeof(EventRoundStart)];
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        foreach (var user in Users)
+        {
+            var pawn = user.PlayerPawn.Value;
+            if (pawn == null)
+                continue;
+
+            var skeletonInstance = pawn.CBodyComponent?.SceneNode?.GetSkeletonInstance();
+            if (skeletonInstance != null)
+                skeletonInstance.Scale = scale;
+
+            pawn.AcceptInput("SetScale", null, null, scale.ToString());
+
+            Server.NextFrame(() =>
+            {
+                Utilities.SetStateChanged(pawn, "CBaseEntity", "m_CBodyComponent");
+            });
+        }
+        return HookResult.Continue;
+    }
+
+    public void OnRemovePower(CCSPlayerController? player)
+    {
+        if (player != null)
+        {
+            var pawn = player.PlayerPawn.Value;
+            if (pawn == null)
+                return;
+
+            var skeletonInstance = pawn.CBodyComponent?.SceneNode?.GetSkeletonInstance();
+            if (skeletonInstance != null)
+                skeletonInstance.Scale = 1;
+
+            pawn.AcceptInput("SetScale", null, null, "1");
+
+            Server.NextFrame(() =>
+            {
+                Utilities.SetStateChanged(pawn, "CBaseEntity", "m_CBodyComponent");
+            });
+        }
+        else
+        {
+            Users.ForEach(p =>
+            {
+                var pawn = p.PlayerPawn.Value;
+                if (pawn == null)
+                    return;
+
+                var skeletonInstance = pawn.CBodyComponent?.SceneNode?.GetSkeletonInstance();
+                if (skeletonInstance != null)
+                    skeletonInstance.Scale = 1;
+
+                pawn.AcceptInput("SetScale", null, null, "1");
+
+                Server.NextFrame(() =>
+                {
+                    Utilities.SetStateChanged(pawn, "CBaseEntity", "m_CBodyComponent");
+                });
+            });
+        }
+    }
+    public string GetDescription() => $"WIP: smaller model, but camera on the same height";
+
+    public void Update() { }
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
+    public List<string> NeededResources { get; set; } = [];
+    private float scale = 0.75f;
+}
+
+public class ExplosiveAmmo : ISuperPower
+{
+    public List<Type> Triggers => [typeof(EventBulletImpact)];
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        EventBulletImpact realEvent = (EventBulletImpact)gameEvent;
+
+        var player = realEvent.Userid;
+        if (player == null)
+            return HookResult.Continue;
+
+        if (!Users.Contains(player))
+            return HookResult.Continue;
+
+        var pawn = player.Pawn.Value;
+        if (pawn == null)
+            return HookResult.Continue;
+
+        Vector position = new Vector(realEvent.X, realEvent.Y, realEvent.Z);
+
+        TemUtils.SpawnParticle(NeededResources[0], position);
+
+        return HookResult.Continue;
+    }
+
+    public string GetDescription() => $"WIP: causes small explosions on bullet hits with 20% of its damage";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
+
+    public void Update() { }
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
+    public List<string> NeededResources { get; set; } = ["particles/weapons/cs_weapon_fx/weapon_snowball_impact_child_smoke_puff.vpcf"];
+}
+
+
+public class MenuViewer : ISuperPower
+{
+    public List<Type> Triggers => [typeof(EventRoundStart)];
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        // TODO:
+        /*
+            * collect all powers dat can be obtained with this menu thing
+            * assign "rank" to each of them for a little bit of balance
+            * pick 2-3 options, starting with weaker powers first
+            * assembl a menu
+            * show it to de player
+            * don
+        */
+
+        foreach (var user in Users)
+        {
+            List<ISuperPower> playablePowers = SuperPowerController.GetPlayablePowers(MenuManager.Config!, user);
+
+            var powerchoice = new ChoiceMenu(user);
+
+            // select 1-3 random powers 
+
+            var randomPowers = new List<ISuperPower>();
+
+            int fail_guard = 0;
+
+            while (randomPowers.Count < new Random().Next(2, 5))
+            {
+                var randomPower = playablePowers[new Random().Next(playablePowers.Count)];
+                // avoid duplicates
+                if (randomPowers.Contains(randomPower))
+                {
+                    fail_guard++;
+                    if (fail_guard > 100)
+                        break;
+                    continue;
+                }
+                // also check for powers that player already has
+                if (randomPower.IsUser(user))
+                {
+                    fail_guard++;
+                    if (fail_guard > 100)
+                        break;
+                    continue;
+                }
+
+                randomPowers.Add(randomPower);
+            }
+
+            if (randomPowers.Count == 0)
+            {
+                user.PrintToChat($"No powers available for you (what a shame)");
+                return HookResult.Continue;
+            }
+
+            randomPowers.ForEach((power) =>
+            {
+                string textInfo = TemUtils.GetPowerNameReadable(power) + "\n" + power.GetDescription();
+                powerchoice.choices.Add(new Tuple<string, Action>(textInfo, () =>
+                {
+                    power.OnAdd(user);
+                    try
+                    { power.Execute(new GameEvent(0)); }
+                    catch { }
+                    powerchoice.is_inactive = true;
+
+                    user.ExecuteClientCommand("play sounds/ui/panorama/chatwheel_alert_01.vsnd");
+                }));
+            });
+
+            activeMenus.Add(powerchoice);
+
+            Server.RunOnTick(Server.TickCount + 64 * 20, () =>
+            {
+                if (powerchoice.is_inactive)
+                    return;
+                activeMenus.Remove(powerchoice);
+                user.PrintToChat("Power choice menu expired");
+            });
+        }
+
+        return HookResult.Continue;
+    }
+
+    public List<ChoiceMenu> activeMenus = [];
+
+    public string GetDescription() => $"WIP: allows users to obtain a new power each round. if waited too long, will not get anything";
+    public void OnRemovePower(CCSPlayerController? player) { }
+
+    public void Update()
+    {
+        activeMenus.ForEach((m) =>
+        {
+            if (m.is_inactive)
+            {
+                MenuManager.MenuClose(m);
+                return;
+            }
+
+            m.Update();
+
+            if (Server.TickCount % 64 == 0)
+            {
+                MenuManager.ChoiceMenuDisplayArrow(m, 1f);
+                MenuManager.ChoiceMenuDisplay(m, 1f);
+            }
+        });
+
+        activeMenus.RemoveAll((a) => a.is_inactive);
+    }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
     public List<string> NeededResources { get; set; } = [];

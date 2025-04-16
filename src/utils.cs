@@ -1,13 +1,15 @@
 using System.Drawing;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 
-namespace super_powers_plugin;
+namespace super_powers_plugin.src;
 
 public class TemUtils
 {
@@ -215,7 +217,7 @@ public class TemUtils
         var playerPawnValue = player.PlayerPawn.Value;
         if (playerPawnValue == null || !playerPawnValue.IsValid)
         {
-            Console.WriteLine("Player pawn is not valid.");
+            TemUtils.Log("Player pawn is not valid.");
             return;
         }
 
@@ -268,6 +270,44 @@ public class TemUtils
                     // }
                 }
             }
+    }
+
+    private static MemoryFunctionVoid<CBaseEntity, string, int, float, float>? CBaseEntity_EmitSoundParamsFunc = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+    new("\\x48\\x8B\\xC4\\x48\\x89\\x58\\x2A\\x48\\x89\\x70\\x2A\\x55\\x57\\x41\\x56\\x48\\x8D\\xA8\\x2A\\x2A\\x2A\\x2A\\x48\\x81\\xEC\\x2A\\x2A\\x2A\\x2A\\x45\\x33\\xF6") :
+    new("\\x48\\xB8\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\x55\\x48\\x89\\xE5\\x41\\x55\\x41\\x54\\x49\\x89\\xFC\\x53\\x48\\x89\\xF3");
+
+    public static void EmitSound(CBaseEntity entity, string soundEventName, int pitch = 1, float volume = 1f, float delay = 1f)
+    {
+        if (entity is null
+        || entity.IsValid is not true
+        || string.IsNullOrEmpty(soundEventName) is true
+        || CBaseEntity_EmitSoundParamsFunc is null) return;
+
+        CBaseEntity_EmitSoundParamsFunc.Invoke(entity, soundEventName, pitch, volume, delay);
+    }
+
+    public static void SpawnParticle(string filename, Vector pos)
+    {
+        CParticleSystem? particle = Utilities.CreateEntityByName<CParticleSystem>("info_particle_system");
+
+        if (particle == null)
+            return;
+
+        particle.EffectName = filename;
+
+        particle.DispatchSpawn();
+        particle.AcceptInput("Start");
+        particle.Teleport(pos);
+
+        // causes crashes
+        // Server.RunOnTick(Server.TickCount + 64, () =>
+        // {
+        //     if (particle == null || !particle.IsValid)
+        //         return;
+
+        //     particle.Remove();
+        //     Server.PrintToChatAll("removed");
+        // });
     }
 
     public static void MakeModelGlow(CBaseEntity entity)

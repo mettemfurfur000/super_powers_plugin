@@ -5,7 +5,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Utils;
 
-namespace super_powers_plugin;
+namespace super_powers_plugin.src;
 
 // correct me if im using interfaces in c# wrong :P
 
@@ -16,12 +16,15 @@ public interface ISuperPower
     List<ulong> UsersSteamIDs { get; set; }
     List<string> NeededResources { get; set; }
 
+    string GetDescription();
+
     HookResult Execute(GameEvent gameEvent);
     void Update();
     void ParseCfg(Dictionary<string, string> cfg) { TemUtils.ParseConfigReflective(this, this.GetType(), cfg); }
     bool IsUser(CCSPlayerController player) { return Users.Contains(player); }
 
-    void OnRemove(CCSPlayerController? player, bool reasonDisconnect) // called each time player leaves the server
+    void OnRemovePower(CCSPlayerController? player);
+    void OnRemoveUser(CCSPlayerController? player, bool reasonDisconnect) // called each time player leaves the server
     {
         if (player == null)
         {
@@ -68,28 +71,36 @@ public static class SuperPowerController
         Powers.Add(new BonusArmor());
         Powers.Add(new InstantDefuse());
         Powers.Add(new InstantPlant());
-        Powers.Add(new Banana());
         Powers.Add(new InfiniteAmmo());
         Powers.Add(new SuperSpeed());
         Powers.Add(new HeadshotImmunity());
         Powers.Add(new InfiniteMoney());
         Powers.Add(new NukeNades());
         Powers.Add(new EvilAura());
-        Powers.Add(new DormantPower());
-        Powers.Add(new GlassCannon());
+        Powers.Add(new DamageBonus());
         Powers.Add(new Vampirism());
         Powers.Add(new SuperJump());
-
         Powers.Add(new Invisibility());
         Powers.Add(new ExplosionUponDeath());
         Powers.Add(new Regeneration());
         Powers.Add(new WarpPeek());
-
         Powers.Add(new KillerBonus());
-        //Powers.Add(new ShootModifier());
         Powers.Add(new ChargeJump());
-    }
+        Powers.Add(new SmallSize());
 
+        // Powers.Add(new WallHack());
+        // Powers.Add(new Teleport());
+        // Powers.Add(new GravityControl());
+        // Powers.Add(new TimeFreeze());
+        // Powers.Add(new CloneAbility());
+        // Powers.Add(new WeaponMaster());
+        // Powers.Add(new ElementalAmmo());
+        // Powers.Add(new PhaseWalk());
+        
+        Powers.Add(new DormantPower());
+        Powers.Add(new Banana());
+        Powers.Add(new MenuViewer());
+    }
     public static void SetMode(string _mode)
     {
         mode = _mode;
@@ -198,12 +209,33 @@ public static class SuperPowerController
         // clear all powers first
         foreach (var p in Powers)
         {
-            p.OnRemove(null, false);
+            p.OnRemovePower(null);
+            p.OnRemoveUser(null, false);
             p.Users.Clear();
         }
     }
 
-    public static string AddPowerRandomlyToEveryone(SuperPowerConfig cfg, bool silent = true)
+    public static List<ISuperPower> GetPlayablePowers(SuperPowerConfig cfg, CCSPlayerController player)
+    {
+        List<ISuperPower> ret = [];
+
+        Powers.ToList().ForEach((power) =>
+        {
+            string powerName = TemUtils.GetPowerName(power);
+            if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.Terrorist && cfg.t_blacklist.Contains(powerName))
+                return;
+            if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.CounterTerrorist && cfg.ct_blacklist.Contains(powerName))
+                return;
+            if (cfg.power_blacklist.Contains(powerName))
+                return;
+
+            ret.Add(power);
+        });
+
+        return ret;
+    }
+
+    public static string AddMenuViewerPowerToEveryone()
     {
         CleanPowers();
 
@@ -213,24 +245,53 @@ public static class SuperPowerController
 
         foreach (var player in players)
         {
-            var power = Powers.ElementAt(new Random().Next(Powers.Count));
+            var power = Powers.First(p => TemUtils.GetPowerName(p) == "menu_viewer");
+            power.OnAdd(player);
 
-            if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.Terrorist)
-                if (cfg.t_blacklist.Contains(TemUtils.GetPowerName(power)))
+            try
+            { power.Execute(new GameEvent(0)); }
+            catch { }
+        }
+
+        return "Menu viewer added to all players";
+    }
+
+    public static string AddPowerRandomlyToEveryone(SuperPowerConfig cfg, bool silent = true)
+    {
+        CleanPowers();
+
+        var players = Utilities.GetPlayers();
+        if (players.Count == 0)
+            return "Error: No players found";
+
+        foreach (var player in players)
+        {
+            ISuperPower? power = null;
+            while (true)
+            {
+                power = Powers.ElementAt(new Random().Next(Powers.Count));
+
+                if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.Terrorist)
+                    if (cfg.t_blacklist.Contains(TemUtils.GetPowerName(power)))
+                        continue;
+
+                if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.CounterTerrorist)
+                    if (cfg.ct_blacklist.Contains(TemUtils.GetPowerName(power)))
+                        continue;
+
+                if (cfg.power_blacklist.Contains(TemUtils.GetPowerName(power)))
                     continue;
 
-            if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.CounterTerrorist)
-                if (cfg.ct_blacklist.Contains(TemUtils.GetPowerName(power)))
-                    continue;
-
-            if (cfg.power_blacklist.Contains(TemUtils.GetPowerName(power)))
-                continue;
+                break;
+            }
 
             //power.Users.Add(player);
 
             power.OnAdd(player);
             string alert = $"Your power for this round:\n{ChatColors.Blue}{TemUtils.GetPowerNameReadable(power)}";
             player.PrintToChat(alert);
+            string description = $"Power description:\n{ChatColors.Blue}{power.GetDescription()}";
+            player.PrintToChat(description);
             if (!silent)
                 player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
 
@@ -343,7 +404,8 @@ public static class SuperPowerController
                     try
                     {
                         //power.Users.Remove(player);
-                        power.OnRemove(player, reasonDisconnect);
+                        power.OnRemovePower(player);
+                        power.OnRemoveUser(player, reasonDisconnect);
                         removed_powers_feedback += $" {ChatColors.Red}{TemUtils.GetPowerNameReadable(power)}{ChatColors.White},";
                         status_message += $"Removed {powerName} from {player.PlayerName}\n";
                         removed_powers++;
@@ -405,6 +467,7 @@ public static class SuperPowerController
             foreach (var model in model_list)
             {
                 manifest.AddResource(model);
+                TemUtils.Log("precaching " + model);
             }
         }
     }

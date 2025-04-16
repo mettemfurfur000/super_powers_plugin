@@ -1,14 +1,14 @@
 using System.Text.Json.Serialization;
 using CounterStrikeSharp.API.Core;
 
-namespace super_powers_plugin;
+namespace super_powers_plugin.src;
 
 public class SuperPowerConfig : IBasePluginConfig
 {
     [JsonPropertyName("args")]
     public Dictionary<string, Dictionary<string, string>> args { get; set; } = SuperPowerController.GenerateDefaultConfig();
     [JsonPropertyName("power_blacklist")]
-    public List<string> power_blacklist { get; set; } = ["dormant_power", "banana", "nuke_nades"];
+    public List<string> power_blacklist { get; set; } = ["dormant_power", "banana", "nuke_nades", "menu_viewer", "explosive_ammo"];
     [JsonPropertyName("ct_blacklist")]
     public List<string> ct_blacklist { get; set; } = ["instant_plant"];
     [JsonPropertyName("t_blacklist")]
