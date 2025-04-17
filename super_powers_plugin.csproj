@@ -12,10 +12,4 @@
       <HintPath>../../api/CounterStrikeSharp.API.dll</HintPath>
     </Reference>
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="CounterStrikeSharp.API">
-      <HintPath>../../shared/CS2-GameHUDAPI/CS2-GameHUDAPI.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 </Project>

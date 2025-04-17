@@ -13,8 +13,6 @@ using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Threading;
-using CS2_GameHUDAPI;
-
 namespace super_powers_plugin.src;
 
 /*
@@ -300,49 +298,21 @@ public class InfiniteAmmo : ISuperPower
 public class SuperSpeed : ISuperPower
 {
     public List<Type> Triggers => [typeof(EventRoundStart)];
-    public HookResult Execute(GameEvent gameEvent) { return HookResult.Continue; }
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        TemUtils.PowerApplySpeed(Users, value);
+        return HookResult.Continue;
+    }
 
     public void Update()
     {
         if (Server.TickCount % period != 0) return;
-        ApplySpeed();
-    }
-
-    private void ApplySpeed()
-    {
-        foreach (var user in Users)
-        {
-            var pawn = user.PlayerPawn.Value;
-            if (pawn == null)
-                return;
-
-            pawn.MovementServices!.Maxspeed = value;
-            pawn.VelocityModifier = (float)value / default_velocity_max;
-        }
+        TemUtils.PowerApplySpeed(Users, value);
     }
 
     public void OnRemovePower(CCSPlayerController? player)
     {
-        if (player != null)
-        {
-            if (Users.Contains(player))
-            {
-                var pawn = player.PlayerPawn.Value!;
-
-                pawn.MovementServices!.Maxspeed = default_velocity_max;
-                pawn.VelocityModifier = 1;
-            }
-        }
-        else
-        {
-            Users.ForEach(p =>
-            {
-                var pawn = p.PlayerPawn.Value!;
-
-                pawn.MovementServices!.Maxspeed = default_velocity_max;
-                pawn.VelocityModifier = 1;
-            });
-        }
+        TemUtils.PowerRemoveSpeedModifier(Users, player);
     }
 
     public string GetDescription() => $"Increased walking speed ({(float)value / default_velocity_max})";
@@ -809,7 +779,7 @@ public class SuperJump : ISuperPower
         if (!Users.Where(p => p.UserId == player.UserId).Any())
             return HookResult.Continue;
 
-        var pawn = player.Pawn.Value;
+        var pawn = player.PlayerPawn.Value;
         if (pawn == null)
             return HookResult.Continue;
 
@@ -854,7 +824,7 @@ public class ExplosionUponDeath : ISuperPower
         if (!Users.Where(p => p.UserId == player.UserId).Any())
             return HookResult.Continue;
 
-        var pawn = player.Pawn.Value;
+        var pawn = player.PlayerPawn.Value;
         if (pawn == null)
             return HookResult.Continue;
 
@@ -914,7 +884,7 @@ public class WarpPeek : ISuperPower
                 return HookResult.Continue;
             }
 
-        var pawn = player.Pawn.Value;
+        var pawn = player.PlayerPawn.Value;
         if (pawn == null)
             return HookResult.Continue;
 
@@ -934,7 +904,7 @@ public class WarpPeek : ISuperPower
 
         foreach (var user in Users)
         {
-            var pawn = user.Pawn.Value;
+            var pawn = user.PlayerPawn.Value;
             if (pawn == null) continue;
 
             var absOrigin = pawn.AbsOrigin;
@@ -995,7 +965,7 @@ public class KillerBonus : ISuperPower
             if (!Users.Contains(player))
                 return HookResult.Continue;
 
-            var pawn = player.Pawn.Value!;
+            var pawn = player.PlayerPawn.Value!;
             pawn.Health = pawn.Health + heal;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
@@ -1013,7 +983,7 @@ public class KillerBonus : ISuperPower
             float damage_mult_bonus = max_dmg_inc > 0 ? Math.Min(damage_uncapped_bonus, max_dmg_inc) : damage_uncapped_bonus;
             int bonus_damage = (int)(realEvent.DmgHealth * damage_mult_bonus);
 
-            var pawn = realEvent.Userid!.Pawn.Value!;
+            var pawn = realEvent.Userid!.PlayerPawn.Value!;
             pawn.Health = pawn.Health - bonus_damage;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
@@ -1059,7 +1029,7 @@ public class ChargeJump : ISuperPower
         if (!Users.Contains(player))
             return HookResult.Continue;
 
-        var pawn = player.Pawn.Value;
+        var pawn = player.PlayerPawn.Value;
         if (pawn == null)
             return HookResult.Continue;
 
@@ -1166,155 +1136,132 @@ public class SmallSize : ISuperPower
     private float scale = 0.75f;
 }
 
-public class ExplosiveAmmo : ISuperPower
+public class RageMode : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventBulletImpact)];
+    public List<Type> Triggers => [typeof(EventPlayerDeath), typeof(EventPlayerHurt), typeof(EventRoundStart)];
     public HookResult Execute(GameEvent gameEvent)
     {
-        EventBulletImpact realEvent = (EventBulletImpact)gameEvent;
-
-        var player = realEvent.Userid;
-        if (player == null)
-            return HookResult.Continue;
-
-        if (!Users.Contains(player))
-            return HookResult.Continue;
-
-        var pawn = player.Pawn.Value;
-        if (pawn == null)
-            return HookResult.Continue;
-
-        Vector position = new Vector(realEvent.X, realEvent.Y, realEvent.Z);
-
-        TemUtils.SpawnParticle(NeededResources[0], position);
-
-        return HookResult.Continue;
-    }
-
-    public string GetDescription() => $"WIP: causes small explosions on bullet hits with 20% of its damage";
-
-    public void OnRemovePower(CCSPlayerController? player) { }
-
-    public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = ["particles/weapons/cs_weapon_fx/weapon_snowball_impact_child_smoke_puff.vpcf"];
-}
-
-
-public class MenuViewer : ISuperPower
-{
-    public List<Type> Triggers => [typeof(EventRoundStart)];
-    public HookResult Execute(GameEvent gameEvent)
-    {
-        // TODO:
-        /*
-            * collect all powers dat can be obtained with this menu thing
-            * assign "rank" to each of them for a little bit of balance
-            * pick 2-3 options, starting with weaker powers first
-            * assembl a menu
-            * show it to de player
-            * don
-        */
-
-        foreach (var user in Users)
+        if (gameEvent is EventRoundStart realEventStart) // trigger rage on player kills
         {
-            List<ISuperPower> playablePowers = SuperPowerController.GetPlayablePowers(MenuManager.Config!, user);
-
-            var powerchoice = new ChoiceMenu(user);
-
-            // select 1-3 random powers 
-
-            var randomPowers = new List<ISuperPower>();
-
-            int fail_guard = 0;
-
-            while (randomPowers.Count < new Random().Next(2, 5))
-            {
-                var randomPower = playablePowers[new Random().Next(playablePowers.Count)];
-                // avoid duplicates
-                if (randomPowers.Contains(randomPower))
-                {
-                    fail_guard++;
-                    if (fail_guard > 100)
-                        break;
-                    continue;
-                }
-                // also check for powers that player already has
-                if (randomPower.IsUser(user))
-                {
-                    fail_guard++;
-                    if (fail_guard > 100)
-                        break;
-                    continue;
-                }
-
-                randomPowers.Add(randomPower);
-            }
-
-            if (randomPowers.Count == 0)
-            {
-                user.PrintToChat($"No powers available for you (what a shame)");
-                return HookResult.Continue;
-            }
-
-            randomPowers.ForEach((power) =>
-            {
-                string textInfo = TemUtils.GetPowerNameReadable(power) + "\n" + power.GetDescription();
-                powerchoice.choices.Add(new Tuple<string, Action>(textInfo, () =>
-                {
-                    power.OnAdd(user);
-                    try
-                    { power.Execute(new GameEvent(0)); }
-                    catch { }
-                    powerchoice.is_inactive = true;
-
-                    user.ExecuteClientCommand("play sounds/ui/panorama/chatwheel_alert_01.vsnd");
-                }));
-            });
-
-            activeMenus.Add(powerchoice);
-
-            Server.RunOnTick(Server.TickCount + 64 * 20, () =>
-            {
-                if (powerchoice.is_inactive)
-                    return;
-                activeMenus.Remove(powerchoice);
-                user.PrintToChat("Power choice menu expired");
-            });
+            ActivatedUsers.Clear();
+            InvicibilityTicks.Clear();
         }
 
+        if (gameEvent is EventPlayerDeath realEvent) // trigger rage on player kills
+        {
+            var player = realEvent.Attacker;
+            if (player == null)
+                return HookResult.Continue;
+
+            if (!Users.Contains(player))
+                return HookResult.Continue;
+
+            if (!IsEnoughKills(player))
+                return HookResult.Continue;
+
+            if (ActivatedUsers.Contains(player))
+                return HookResult.Continue;
+
+            var pawn = player.PlayerPawn.Value;
+            if (pawn == null)
+                return HookResult.Continue;
+
+            {
+                // main powerup section
+                TemUtils.PowerApplySpeed(Users, SpeedModifier);
+
+                TemUtils.CreateParticle(pawn.AbsOrigin!, NeededResources[0], 2, "Breakable.MatGlass", player: player);
+
+                InvicibilityTicks.Add(Tuple.Create(player, (int)(Server.TickCount + (InvincibilitySeconds * 64))));
+            }
+
+            ActivatedUsers.Add(player);
+        }
+
+        if (gameEvent is EventPlayerHurt realEvent2) // deal more damage to players
+        {
+            var player = realEvent2.Attacker!;
+
+            var victim = realEvent2.Userid!;
+
+            if (InvicibilityTicks.Any(t => t.Item1 == victim && t.Item2 >= Server.TickCount))
+            {
+                var _pawn = victim.PlayerPawn.Value!;
+
+                _pawn.Health = _pawn.Health + realEvent2.DmgHealth;
+                Utilities.SetStateChanged(_pawn, "CBaseEntity", "m_iHealth");
+
+                _pawn.ArmorValue += realEvent2.DmgArmor;
+                Utilities.SetStateChanged(_pawn, "CCSPlayerPawn", "m_ArmorValue");
+            }
+
+            if (!Users.Contains(player))
+                return HookResult.Continue;
+
+            if (!IsEnoughKills(player))
+                return HookResult.Continue;
+
+            var pawn = realEvent2.Userid!.PlayerPawn.Value!;
+
+            int bonus_damage = (int)(realEvent2.DmgHealth * DamageBonusMult) + DamageBonusFlat;
+
+            pawn.Health = pawn.Health - bonus_damage;
+            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
+        }
+
+
         return HookResult.Continue;
     }
+    public string GetDescription() => $"When a player gets {KillsToRage} {(CountOnlyHeadshots ? "Headshots" : "Kills")}, he enters 'rage mode,' gaining speed, damage boost, and temporary invincibility";
 
-    public List<ChoiceMenu> activeMenus = [];
-
-    public string GetDescription() => $"WIP: allows users to obtain a new power each round. if waited too long, will not get anything";
-    public void OnRemovePower(CCSPlayerController? player) { }
+    public void OnRemovePower(CCSPlayerController? player)
+    {
+        TemUtils.PowerRemoveSpeedModifier(Users, player);
+    }
 
     public void Update()
     {
-        activeMenus.ForEach((m) =>
+        InvicibilityTicks.RemoveAll(t => t.Item2 <= Server.TickCount); // remove expired ticks
+
+        if (Server.TickCount % UpdatePeriod != 0)
+            return;
+
+        Users.ForEach(user =>
         {
-            if (m.is_inactive)
-            {
-                MenuManager.MenuClose(m);
+            if (!IsEnoughKills(user))
                 return;
-            }
 
-            m.Update();
+            var pawn = user.PlayerPawn.Value;
+            if (pawn == null)
+                return;
 
-            if (Server.TickCount % 64 == 0)
+            if (pawn.Health < 100)
             {
-                MenuManager.ChoiceMenuDisplayArrow(m, 1f);
-                MenuManager.ChoiceMenuDisplay(m, 1f);
+                pawn.Health += HealthRegenPerUpdate;
+                Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
             }
         });
 
-        activeMenus.RemoveAll((a) => a.is_inactive);
     }
+
+    private bool IsEnoughKills(CCSPlayerController player)
+    {
+        var curKills = CountOnlyHeadshots ? player.ActionTrackingServices!.NumRoundKillsHeadshots : player.ActionTrackingServices!.NumRoundKills;
+        return curKills >= KillsToRage;
+    }
+
+    private bool CountOnlyHeadshots = false;
+    private int KillsToRage = 3;
+    private int UpdatePeriod = 64;
+    private int SpeedModifier = 450;
+    private int DamageBonusFlat = 10;
+    private double DamageBonusMult = 0.25d;
+    private int HealthRegenPerUpdate = 1;
+    private double InvincibilitySeconds = 1.5d;
+
+    public List<CCSPlayerController> ActivatedUsers { get; set; } = [];
+    public List<Tuple<CCSPlayerController, int>> InvicibilityTicks { get; set; } = [];
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
+    public List<string> NeededResources { get; set; } = ["particles/survival_fx/gas_cannister_impact_child_explosion.vpcf"];
 }
-

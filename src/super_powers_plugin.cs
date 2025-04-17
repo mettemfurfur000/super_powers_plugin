@@ -14,8 +14,6 @@ using CounterStrikeSharp.API.Modules.Extensions;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
-using CS2_GameHUDAPI;
-
 namespace super_powers_plugin.src;
 
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
@@ -25,24 +23,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     public override string ModuleAuthor => "tem";
 
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
-
-    public static IGameHUDAPI? HudApi;
-
-    public override void OnAllPluginsLoaded(bool hotReload)
-    {
-        try
-        {
-            PluginCapability<IGameHUDAPI> CapabilityCP = new("gamehud:api");
-            HudApi = IGameHUDAPI.Capability.Get();
-        }
-        catch (Exception)
-        {
-            HudApi = null;
-            TemUtils.AlertError("wher IGameHUDAPI api");
-        }
-
-        MenuManager.HudApi = HudApi;
-    }
 
     public void smwprint(CCSPlayerController? player, string s)
     {
@@ -54,6 +34,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     public override void Load(bool hotReload)
     {
+        TemUtils.__plugin = this;
+
         RegisterListener<Listeners.OnServerPrecacheResources>(OnServerPrecacheResources);
 
         RegisterEventHandler<EventRoundStart>((@event, info) =>
@@ -285,7 +267,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         SuperPowerController.FeedTheConfig(Config);
 
-        MenuManager.Config = config;
+        // MenuManager.Config = config;
     }
 
     private static HookResult OnTakeDamage(DynamicHook hook)

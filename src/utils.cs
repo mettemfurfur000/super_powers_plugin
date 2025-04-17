@@ -15,7 +15,8 @@ public class TemUtils
 {
     public static string Formatter(string message, char color)
     {
-        return $"[{ChatColors.Gold} Super Powers {ChatColors.Default}] {color} {message}";
+        //return $"[{ChatColors.Gold} Super Powers {ChatColors.Default}] {color} {message}";
+        return $"[Super Powers] {message}";
     }
 
     public static void Print(string message, char color)
@@ -272,42 +273,43 @@ public class TemUtils
             }
     }
 
-    private static MemoryFunctionVoid<CBaseEntity, string, int, float, float>? CBaseEntity_EmitSoundParamsFunc = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-    new("\\x48\\x8B\\xC4\\x48\\x89\\x58\\x2A\\x48\\x89\\x70\\x2A\\x55\\x57\\x41\\x56\\x48\\x8D\\xA8\\x2A\\x2A\\x2A\\x2A\\x48\\x81\\xEC\\x2A\\x2A\\x2A\\x2A\\x45\\x33\\xF6") :
-    new("\\x48\\xB8\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\x55\\x48\\x89\\xE5\\x41\\x55\\x41\\x54\\x49\\x89\\xFC\\x53\\x48\\x89\\xF3");
+    // private static MemoryFunctionVoid<CBaseEntity, string, int, float, float>? CBaseEntity_EmitSoundParamsFunc = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+    // new("\\x48\\x8B\\xC4\\x48\\x89\\x58\\x2A\\x48\\x89\\x70\\x2A\\x55\\x57\\x41\\x56\\x48\\x8D\\xA8\\x2A\\x2A\\x2A\\x2A\\x48\\x81\\xEC\\x2A\\x2A\\x2A\\x2A\\x45\\x33\\xF6") :
+    // new("\\x48\\xB8\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\x55\\x48\\x89\\xE5\\x41\\x55\\x41\\x54\\x49\\x89\\xFC\\x53\\x48\\x89\\xF3");
 
-    public static void EmitSound(CBaseEntity entity, string soundEventName, int pitch = 1, float volume = 1f, float delay = 1f)
+    // public static void EmitSound(CBaseEntity entity, string soundEventName, int pitch = 1, float volume = 1f, float delay = 1f)
+    // {
+    //     if (entity is null
+    //     || entity.IsValid is not true
+    //     || string.IsNullOrEmpty(soundEventName) is true
+    //     || CBaseEntity_EmitSoundParamsFunc is null) return;
+
+    //     CBaseEntity_EmitSoundParamsFunc.Invoke(entity, soundEventName, pitch, volume, delay);
+    // }
+
+    public static super_powers_plugin? __plugin = null;
+
+    // stolen
+    public static void CreateParticle(Vector position, string particleFile, float lifetime, string sound = "", CCSPlayerController? player = null)
     {
-        if (entity is null
-        || entity.IsValid is not true
-        || string.IsNullOrEmpty(soundEventName) is true
-        || CBaseEntity_EmitSoundParamsFunc is null) return;
+        var particle = Utilities.CreateEntityByName<CParticleSystem>("info_particle_system")!;
 
-        CBaseEntity_EmitSoundParamsFunc.Invoke(entity, soundEventName, pitch, volume, delay);
-    }
-
-    public static void SpawnParticle(string filename, Vector pos)
-    {
-        CParticleSystem? particle = Utilities.CreateEntityByName<CParticleSystem>("info_particle_system");
-
-        if (particle == null)
-            return;
-
-        particle.EffectName = filename;
-
+        particle.EffectName = particleFile;
+        particle.StartActive = true;
+        particle.Teleport(position);
         particle.DispatchSpawn();
-        particle.AcceptInput("Start");
-        particle.Teleport(pos);
 
-        // causes crashes
-        // Server.RunOnTick(Server.TickCount + 64, () =>
-        // {
-        //     if (particle == null || !particle.IsValid)
-        //         return;
+        if (player != null)
+            particle.AcceptInput("FollowEntity", player.PlayerPawn.Value, particle, "!activator");
 
-        //     particle.Remove();
-        //     Server.PrintToChatAll("removed");
-        // });
+        if (!string.IsNullOrEmpty(sound))
+            particle.EmitSound(sound);
+
+        __plugin?.AddTimer(lifetime, () =>
+            {
+                if (particle != null && particle.IsValid)
+                    particle.Remove();
+            });
     }
 
     public static void MakeModelGlow(CBaseEntity entity)
@@ -344,6 +346,50 @@ public class TemUtils
 
         modelRelay.AcceptInput("FollowEntity", entity, modelRelay, "!activator");
         modelGlow.AcceptInput("FollowEntity", modelRelay, modelGlow, "!activator");
+    }
+
+    public const int default_velocity_max = 250;
+
+    public static void PowerApplySpeed(List<CCSPlayerController> Users, float value)
+    {
+        foreach (var user in Users)
+        {
+            var pawn = user.PlayerPawn.Value;
+            if (pawn == null)
+                return;
+
+            pawn.MovementServices!.Maxspeed = value;
+            pawn.VelocityModifier = (float)value / default_velocity_max;
+        }
+    }
+
+    public static void PowerRemoveSpeedModifier(List<CCSPlayerController> Users, CCSPlayerController? player)
+    {
+        if (player != null)
+        {
+            if (Users.Contains(player))
+            {
+                var pawn = player.PlayerPawn.Value;
+
+                if (pawn == null)
+                    return;
+
+                pawn.MovementServices!.Maxspeed = default_velocity_max;
+                pawn.VelocityModifier = 1;
+            }
+        }
+        else
+            Users.ForEach(p =>
+            {
+                var pawn = p.PlayerPawn.Value;
+
+                if (pawn == null)
+                    return;
+
+                pawn.MovementServices!.Maxspeed = default_velocity_max;
+                pawn.VelocityModifier = 1;
+            });
+
     }
 }
 

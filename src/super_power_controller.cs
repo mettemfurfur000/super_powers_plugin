@@ -9,6 +9,11 @@ namespace super_powers_plugin.src;
 
 // correct me if im using interfaces in c# wrong :P
 
+// TODO:
+// - add dependency list thing for powers
+// - add incompabiliti list for powers
+// - allow multiple powers to affect the same variable (add by a value or mult by a value)
+
 public interface ISuperPower
 {
     List<Type> Triggers { get; }
@@ -96,11 +101,13 @@ public static class SuperPowerController
         // Powers.Add(new WeaponMaster());
         // Powers.Add(new ElementalAmmo());
         // Powers.Add(new PhaseWalk());
-        
+
+        Powers.Add(new RageMode());
+
         Powers.Add(new DormantPower());
         Powers.Add(new Banana());
-        Powers.Add(new MenuViewer());
     }
+    
     public static void SetMode(string _mode)
     {
         mode = _mode;
