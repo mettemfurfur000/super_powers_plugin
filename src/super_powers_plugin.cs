@@ -87,6 +87,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             SuperPowerController.Update();
         });
 
+        // temp
+        // VirtualFunctions.CCSPlayerPawnBase_PostThinkFunc.Hook(OnPostThink, HookMode.Pre);
         VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Hook(OnTakeDamage, HookMode.Pre);
     }
 
@@ -98,6 +100,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     public override void Unload(bool hotReload)
     {
         VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Unhook(OnTakeDamage, HookMode.Pre);
+        // VirtualFunctions.CCSPlayerPawnBase_PostThinkFunc.Unhook(OnPostThink, HookMode.Pre);
     }
 
     [ConsoleCommand("sp_help", "should help in most cases")]
@@ -274,5 +277,20 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     {
         return HookResult.Continue;
     }
+
+    // private static HookResult OnPostThink(DynamicHook hook)
+    // {
+    //     CCSPlayerPawnBase? pawnBase = hook.GetParam<CCSPlayerPawnBase>(0);
+    //     if (pawnBase == null)
+    //         return HookResult.Continue;
+
+    //     pawnBase.ViewOffset.Z = 10;
+    //     Utilities.SetStateChanged(pawnBase, "CBaseModelEntity", "m_vecViewOffset");
+    //     // player.PrintToConsole("maggot");
+
+    //     Server.PrintToConsole("maggot");
+
+    //     return HookResult.Continue;
+    // }
 
 }

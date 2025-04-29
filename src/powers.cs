@@ -1067,73 +1067,72 @@ public class SmallSize : ISuperPower
     public List<Type> Triggers => [typeof(EventRoundStart)];
     public HookResult Execute(GameEvent gameEvent)
     {
-        foreach (var user in Users)
+        Users.ForEach(user =>
         {
-            var pawn = user.PlayerPawn.Value;
-            if (pawn == null)
-                continue;
-
-            var skeletonInstance = pawn.CBodyComponent?.SceneNode?.GetSkeletonInstance();
-            if (skeletonInstance != null)
-                skeletonInstance.Scale = scale;
-
-            pawn.AcceptInput("SetScale", null, null, scale.ToString());
-
-            Server.NextFrame(() =>
-            {
-                Utilities.SetStateChanged(pawn, "CBaseEntity", "m_CBodyComponent");
-            });
-        }
+            SetScale(user, scale);
+        });
         return HookResult.Continue;
     }
 
     public void OnRemovePower(CCSPlayerController? player)
     {
         if (player != null)
-        {
-            var pawn = player.PlayerPawn.Value;
-            if (pawn == null)
-                return;
-
-            var skeletonInstance = pawn.CBodyComponent?.SceneNode?.GetSkeletonInstance();
-            if (skeletonInstance != null)
-                skeletonInstance.Scale = 1;
-
-            pawn.AcceptInput("SetScale", null, null, "1");
-
-            Server.NextFrame(() =>
-            {
-                Utilities.SetStateChanged(pawn, "CBaseEntity", "m_CBodyComponent");
-            });
-        }
+            SetScale(player, 1);
         else
-        {
-            Users.ForEach(p =>
+            Users.ForEach(user =>
             {
-                var pawn = p.PlayerPawn.Value;
-                if (pawn == null)
-                    return;
-
-                var skeletonInstance = pawn.CBodyComponent?.SceneNode?.GetSkeletonInstance();
-                if (skeletonInstance != null)
-                    skeletonInstance.Scale = 1;
-
-                pawn.AcceptInput("SetScale", null, null, "1");
-
-                Server.NextFrame(() =>
-                {
-                    Utilities.SetStateChanged(pawn, "CBaseEntity", "m_CBodyComponent");
-                });
+                SetScale(user, 1);
             });
-        }
     }
     public string GetDescription() => $"WIP: smaller model, but camera on the same height";
 
-    public void Update() { }
+    public void SetScale(CCSPlayerController? player, float value = 1)
+    {
+        if (player == null)
+            return;
+        var pawn = player.PlayerPawn.Value;
+        if (pawn == null)
+            return;
+
+        var skeletonInstance = pawn.CBodyComponent?.SceneNode?.GetSkeletonInstance();
+        if (skeletonInstance != null)
+            skeletonInstance.Scale = value;
+
+        pawn.AcceptInput("SetScale", null, null, value.ToString());
+
+        Server.NextFrame(() =>
+        {
+            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_CBodyComponent");
+        });
+
+        // pawn.ViewOffset.X = 100;
+        // Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_vecViewOffset");
+        // Server.NextFrame(() =>
+        // {
+        //     pawn.ViewOffset.X = 100;
+        //     Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_vecViewOffset");
+        // });
+    }
+
+    public void Update()
+    {
+        Users.ForEach(user =>
+        {
+            SetScale(user, scale);
+        });
+
+        if (Server.TickCount % 64 != 0)
+            return;
+
+        Users.ForEach(user =>
+        {
+            user.PrintToChat(user.PlayerPawn.Value!.ViewOffset.Z + "");
+        });
+    }
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
     public List<string> NeededResources { get; set; } = [];
-    private float scale = 0.75f;
+    private float scale = 0.5f;
 }
 
 public class RageMode : ISuperPower
@@ -1217,6 +1216,9 @@ public class RageMode : ISuperPower
     public void OnRemovePower(CCSPlayerController? player)
     {
         TemUtils.PowerRemoveSpeedModifier(Users, player);
+
+        ActivatedUsers.Clear();
+        InvicibilityTicks.Clear();
     }
 
     public void Update()
@@ -1264,4 +1266,70 @@ public class RageMode : ISuperPower
     public List<CCSPlayerController> Users { get; set; } = [];
     public List<ulong> UsersSteamIDs { get; set; } = [];
     public List<string> NeededResources { get; set; } = ["particles/survival_fx/gas_cannister_impact_child_explosion.vpcf"];
+}
+
+public class Builder : ISuperPower
+{
+    public List<Type> Triggers => [];
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        return HookResult.Continue;
+    }
+
+    // stolen https://github.com/Kandru/cs2-roll-the-dice/blob/main/src/RollTheDice%2BDiceNoExplosives.cs#L204
+
+    private uint CreatePhysicsModel(Vector origin, QAngle angles, Vector velocity)
+    {
+        CDynamicProp prop = Utilities.CreateEntityByName<CDynamicProp>("prop_physics_override")!;
+
+        prop.Health = 10;
+        prop.MaxHealth = 10;
+
+        prop.DispatchSpawn();
+        // var randomModel = _explosiveModels[new Random().Next(_explosiveModels.Count)];
+        // prop.SetModel(randomModel.Model);
+        // prop.CBodyComponent!.SceneNode!.Scale = randomModel.Scale;
+        // prop.Teleport(origin, angles, velocity);
+        // prop.AnimGraphUpdateEnabled = false;
+        return prop.Index;
+    }
+
+    public string GetDescription() => $"build";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
+    public void Update() { }
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
+    public List<string> NeededResources { get; set; } = ["models/props/de_dust/stoneblocks48.vmdl_c"];
+}
+
+public class BotDisguise : ISuperPower
+{
+    public List<Type> Triggers => [typeof(EventRoundStart)]; // TODO: clear player names from dropped weapons
+    public HookResult Execute(GameEvent gameEvent)
+    {
+        var e = gameEvent as EventRoundStart;
+
+        Users.ForEach(u =>
+        {
+            TemUtils.CleanWeaponOwner(u);
+
+            TemUtils.UpdatePlayerName(u, name_pool.ElementAt(new Random().Next(name_pool.Count)), "BOT");
+
+            // u.Flags &= (uint)PlayerFlags.FL_FAKECLIENT;
+            // Utilities.SetStateChanged(u, "CBaseEntity", "m_fFlags");
+        });
+
+        return HookResult.Continue;
+    }
+
+    public List<string> name_pool = ["Maddison", "Colton", "Rose", "Phoenix", "Maxine", "Chase", "Anna", "Andres", "Jaliyah", "Fox", "Emerie", "Karsyn", "Faye", "Lennox", "Reign", "Cole", "Kynlee", "Emory", "Bethany", "Van", "Emory", "Kenji", "Ivy", "Kane", "Alivia", "Bryce", "Milan", "Riley", "Reina", "Idris", "Ellis", "Nova", "Giovanna", "Ulises", "Harper", "Mark", "Mercy", "Iker", "Rowan", "Blake", "Mariah", "Korbin", "Nola", "Dillon", "Amara", "Gael", "Briana", "Dane", "Melany", "Quentin", "Sutton", "Shepherd", "Margo", "Matthias", "Paris", "Allen", "Whitney", "Blaze", "Leyla", "Eden", "Remy", "Remi", "Izabella", "Victor", "Freyja", "Waylon", "Judith", "Enoch", "Kinslee", "Marlon", "Jade", "Zyair", "Ryleigh", "Aaron", "Miracle", "Kannon", "Aaliyah", "Lochlan", "Ivanna", "Luka", "Kairi", "Jason", "Megan", "Kohen", "Bexley", "Patrick", "Persephone", "Shepard", "Ariella", "Johnathan", "Josephine", "Jacob", "Ansley", "Solomon", "Aylin", "Armando", "Aaliyah", "Anthony", "Kendra", "Jones", "Gracie", "Osiris", "Kylee", "Blaise", "Adeline", "Rodney", "Destiny", "Dominick", "Estelle", "Reuben", "Mia", "Cody", "Iyla", "Fabian", "Oakleigh", "Roger", "Anaya", "Brodie", "Emmalyn", "Memphis", "Keily", "Forest", "Millie", "Jorge", "Elise", "Caleb", "Summer", "Manuel", "Pearl", "Pierce", "Rosalia", "Edgar", "June", "Marley", "Marlowe", "Edgar", "Mavis", "Kashton", "Dayana", "Marshall", "Alanna", "Layne", "Adelina", "Mekhi"];
+
+    public string GetDescription() => $"Disguise as a bot (to a certain point)";
+
+    public void OnRemovePower(CCSPlayerController? player) { }
+    public void Update() { }
+    public List<CCSPlayerController> Users { get; set; } = [];
+    public List<ulong> UsersSteamIDs { get; set; } = [];
+    public List<string> NeededResources { get; set; } = [];
 }

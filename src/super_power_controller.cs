@@ -91,7 +91,8 @@ public static class SuperPowerController
         Powers.Add(new WarpPeek());
         Powers.Add(new KillerBonus());
         Powers.Add(new ChargeJump());
-        Powers.Add(new SmallSize());
+
+        //Powers.Add(new SmallSize()); // must write a clientside cheat thing so i can just modify a viewangle
 
         // Powers.Add(new WallHack());
         // Powers.Add(new Teleport());
@@ -103,9 +104,10 @@ public static class SuperPowerController
         // Powers.Add(new PhaseWalk());
 
         Powers.Add(new RageMode());
-
         Powers.Add(new DormantPower());
         Powers.Add(new Banana());
+        // Powers.Add(new Builder());
+        Powers.Add(new BotDisguise());
     }
     
     public static void SetMode(string _mode)
@@ -360,10 +362,11 @@ public static class SuperPowerController
                         status_message += $"Added {powerName} to {player.PlayerName}{now_tip}\n";
                         added_powers_feedback += $"{ChatColors.Green}(NOW)";
                     }
-                    catch
+                    catch(Exception e)
                     {
                         status_message += $"Something bad happened while triggering {powerName}, ignoring it\n";
                         added_powers_feedback += $"{ChatColors.Red}(FAILED)";
+                        Server.PrintToConsole(e.ToString());
                     }
             }
 

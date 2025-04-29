@@ -273,6 +273,111 @@ public class TemUtils
             }
     }
 
+    public static void CleanWeaponOwner(CCSPlayerController player)
+    {
+        var playerPawnValue = player.PlayerPawn.Value;
+        if (playerPawnValue == null || !playerPawnValue.IsValid)
+        {
+            TemUtils.Log("Player pawn is not valid.");
+            return;
+        }
+
+        var weaponServices = playerPawnValue.WeaponServices;
+        if (weaponServices != null)
+        {
+            var activeWeapon = weaponServices.ActiveWeapon.Value;
+            if (activeWeapon != null && activeWeapon.IsValid)
+            {
+                var realWeapon = activeWeapon as CCSWeaponBase;
+
+                if(realWeapon == null)
+                {
+                    TemUtils.Log("No active weapon found");
+                    return;
+                }
+
+                realWeapon.OwnerEntity.Raw = 0;
+                Utilities.SetStateChanged(realWeapon, "CBaseEntity", "m_hOwnerEntity");
+
+                // realWeapon!.PrevOwner.Raw = 0;
+            }
+        }
+
+        // return;
+
+        var myWeapons = playerPawnValue.WeaponServices?.MyWeapons;
+        if (myWeapons != null)
+            foreach (var gun in myWeapons)
+            {
+                var weapon = gun.Value;
+                if (weapon != null)
+                {
+                    var realWeapon = weapon as CCSWeaponBase;
+
+                    realWeapon!.PrevOwner.Raw = 0;
+                    Utilities.SetStateChanged(realWeapon, "CCSWeaponBase", "m_hPrevOwner");
+                }
+            }
+    }
+
+    // stolen
+
+    public static void UpdatePlayerName(CCSPlayerController player, string name, string? tag = null)
+    {
+        if (player == null // || player.IsBot
+        )
+        {
+            return;
+        }
+
+        if (player.PlayerName != name)
+        {
+            player.PlayerName = name;
+            CounterStrikeSharp.API.Utilities.SetStateChanged(
+                player,
+                "CBasePlayerController",
+                "m_iszPlayerName"
+            );
+        }
+
+        if (tag != null && player.Clan != tag)
+        {
+            player.Clan = tag;
+            player.ClanName = tag;
+
+            CounterStrikeSharp.API.Utilities.SetStateChanged(
+                player,
+                "CCSPlayerController",
+                "m_szClan"
+            );
+            CounterStrikeSharp.API.Utilities.SetStateChanged(
+                player,
+                "CCSPlayerController",
+                "m_szClanName"
+            );
+
+            var gameRules = CounterStrikeSharp
+                .API.Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules")
+                .FirstOrDefault();
+
+            if (gameRules is null)
+            {
+                return;
+            }
+
+            gameRules.GameRules!.NextUpdateTeamClanNamesTime = Server.CurrentTime - 0.01f;
+            CounterStrikeSharp.API.Utilities.SetStateChanged(
+                gameRules,
+                "CCSGameRules",
+                "m_fNextUpdateTeamClanNamesTime"
+            );
+        }
+
+        // force the client to update the player name
+        new EventNextlevelChanged(false).FireEventToClient(player);
+    }
+
+
     // private static MemoryFunctionVoid<CBaseEntity, string, int, float, float>? CBaseEntity_EmitSoundParamsFunc = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
     // new("\\x48\\x8B\\xC4\\x48\\x89\\x58\\x2A\\x48\\x89\\x70\\x2A\\x55\\x57\\x41\\x56\\x48\\x8D\\xA8\\x2A\\x2A\\x2A\\x2A\\x48\\x81\\xEC\\x2A\\x2A\\x2A\\x2A\\x45\\x33\\xF6") :
     // new("\\x48\\xB8\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\x55\\x48\\x89\\xE5\\x41\\x55\\x41\\x54\\x49\\x89\\xFC\\x53\\x48\\x89\\xF3");
