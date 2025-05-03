@@ -1216,6 +1216,8 @@ public class BotDisguise : ISuperPower
 
     public override void Update()
     {
+        if (Server.TickCount % 128 == 0)
+            Users.ForEach(u => TemUtils.CleanWeaponOwner(u));
         if (Server.TickCount % 1024 == 0)
             Users.ForEach(u => ChangeNameRevertable(u));
     }

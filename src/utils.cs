@@ -292,7 +292,7 @@ public class TemUtils
 
                 if (realWeapon == null)
                 {
-                    TemUtils.Log("No active weapon found");
+                    // TemUtils.Log("No active weapon found");
                     return;
                 }
 
@@ -320,7 +320,7 @@ public class TemUtils
 
                 if (realWeapon == null)
                 {
-                    TemUtils.Log("some weapons wer unavabialb to be cleared of its original owners");
+                    // TemUtils.Log("some weapons wer unavabialb to be cleared of its original owners");
                     return;
                 }
 
