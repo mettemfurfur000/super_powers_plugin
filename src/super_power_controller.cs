@@ -41,7 +41,6 @@ public abstract class ISuperPower
         Users.Remove(player);
         if (reasonDisconnect == false)
             UsersSteamIDs.Remove(player.SteamID);
-
     }
 
     public virtual void OnAdd(CCSPlayerController player) // called to add player to power

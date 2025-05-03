@@ -356,7 +356,9 @@ public class TemUtils
             );
         }
 
-        if (tag != null && player.Clan != tag)
+        if(tag == null) tag = "";
+
+        if (player.Clan != tag)
         {
             player.Clan = tag;
             player.ClanName = tag;
