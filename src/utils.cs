@@ -290,16 +290,21 @@ public class TemUtils
             {
                 var realWeapon = activeWeapon as CCSWeaponBase;
 
-                if(realWeapon == null)
+                if (realWeapon == null)
                 {
                     TemUtils.Log("No active weapon found");
                     return;
                 }
 
-                realWeapon.OwnerEntity.Raw = 0;
-                Utilities.SetStateChanged(realWeapon, "CBaseEntity", "m_hOwnerEntity");
+                realWeapon.AttributeManager.Item.CustomName = "";
+                realWeapon.AttributeManager.Item.EntityQuality = 0;
 
-                // realWeapon!.PrevOwner.Raw = 0;
+                realWeapon.OriginalOwnerXuidLow = 0;
+                realWeapon.OriginalOwnerXuidHigh = 0;
+
+                Utilities.SetStateChanged(realWeapon, "CEconEntity", "m_OriginalOwnerXuidLow");
+                Utilities.SetStateChanged(realWeapon, "CEconEntity", "m_OriginalOwnerXuidHigh");
+                Utilities.SetStateChanged(realWeapon, "CEconEntity", "m_AttributeManager");
             }
         }
 
@@ -310,13 +315,24 @@ public class TemUtils
             foreach (var gun in myWeapons)
             {
                 var weapon = gun.Value;
-                if (weapon != null)
-                {
-                    var realWeapon = weapon as CCSWeaponBase;
 
-                    realWeapon!.PrevOwner.Raw = 0;
-                    Utilities.SetStateChanged(realWeapon, "CCSWeaponBase", "m_hPrevOwner");
+                var realWeapon = weapon as CCSWeaponBase;
+
+                if (realWeapon == null)
+                {
+                    TemUtils.Log("some weapons wer unavabialb to be cleared of its original owners");
+                    return;
                 }
+
+                realWeapon.AttributeManager.Item.CustomName = "";
+                realWeapon.AttributeManager.Item.EntityQuality = 0;
+
+                realWeapon.OriginalOwnerXuidLow = 0;
+                realWeapon.OriginalOwnerXuidHigh = 0;
+
+                Utilities.SetStateChanged(realWeapon, "CEconEntity", "m_OriginalOwnerXuidLow");
+                Utilities.SetStateChanged(realWeapon, "CEconEntity", "m_OriginalOwnerXuidHigh");
+                Utilities.SetStateChanged(realWeapon, "CEconEntity", "m_AttributeManager");
             }
     }
 

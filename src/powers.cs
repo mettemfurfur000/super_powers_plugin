@@ -13,6 +13,7 @@ using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Threading;
+using System.Linq;
 namespace super_powers_plugin.src;
 
 /*
@@ -26,10 +27,10 @@ namespace super_powers_plugin.src;
 /*
 public class TemplatePower : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventRoundStart)];
-    public HookResult Execute(GameEvent gameEvent) { return HookResult.Continue; }
+    public List<Type> () => Triggers = [typeof(EventRoundStart)];
+    public override HookResult Execute(GameEvent gameEvent) { return HookResult.Continue; }
 
-    public void Update() { }
+    
     int value = 404;
     public List<CCSPlayerController> Users { get; set; } = new List<CCSPlayerController>();
 }
@@ -37,8 +38,8 @@ public class TemplatePower : ISuperPower
 
 public class BonusHealth : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventRoundStart)];
-    public HookResult Execute(GameEvent gameEvent)
+    public BonusHealth() => Triggers = [typeof(EventRoundStart)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         foreach (var user in Users)
         {
@@ -52,25 +53,14 @@ public class BonusHealth : ISuperPower
         return HookResult.Continue;
     }
 
-    public string GetDescription() => $"+{value - 100} HP on the start of each round";
-
-    public void Update() { }
-    public void OnRemovePower(CCSPlayerController? player) { }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
+    public override string GetDescription() => $"+{value - 100} HP on the start of each round";
     private int value = 250;
 }
 
 public class Regeneration : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventRoundStart)];
-    public HookResult Execute(GameEvent gameEvent)
-    {
-        return HookResult.Continue;
-    }
-
-    public void Update()
+    public Regeneration() => Triggers = [typeof(EventRoundStart)];
+    public override void Update()
     {
         if (Server.TickCount % period != 0) return;
 
@@ -88,13 +78,8 @@ public class Regeneration : ISuperPower
         }
     }
 
-    public string GetDescription() => $"Regenerate {increment} HP if less than {limit} every {(float)(period / 64)} seconds";
+    public override string GetDescription() => $"Regenerate {increment} HP if less than {limit} every {(float)(period / 64)} seconds";
 
-    public void OnRemovePower(CCSPlayerController? player) { }
-
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
     private int increment = 10;
     private int limit = 75;
     private int period = 128;
@@ -102,8 +87,8 @@ public class Regeneration : ISuperPower
 
 public class BonusArmor : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventRoundStart)];
-    public HookResult Execute(GameEvent gameEvent)
+    public BonusArmor() => Triggers = [typeof(EventRoundStart)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         foreach (var user in Users)
         {
@@ -118,21 +103,15 @@ public class BonusArmor : ISuperPower
         return HookResult.Continue;
     }
 
-    public string GetDescription() => $"Obtain {value} armor each round, head armor not included";
+    public override string GetDescription() => $"Obtain {value} armor each round, head armor not included";
 
-    public void OnRemovePower(CCSPlayerController? player) { }
-
-    public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
     private int value = 250;
 }
 
 public class InstantDefuse : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventBombBegindefuse)];
-    public HookResult Execute(GameEvent gameEvent)
+    public InstantDefuse() => Triggers = [typeof(EventBombBegindefuse)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventBombBegindefuse)gameEvent;
         var player = realEvent.Userid;
@@ -157,19 +136,13 @@ public class InstantDefuse : ISuperPower
         return HookResult.Continue;
     }
 
-    public string GetDescription() => $"Defuse bombs instantly (even withot defuse kit)";
-
-    public void OnRemovePower(CCSPlayerController? player) { }
-    public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
+    public override string GetDescription() => $"Defuse bombs instantly (even withot defuse kit)";
 }
 
 public class InstantPlant : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventBombBeginplant)];
-    public HookResult Execute(GameEvent gameEvent)
+    public InstantPlant() => Triggers = [typeof(EventBombBeginplant)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventBombBeginplant)gameEvent;
         var player = realEvent.Userid;
@@ -191,36 +164,32 @@ public class InstantPlant : ISuperPower
         return HookResult.Continue;
     }
 
-    public string GetDescription() => $"Plant a bomb with no delay";
-
-    public void OnRemovePower(CCSPlayerController? player) { }
-    public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
+    public override string GetDescription() => $"Plant a bomb with no delay";
 }
 
 public class Banana : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventRoundStart)];
-    public HookResult Execute(GameEvent gameEvent)
+    public Banana()
+    {
+        Triggers = [typeof(EventRoundStart)];
+        NeededResources = ["models/food/fruits/banana01a.vmdl"];
+    }
+
+    public override HookResult Execute(GameEvent gameEvent)
     {
         foreach (var user in Users)
         {
             if (user == null || !user.IsValid)
-            {
                 continue;
-            }
+
             var pawn = user.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid)
-            {
                 continue;
-            }
+
             var prop = Utilities.CreateEntityByName<CPhysicsPropMultiplayer>("prop_physics_multiplayer");
             if (prop == null)
-            {
                 continue;
-            }
+
             var pizza_id = TemUtils.RandomString(12);
 
             prop.Globalname = pizza_id;
@@ -228,9 +197,7 @@ public class Banana : ISuperPower
             prop.Teleport(pawn.AbsOrigin, pawn.AbsRotation, pawn.AbsVelocity);
 
             if (prop.Collision != null && prop.Collision.EnablePhysics != 1)
-            {
                 prop.Collision.EnablePhysics = 1;
-            }
 
             if (prop.Collision != null)
             {
@@ -240,25 +207,17 @@ public class Banana : ISuperPower
 
             prop.AddEntityIOEvent("SetScale", null, null, "5");
             prop.DispatchSpawn();
-
-            //Server.PrintToChatAll("banana");
         }
         return HookResult.Continue;
     }
 
-    public string GetDescription() => $"Spawns a banana each round, not edible";
-
-    public void OnRemovePower(CCSPlayerController? player) { }
-    public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = ["models/food/fruits/banana01a.vmdl"];
+    public override string GetDescription() => $"Spawns a banana each round, not edible";
 }
 
 public class InfiniteAmmo : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventWeaponFire)];
-    public HookResult Execute(GameEvent gameEvent)
+    public InfiniteAmmo() => Triggers = [typeof(EventWeaponFire)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventWeaponFire)gameEvent;
         var player = realEvent.Userid;
@@ -286,40 +245,31 @@ public class InfiniteAmmo : ISuperPower
         return HookResult.Continue;
     }
 
-    public string GetDescription() => $"Zeus included, nades not included";
-
-    public void OnRemovePower(CCSPlayerController? player) { }
-    public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
+    public override string GetDescription() => $"Zeus included, nades not included";
 }
 
 public class SuperSpeed : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventRoundStart)];
-    public HookResult Execute(GameEvent gameEvent)
+    public SuperSpeed() => Triggers = [typeof(EventRoundStart)];
+
+    public override HookResult Execute(GameEvent gameEvent)
     {
         TemUtils.PowerApplySpeed(Users, value);
         return HookResult.Continue;
     }
 
-    public void Update()
+    public override void Update()
     {
         if (Server.TickCount % period != 0) return;
         TemUtils.PowerApplySpeed(Users, value);
     }
 
-    public void OnRemovePower(CCSPlayerController? player)
+    public override void OnRemovePower(CCSPlayerController? player)
     {
         TemUtils.PowerRemoveSpeedModifier(Users, player);
     }
 
-    public string GetDescription() => $"Increased walking speed ({(float)value / default_velocity_max})";
-
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
+    public override string GetDescription() => $"Increased walking speed ({(float)value / default_velocity_max})";
 
     private int value = 700;
     private int period = 4;
@@ -328,8 +278,8 @@ public class SuperSpeed : ISuperPower
 
 public class HeadshotImmunity : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventPlayerHurt)];
-    public HookResult Execute(GameEvent gameEvent)
+    public HeadshotImmunity() => Triggers = [typeof(EventPlayerHurt)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventPlayerHurt)gameEvent;
         var player = realEvent.Userid;
@@ -354,23 +304,18 @@ public class HeadshotImmunity : ISuperPower
         return HookResult.Continue;
     }
 
-    public string GetDescription() => $"Calcels all headshots, landed on your head";
-
-    public void OnRemovePower(CCSPlayerController? player) { }
-    public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
+    public override string GetDescription() => $"Calcels all headshots, landed on your head";
 }
 
 public class InfiniteMoney : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventRoundStart)];
-    public HookResult Execute(GameEvent gameEvent)
+    public InfiniteMoney() => Triggers = [typeof(EventRoundStart)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         return HookResult.Continue;
     }
-    public void Update()
+
+    public override void Update()
     {
         if (Server.TickCount % 32 != 0)
             return;
@@ -381,7 +326,7 @@ public class InfiniteMoney : ISuperPower
         }
     }
 
-    public void OnRemovePower(CCSPlayerController? player)
+    public override void OnRemovePower(CCSPlayerController? player)
     {
         if (player != null)
             player.InGameMoneyServices!.Account = 800;
@@ -394,17 +339,13 @@ public class InfiniteMoney : ISuperPower
         }
     }
 
-    public string GetDescription() => $"Near infinite supply of money";
-
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
+    public override string GetDescription() => $"Near infinite supply of money";
 }
 
 public class NukeNades : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventGrenadeThrown)];
-    public HookResult Execute(GameEvent gameEvent)
+    public NukeNades() => Triggers = [typeof(EventGrenadeThrown)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventGrenadeThrown)gameEvent;
         var player = realEvent.Userid;
@@ -432,25 +373,21 @@ public class NukeNades : ISuperPower
         return HookResult.Continue;
     }
 
-    public string GetDescription() => $"HE grenades, but {multiplier} times more explosive";
-
-    public void OnRemovePower(CCSPlayerController? player) { }
-    public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
+    public override string GetDescription() => $"HE grenades, but {multiplier} times more explosive";
 
     private float multiplier = 10;
 }
 
 public class EvilAura : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventRoundStart)];
-    public HookResult Execute(GameEvent gameEvent)
+    public EvilAura() => Triggers = [typeof(EventRoundStart)];
+
+    public override HookResult Execute(GameEvent gameEvent)
     {
         return HookResult.Continue;
     }
-    public void Update()
+
+    public override void Update()
     {
         if (Server.TickCount % period != 0)
             return;
@@ -486,27 +423,23 @@ public class EvilAura : ISuperPower
             }
         }
     }
+
     private float CalcDistance(Vector v1, Vector v2)
     {
         return (float)Math.Sqrt(Math.Pow(v1.X - v2.X, 2) + Math.Pow(v1.Y - v2.Y, 2) + Math.Pow(v1.Z - v2.Z, 2));
     }
+
     private float distance = 250;
     private int damage = 1;
     private int period = 16;
 
-    public string GetDescription() => $"Slowly harm enemies close to you. Can't kill";
-
-    public void OnRemovePower(CCSPlayerController? player) { }
-
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
+    public override string GetDescription() => $"Slowly harm enemies close to you. Can't kill";
 }
 
 public class DormantPower : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventRoundStart)];
-    public HookResult Execute(GameEvent gameEvent)
+    public DormantPower() => Triggers = [typeof(EventRoundStart)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         if (gameEvent.Handle == 0)
             return HookResult.Continue; // prevent recursive call
@@ -553,14 +486,10 @@ public class DormantPower : ISuperPower
         }
         return HookResult.Continue;
     }
-    public void Update() { }
-    public void OnRemovePower(CCSPlayerController? player) { }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
+
     private Dictionary<int, HashSet<string>> dormant_power_rules = [];
 
-    public string GetDescription() => $"Internal use only";
+    public override string GetDescription() => $"Internal use only";
 
     private string master_rule = "fill_me";
     private string round_rule_separator = "|";
@@ -591,8 +520,8 @@ public class DormantPower : ISuperPower
 
 public class DamageBonus : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventPlayerHurt)];
-    public HookResult Execute(GameEvent gameEvent)
+    public DamageBonus() => Triggers = [typeof(EventPlayerHurt)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventPlayerHurt)gameEvent;
         var attacker = realEvent.Attacker;
@@ -617,21 +546,15 @@ public class DamageBonus : ISuperPower
         return HookResult.Continue;
     }
 
-    public string GetDescription() => $"All your damage is multiplied by {damage_multiplier}";
-
-    public void OnRemovePower(CCSPlayerController? player) { }
-    public void Update() { }
+    public override string GetDescription() => $"All your damage is multiplied by {damage_multiplier}";
 
     private int damage_multiplier = 2;
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
 }
 
 public class Vampirism : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventPlayerHurt)];
-    public HookResult Execute(GameEvent gameEvent)
+    public Vampirism() => Triggers = [typeof(EventPlayerHurt)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventPlayerHurt)gameEvent;
         var attacker = realEvent.Attacker;
@@ -661,23 +584,17 @@ public class Vampirism : ISuperPower
         return HookResult.Continue;
     }
 
-    public string GetDescription() => $"Gain {(int)(100 / divisor)}% of dealt damage, annoying sounds included";
+    public override string GetDescription() => $"Gain {(int)(100 / divisor)}% of dealt damage, annoying sounds included";
 
-    public void OnRemovePower(CCSPlayerController? player) { }
-
-    public void Update() { }
     private int divisor = 5;
     private string vampireSounds = "sounds/physics/flesh/flesh_squishy_impact_hard4.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard3.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard2.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard1.vsnd";
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
 }
 
 
 public class Invisibility : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventPlayerSound), typeof(EventWeaponFire)];
-    public HookResult Execute(GameEvent gameEvent)
+    public Invisibility() => Triggers = [typeof(EventPlayerSound), typeof(EventWeaponFire)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         if (gameEvent is EventPlayerSound realEventSound)
             HandleEvent(realEventSound.Userid, 0.4);
@@ -701,7 +618,7 @@ public class Invisibility : ISuperPower
         Levels[idx] = -duration;
     }
 
-    public void Update()
+    public override void Update()
     {
         for (int i = 0; i < Users.Count; i++)
         {
@@ -741,7 +658,7 @@ public class Invisibility : ISuperPower
         }
     }
 
-    public void OnRemovePower(CCSPlayerController? player)
+    public override void OnRemovePower(CCSPlayerController? player)
     {
         if (player == null)
         {
@@ -757,19 +674,16 @@ public class Invisibility : ISuperPower
         TemUtils.SetPlayerVisibilityLevel(player, 0.0f);
     }
 
-    public string GetDescription() => $"I cant really see you";
+    public override string GetDescription() => $"I cant really see you";
 
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
     public double[] Levels = new double[65];
 }
 
 
 public class SuperJump : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventPlayerJump)];
-    public HookResult Execute(GameEvent gameEvent)
+    public SuperJump() => Triggers = [typeof(EventPlayerJump)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         EventPlayerJump realEvent = (EventPlayerJump)gameEvent;
         var player = realEvent.Userid;
@@ -797,21 +711,15 @@ public class SuperJump : ISuperPower
         return HookResult.Continue;
     }
 
-    public void OnRemovePower(CCSPlayerController? player) { }
+    public override string GetDescription() => $"Look up and jump to get {multiplier} times higher";
 
-    public string GetDescription() => $"Look up and jump to get {multiplier} times higher";
-
-    public void Update() { }
     private float multiplier = 2;
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
 }
 
 public class ExplosionUponDeath : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventPlayerDeath)];
-    public HookResult Execute(GameEvent gameEvent)
+    public ExplosionUponDeath() => Triggers = [typeof(EventPlayerDeath)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         if (gameEvent is null)
             return HookResult.Continue;
@@ -847,24 +755,17 @@ public class ExplosionUponDeath : ISuperPower
         return HookResult.Continue;
     }
 
-    public void OnRemovePower(CCSPlayerController? player) { }
-    public void Update() { }
-
-    public string GetDescription() => $"Explode on death, dealing {damage} damage in a {radius} units radius";
+    public override string GetDescription() => $"Explode on death, dealing {damage} damage in a {radius} units radius";
 
     private int radius = 500;
     private float damage = 125f;
-
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
 }
 
 // supposed to warp players back a few seconds after they get hurt
 public class WarpPeek : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventPlayerHurt)];
-    public HookResult Execute(GameEvent gameEvent)
+    public WarpPeek() => Triggers = [typeof(EventPlayerHurt)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         if (gameEvent is null)
             return HookResult.Continue;
@@ -897,7 +798,7 @@ public class WarpPeek : ISuperPower
         return HookResult.Continue;
     }
 
-    public void Update()
+    public override void Update()
     {
         if (Server.TickCount % period != 0)
             return;
@@ -930,13 +831,8 @@ public class WarpPeek : ISuperPower
             current_index = 0;
     }
 
-    public string GetDescription() => $"Warp back in time when hit. Only position is saved";
+    public override string GetDescription() => $"Warp back in time when hit. Only position is saved";
 
-    public void OnRemovePower(CCSPlayerController? player) { }
-
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
     // each user must have their own position history
     // has a static array for memory economy
     public Dictionary<CCSPlayerController, Dictionary<int, Tuple<Vector, QAngle>>> positions = [];
@@ -949,8 +845,8 @@ public class WarpPeek : ISuperPower
 
 public class KillerBonus : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventPlayerDeath), typeof(EventRoundStart), typeof(EventPlayerHurt)];
-    public HookResult Execute(GameEvent gameEvent)
+    public KillerBonus() => Triggers = [typeof(EventPlayerDeath), typeof(EventRoundStart), typeof(EventPlayerHurt)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         Type type = gameEvent.GetType();
 
@@ -1000,26 +896,19 @@ public class KillerBonus : ISuperPower
         return HookResult.Continue;
     }
 
-    public string GetDescription() => $"Each kill will give you {heal} more HP and {dmg_inc * 100}% more damage. Limited to {max_heal} HP and {max_dmg_inc * 100}% bonus damage";
-
-    public void OnRemovePower(CCSPlayerController? player) { }
+    public override string GetDescription() => $"Each kill will give you {heal} more HP and {dmg_inc * 100}% more damage. Limited to {max_heal} HP and {max_dmg_inc * 100}% bonus damage";
 
     private int heal = 5;
     private float dmg_inc = 0.02f;
 
     private int max_heal = 300;
     private float max_dmg_inc = 1.00f;
-
-    public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
 }
 
 public class ChargeJump : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventPlayerJump)];
-    public HookResult Execute(GameEvent gameEvent)
+    public ChargeJump() => Triggers = [typeof(EventPlayerJump)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         EventPlayerJump realEvent = (EventPlayerJump)gameEvent;
         var player = realEvent.Userid;
@@ -1051,21 +940,15 @@ public class ChargeJump : ISuperPower
         return HookResult.Continue;
     }
 
-    public void OnRemovePower(CCSPlayerController? player) { }
-    public string GetDescription() => $"Jump while crouching to make a leap forward";
+    public override string GetDescription() => $"Jump while crouching to make a leap forward";
 
     private float jump_force = 600f;
-
-    public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
 }
 
 public class SmallSize : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventRoundStart)];
-    public HookResult Execute(GameEvent gameEvent)
+    public SmallSize() => Triggers = [typeof(EventRoundStart)];
+    public override HookResult Execute(GameEvent gameEvent)
     {
         Users.ForEach(user =>
         {
@@ -1074,7 +957,7 @@ public class SmallSize : ISuperPower
         return HookResult.Continue;
     }
 
-    public void OnRemovePower(CCSPlayerController? player)
+    public override void OnRemovePower(CCSPlayerController? player)
     {
         if (player != null)
             SetScale(player, 1);
@@ -1084,7 +967,7 @@ public class SmallSize : ISuperPower
                 SetScale(user, 1);
             });
     }
-    public string GetDescription() => $"WIP: smaller model, but camera on the same height";
+    public override string GetDescription() => $"WIP: smaller model, but camera on the same height";
 
     public void SetScale(CCSPlayerController? player, float value = 1)
     {
@@ -1114,7 +997,7 @@ public class SmallSize : ISuperPower
         // });
     }
 
-    public void Update()
+    public override void Update()
     {
         Users.ForEach(user =>
         {
@@ -1129,16 +1012,19 @@ public class SmallSize : ISuperPower
             user.PrintToChat(user.PlayerPawn.Value!.ViewOffset.Z + "");
         });
     }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
+
     private float scale = 0.5f;
 }
 
 public class RageMode : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventPlayerDeath), typeof(EventPlayerHurt), typeof(EventRoundStart)];
-    public HookResult Execute(GameEvent gameEvent)
+    public RageMode()
+    {
+        Triggers = [typeof(EventPlayerDeath), typeof(EventPlayerHurt), typeof(EventRoundStart)];
+        NeededResources = ["particles/survival_fx/gas_cannister_impact_child_explosion.vpcf"];
+    }
+
+    public override HookResult Execute(GameEvent gameEvent)
     {
         if (gameEvent is EventRoundStart realEventStart) // trigger rage on player kills
         {
@@ -1211,9 +1097,9 @@ public class RageMode : ISuperPower
 
         return HookResult.Continue;
     }
-    public string GetDescription() => $"When a player gets {KillsToRage} {(CountOnlyHeadshots ? "Headshots" : "Kills")}, he enters 'rage mode,' gaining speed, damage boost, and temporary invincibility";
+    public override string GetDescription() => $"When a player gets {KillsToRage} {(CountOnlyHeadshots ? "Headshots" : "Kills")}, he enters 'rage mode,' gaining speed, damage boost, and temporary invincibility";
 
-    public void OnRemovePower(CCSPlayerController? player)
+    public override void OnRemovePower(CCSPlayerController? player)
     {
         TemUtils.PowerRemoveSpeedModifier(Users, player);
 
@@ -1221,7 +1107,7 @@ public class RageMode : ISuperPower
         InvicibilityTicks.Clear();
     }
 
-    public void Update()
+    public override void Update()
     {
         InvicibilityTicks.RemoveAll(t => t.Item2 <= Server.TickCount); // remove expired ticks
 
@@ -1263,15 +1149,17 @@ public class RageMode : ISuperPower
 
     public List<CCSPlayerController> ActivatedUsers { get; set; } = [];
     public List<Tuple<CCSPlayerController, int>> InvicibilityTicks { get; set; } = [];
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = ["particles/survival_fx/gas_cannister_impact_child_explosion.vpcf"];
 }
 
 public class Builder : ISuperPower
 {
-    public List<Type> Triggers => [];
-    public HookResult Execute(GameEvent gameEvent)
+    public Builder()
+    {
+        Triggers = [];
+        NeededResources = ["models/props/de_dust/stoneblocks48.vmdl_c"];
+    }
+
+    public override HookResult Execute(GameEvent gameEvent)
     {
         return HookResult.Continue;
     }
@@ -1294,27 +1182,24 @@ public class Builder : ISuperPower
         return prop.Index;
     }
 
-    public string GetDescription() => $"build";
+    public override string GetDescription() => $"build";
 
-    public void OnRemovePower(CCSPlayerController? player) { }
-    public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = ["models/props/de_dust/stoneblocks48.vmdl_c"];
+    // public List<string> NeededResources { get; set; } = ["models/props/de_dust/stoneblocks48.vmdl_c"];
 }
 
 public class BotDisguise : ISuperPower
 {
-    public List<Type> Triggers => [typeof(EventRoundStart)]; // TODO: clear player names from dropped weapons
-    public HookResult Execute(GameEvent gameEvent)
+    public BotDisguise() => Triggers = [typeof(EventRoundStart)]; // TODO: clear player names from dropped weapons
+    public override HookResult Execute(GameEvent gameEvent)
     {
         var e = gameEvent as EventRoundStart;
 
         Users.ForEach(u =>
         {
-            TemUtils.CleanWeaponOwner(u);
+            // TemUtils.CleanWeaponOwner(u);
 
-            TemUtils.UpdatePlayerName(u, name_pool.ElementAt(new Random().Next(name_pool.Count)), "BOT");
+            // TemUtils.UpdatePlayerName(u, name_pool.ElementAt(new Random().Next(name_pool.Count)), "BOT");
+            TemUtils.UpdatePlayerName(u, name_pool.ElementAt((int)(u.SteamID % (ulong)name_pool.Count)), "BOT");
 
             // u.Flags &= (uint)PlayerFlags.FL_FAKECLIENT;
             // Utilities.SetStateChanged(u, "CBaseEntity", "m_fFlags");
@@ -1325,11 +1210,22 @@ public class BotDisguise : ISuperPower
 
     public List<string> name_pool = ["Maddison", "Colton", "Rose", "Phoenix", "Maxine", "Chase", "Anna", "Andres", "Jaliyah", "Fox", "Emerie", "Karsyn", "Faye", "Lennox", "Reign", "Cole", "Kynlee", "Emory", "Bethany", "Van", "Emory", "Kenji", "Ivy", "Kane", "Alivia", "Bryce", "Milan", "Riley", "Reina", "Idris", "Ellis", "Nova", "Giovanna", "Ulises", "Harper", "Mark", "Mercy", "Iker", "Rowan", "Blake", "Mariah", "Korbin", "Nola", "Dillon", "Amara", "Gael", "Briana", "Dane", "Melany", "Quentin", "Sutton", "Shepherd", "Margo", "Matthias", "Paris", "Allen", "Whitney", "Blaze", "Leyla", "Eden", "Remy", "Remi", "Izabella", "Victor", "Freyja", "Waylon", "Judith", "Enoch", "Kinslee", "Marlon", "Jade", "Zyair", "Ryleigh", "Aaron", "Miracle", "Kannon", "Aaliyah", "Lochlan", "Ivanna", "Luka", "Kairi", "Jason", "Megan", "Kohen", "Bexley", "Patrick", "Persephone", "Shepard", "Ariella", "Johnathan", "Josephine", "Jacob", "Ansley", "Solomon", "Aylin", "Armando", "Aaliyah", "Anthony", "Kendra", "Jones", "Gracie", "Osiris", "Kylee", "Blaise", "Adeline", "Rodney", "Destiny", "Dominick", "Estelle", "Reuben", "Mia", "Cody", "Iyla", "Fabian", "Oakleigh", "Roger", "Anaya", "Brodie", "Emmalyn", "Memphis", "Keily", "Forest", "Millie", "Jorge", "Elise", "Caleb", "Summer", "Manuel", "Pearl", "Pierce", "Rosalia", "Edgar", "June", "Marley", "Marlowe", "Edgar", "Mavis", "Kashton", "Dayana", "Marshall", "Alanna", "Layne", "Adelina", "Mekhi"];
 
-    public string GetDescription() => $"Disguise as a bot (to a certain point)";
+    public override string GetDescription() => $"Disguise as a bot (to a certain point)";
 
-    public void OnRemovePower(CCSPlayerController? player) { }
-    public void Update() { }
-    public List<CCSPlayerController> Users { get; set; } = [];
-    public List<ulong> UsersSteamIDs { get; set; } = [];
-    public List<string> NeededResources { get; set; } = [];
+
+    public override void Update()
+    {
+        // if (Server.TickCount % 128 != 0)
+        //     return;
+
+        // Users.ForEach(u =>
+        // {
+        //     TemUtils.CleanWeaponOwner(u);
+
+        //     TemUtils.UpdatePlayerName(u, name_pool.ElementAt((int)(u.SteamID % (ulong)name_pool.Count)), "BOT");
+        //     // TemUtils.UpdatePlayerName(u, name_pool.ElementAt(new Random().Next(name_pool.Count)), "BOT");
+        // });
+
+    }
+    public Dictionary<ulong, string> originalNames = [];
 }

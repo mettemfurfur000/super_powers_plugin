@@ -87,6 +87,22 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             SuperPowerController.Update();
         });
 
+        // RegisterListener<Listeners.OnEntitySpawned>((entity) =>
+        // {
+        //     Server.NextFrame(() =>
+        //     {
+        //         if (entity.DesignerName == "hegrenade_projectile")
+        //         {
+        //             var grenade = entity.As<CHEGrenadeProjectile>();
+        //             if (grenade.OwnerEntity.Value?.As<CCSPlayerPawn>() is null or { IsValid: false })
+        //                 return;
+
+        //             // grenade.Damage = Config.GrenadePower;
+        //             // grenade.DmgRadius = Config.GrenadeRadius;
+        //         }
+        //     });
+        // });
+
         // temp
         // VirtualFunctions.CCSPlayerPawnBase_PostThinkFunc.Hook(OnPostThink, HookMode.Pre);
         VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Hook(OnTakeDamage, HookMode.Pre);

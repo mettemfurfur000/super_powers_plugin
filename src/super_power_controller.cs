@@ -7,29 +7,29 @@ using CounterStrikeSharp.API.Modules.Utils;
 
 namespace super_powers_plugin.src;
 
-// correct me if im using interfaces in c# wrong :P
-
 // TODO:
 // - add dependency list thing for powers
 // - add incompabiliti list for powers
 // - allow multiple powers to affect the same variable (add by a value or mult by a value)
 
-public interface ISuperPower
+// abscaraftlks
+
+public abstract class ISuperPower
 {
-    List<Type> Triggers { get; }
-    List<CCSPlayerController> Users { get; set; }
-    List<ulong> UsersSteamIDs { get; set; }
-    List<string> NeededResources { get; set; }
+    public List<Type> Triggers = [];
+    public List<CCSPlayerController> Users = [];
+    public List<ulong> UsersSteamIDs = [];
+    public List<string> NeededResources = [];
 
-    string GetDescription();
+    public virtual string GetDescription() => "";
 
-    HookResult Execute(GameEvent gameEvent);
-    void Update();
-    void ParseCfg(Dictionary<string, string> cfg) { TemUtils.ParseConfigReflective(this, this.GetType(), cfg); }
-    bool IsUser(CCSPlayerController player) { return Users.Contains(player); }
+    public virtual HookResult Execute(GameEvent gameEvent) { return HookResult.Continue;}
+    public virtual void Update() {}
+    public virtual void ParseCfg(Dictionary<string, string> cfg) { TemUtils.ParseConfigReflective(this, this.GetType(), cfg); }
+    public virtual bool IsUser(CCSPlayerController player) { return Users.Contains(player); }
 
-    void OnRemovePower(CCSPlayerController? player);
-    void OnRemoveUser(CCSPlayerController? player, bool reasonDisconnect) // called each time player leaves the server
+    public virtual void OnRemovePower(CCSPlayerController? player) {}
+    public virtual void OnRemoveUser(CCSPlayerController? player, bool reasonDisconnect) // called each time player leaves the server
     {
         if (player == null)
         {
@@ -44,13 +44,13 @@ public interface ISuperPower
 
     }
 
-    void OnAdd(CCSPlayerController player) // called to add player to power
+    public virtual void OnAdd(CCSPlayerController player) // called to add player to power
     {
         Users.Add(player);
         UsersSteamIDs.Add(player.SteamID);
     }
 
-    void OnRejoin(CCSPlayerController player) // called each time player joins to check if player has this power
+    public virtual void OnRejoin(CCSPlayerController player) // called each time player joins to check if player has this power
     {
         if (UsersSteamIDs.Contains(player.SteamID))
             Users.Add(player);
