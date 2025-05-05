@@ -7,6 +7,13 @@ using CounterStrikeSharp.API.Modules.Utils;
 
 namespace super_powers_plugin.src;
 
+public enum SIGNAL_STATUS
+{
+    IGNORED,
+    ACCEPTED,
+    ERROR
+};
+
 // TODO:
 // - add dependency list thing for powers
 // - add incompabiliti list for powers
@@ -23,12 +30,13 @@ public abstract class ISuperPower
 
     public virtual string GetDescription() => "";
 
-    public virtual HookResult Execute(GameEvent gameEvent) { return HookResult.Continue;}
-    public virtual void Update() {}
+    public virtual HookResult Execute(GameEvent gameEvent) { return HookResult.Continue; }
+    public virtual void Update() { }
     public virtual void ParseCfg(Dictionary<string, string> cfg) { TemUtils.ParseConfigReflective(this, this.GetType(), cfg); }
     public virtual bool IsUser(CCSPlayerController player) { return Users.Contains(player); }
 
-    public virtual void OnRemovePower(CCSPlayerController? player) {}
+    public virtual void OnRemovePower(CCSPlayerController? player) { }
+    public virtual SIGNAL_STATUS OnSignal(CCSPlayerController? player, List<string> args) { return SIGNAL_STATUS.IGNORED; }
     public virtual void OnRemoveUser(CCSPlayerController? player, bool reasonDisconnect) // called each time player leaves the server
     {
         if (player == null)
@@ -107,8 +115,9 @@ public static class SuperPowerController
         Powers.Add(new Banana());
         // Powers.Add(new Builder());
         Powers.Add(new BotDisguise());
+        Powers.Add(new BotGuesser());
     }
-    
+
     public static void SetMode(string _mode)
     {
         mode = _mode;
@@ -173,6 +182,22 @@ public static class SuperPowerController
     {
         foreach (var power in Powers)
             power.Update();
+    }
+
+    public static string Signal(CCSPlayerController? player, List<string> args)
+    {
+        string ret = "";
+        foreach (var power in Powers)
+            switch(power.OnSignal(player, args))
+            {
+                case SIGNAL_STATUS.ERROR:
+                    ret += $"{TemUtils.GetPowerNameReadable(power)} Failed to process the signal ${args}";
+                break;
+                case SIGNAL_STATUS.ACCEPTED:
+                    ret += $"{TemUtils.GetPowerNameReadable(power)} Accepted the signal ${args}";
+                break;
+            }
+        return ret;
     }
 
     public static void Rejoined(CCSPlayerController player)
@@ -361,7 +386,7 @@ public static class SuperPowerController
                         status_message += $"Added {powerName} to {player.PlayerName}{now_tip}\n";
                         added_powers_feedback += $"{ChatColors.Green}(NOW)";
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         status_message += $"Something bad happened while triggering {powerName}, ignoring it\n";
                         added_powers_feedback += $"{ChatColors.Red}(FAILED)";

@@ -24,14 +24,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
 
-    public void smwprint(CCSPlayerController? player, string s)
-    {
-        if (player == null)
-            TemUtils.Print(s, ChatColors.Default);
-        else
-            player.PrintToConsole(s);
-    }
-
     public override void Load(bool hotReload)
     {
         TemUtils.__plugin = this;
@@ -46,7 +38,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             // if (SuperPowerController.GetMode() == "roguelike")
             //     SuperPowerController.AddMenuViewerPowerToEveryone();
 
-            smwprint(null, $"Round started, mode: {SuperPowerController.GetMode()}");
+            Server.PrintToConsole($"Round started, mode: {SuperPowerController.GetMode()}");
 
             return SuperPowerController.ExecutePower(@event);
         });
@@ -124,22 +116,24 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     [RequiresPermissions("@css/root")]
     public void OnHelp(CCSPlayerController? caller, CommandInfo commandInfo)
     {
-        const string player_select_format = "<player>";
-        const string power_select_format = "<power>";
+        const string pl_format = "<player>";
+        const string pw_format = "<power>";
         const string team_format = "[t,ct]";
-        smwprint(caller, $"Availiable commands:");
-        smwprint(caller, $"  sp_help \t\t\t\t\t\t - should help in most cases");
-        smwprint(caller, $"  sp_add {player_select_format} {power_select_format} (now) \t\t\t - adds power to player");
-        smwprint(caller, $"  sp_add_team {team_format} {power_select_format} (now)  \t\t\t - adds power to all players of team");
-        smwprint(caller, $"  sp_remove {player_select_format} {power_select_format} (now) \t\t\t - removes power from player");
-        smwprint(caller, $"  sp_remove_team {team_format}  {power_select_format} (now) \t\t - removes power from all players of team");
-        smwprint(caller, $"  sp_list {player_select_format}  \t\t\t\t\t - lists powers of player");
-        smwprint(caller, $"  sp_mode [normal, random] \t\t\t\t - sets a special gamemode");
-        smwprint(caller, $"flag 'now' triggers the power immediaty");
-        smwprint(caller, $"Advanced commands:");
-        smwprint(caller, $"  sp_status \t\t\t\t\t\t - prints status of all powers and its users");
-        smwprint(caller, $"  sp_inspect {power_select_format} \t\t\t\t\t - prints info about power and its parameters");
-        smwprint(caller, $"  sp_reconfigure {power_select_format} {power_select_format} [key1] [value1] ... \t - reconfigures power");
+        commandInfo.ReplyToCommand($"Availiable commands:");
+        commandInfo.ReplyToCommand($"  sp_help \t\t\t\t\t\t - should help in most cases");
+        commandInfo.ReplyToCommand($"  sp_add {pl_format} {pw_format} (now) \t\t\t - adds power to player");
+        commandInfo.ReplyToCommand($"  sp_add_team {team_format} {pw_format} (now)  \t\t\t - adds power to all players of team");
+        commandInfo.ReplyToCommand($"  sp_remove {pl_format} {pw_format} (now) \t\t\t - removes power from player");
+        commandInfo.ReplyToCommand($"  sp_remove_team {team_format}  {pw_format} (now) \t\t - removes power from all players of team");
+        commandInfo.ReplyToCommand($"  sp_list {pl_format}  \t\t\t\t\t - lists availiable powers");
+        commandInfo.ReplyToCommand($"  sp_mode [normal, random] \t\t\t\t - sets a special gamemode");
+        commandInfo.ReplyToCommand($"flag 'now' triggers the power immediaty");
+        commandInfo.ReplyToCommand($"Advanced commands:");
+        commandInfo.ReplyToCommand($"  sp_status \t\t\t\t\t\t - prints status of all powers and its users");
+        commandInfo.ReplyToCommand($"  sp_inspect {pw_format} \t\t\t\t\t - prints info about power and its parameters");
+        commandInfo.ReplyToCommand($"  sp_reconfigure {pw_format} {pw_format} [key1] [value1] ... \t - reconfigures power");
+        commandInfo.ReplyToCommand($"Special:");
+        commandInfo.ReplyToCommand($"  sp_signal / signal / s <any input> - pass a signal of arbitrary data to the plugin system");
     }
 
     [ConsoleCommand("sp_add", "Adds a superpower to specified player, supports wildcards")]
@@ -153,7 +147,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         if (commandInfo.ArgCount >= 4)
             now_flag = commandInfo.GetArg(3).ToLower().Contains("now");
 
-        smwprint(caller, SuperPowerController.AddPowers(playerNamePattern, powerNamePattern, now_flag));
+        commandInfo.ReplyToCommand(SuperPowerController.AddPowers(playerNamePattern, powerNamePattern, now_flag));
     }
 
     [ConsoleCommand("sp_add_team", "Adds a superpower to specified team, supports wildcards")]
@@ -169,9 +163,9 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         CsTeam csteam = TemUtils.ParseTeam(teamStr);
         if (csteam == CsTeam.None)
-            smwprint(caller, $"Unrecognized option: {teamStr}");
+            commandInfo.ReplyToCommand( $"Unrecognized option: {teamStr}");
         else
-            smwprint(caller, SuperPowerController.AddPowers("unused", powerNamePattern, now_flag, csteam));
+            commandInfo.ReplyToCommand( SuperPowerController.AddPowers("unused", powerNamePattern, now_flag, csteam));
     }
 
     [ConsoleCommand("sp_remove", "Removes a superpower from specified player, supports wildcards")]
@@ -181,7 +175,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     {
         var playerNamePattern = commandInfo.GetArg(1);
         var powerNamePattern = commandInfo.GetArg(2);
-        smwprint(caller, SuperPowerController.RemovePowers(playerNamePattern, powerNamePattern));
+        commandInfo.ReplyToCommand( SuperPowerController.RemovePowers(playerNamePattern, powerNamePattern));
     }
 
     [ConsoleCommand("sp_remove_team", "Removes a superpower from specified team, supports wildcards")]
@@ -194,9 +188,9 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         CsTeam csteam = TemUtils.ParseTeam(teamStr);
         if (csteam == CsTeam.None)
-            smwprint(caller, $"Unrecognized option: {teamStr}");
+            commandInfo.ReplyToCommand( $"Unrecognized option: {teamStr}");
         else
-            smwprint(caller, SuperPowerController.RemovePowers("unused", powerNamePattern, csteam));
+            commandInfo.ReplyToCommand( SuperPowerController.RemovePowers("unused", powerNamePattern, csteam));
     }
 
     [ConsoleCommand("sp_mode", "todo")]
@@ -208,10 +202,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         SuperPowerController.SetMode(mode);
 
-        smwprint(caller, $"Mode {mode} set");
+        commandInfo.ReplyToCommand( $"Mode {mode} set");
     }
-
-
 
     [ConsoleCommand("sp_list", "lists all posibl powers")]
     [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
@@ -229,7 +221,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
                     out_table += $"{TemUtils.GetSnakeName(type)}, ";
             }
 
-        smwprint(player, $"\tsuperpowers\ttriggers\n{out_table}");
+        commandInfo.ReplyToCommand( $"\tsuperpowers\ttriggers\n{out_table}");
     }
 
     [ConsoleCommand("sp_status", "lists all users of certain powers")]
@@ -237,7 +229,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     [RequiresPermissions("@css/root")]
     public void OnPowerStatus(CCSPlayerController? player, CommandInfo commandInfo)
     {
-        smwprint(player, $"{SuperPowerController.GetUsersTable()}");
+        commandInfo.ReplyToCommand( $"{SuperPowerController.GetUsersTable()}");
     }
 
     [ConsoleCommand("sp_reconfigure", "parses your input as a config and applies it")]
@@ -255,7 +247,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         SuperPowerController.Reconfigure(forced_cfg, commandInfo.GetArg(1));
         Config.args = SuperPowerController.GenerateDefaultConfig();
         TemConfigExtensions.Update(Config);
-        smwprint(player, "Reconfigured!");
+        commandInfo.ReplyToCommand( "Reconfigured!");
     }
 
     [ConsoleCommand("sp_inspect", "reflects on a power class and dumps its values")]
@@ -268,7 +260,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         var powers = SuperPowerController.SelectPowers(powerNamePattern);
         if (powers == null)
         {
-            smwprint(player, $"No powers found for {powerNamePattern}");
+            commandInfo.ReplyToCommand( $"No powers found for {powerNamePattern}");
             return;
         }
 
@@ -276,9 +268,42 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         {
             string? power_field_values = TemUtils.InspectPowerReflective(power, power.GetType());
             if (power_field_values != null)
-                smwprint(player, TemUtils.GetPowerNameReadable(power) + ":\n" + power_field_values);
+                commandInfo.ReplyToCommand( TemUtils.GetPowerNameReadable(power) + ":\n" + power_field_values);
         }
     }
+
+
+    [ConsoleCommand("sp_signal")]
+    [CommandHelper(minArgs: 2, usage: "[power-specific input args]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnSignalFull(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        List<string> args = [];
+
+        for (int i = 1; i < commandInfo.ArgCount; i++) // iterate over all args, except 0 and 1, which is just the name of the command and name of power
+        {
+            args.Add(commandInfo.GetArg(i));
+        }
+
+        SuperPowerController.Signal(caller, args);
+    }
+
+    [ConsoleCommand("signal")]
+    [CommandHelper(minArgs: 2, usage: "[power-specific input args]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnSignal(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        OnSignalFull(caller, commandInfo);
+    }
+
+    [ConsoleCommand("s")]
+    [CommandHelper(minArgs: 2, usage: "[power-specific input args]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnSignalShort(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        OnSignalFull(caller, commandInfo);
+    }
+
 
     public void OnConfigParsed(SuperPowerConfig config)
     {

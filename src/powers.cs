@@ -14,6 +14,7 @@ using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Threading;
 using System.Linq;
+using CounterStrikeSharp.API.Modules.Entities;
 namespace super_powers_plugin.src;
 
 /*
@@ -444,7 +445,7 @@ public class DormantPower : ISuperPower
         if (gameEvent.Handle == 0)
             return HookResult.Continue; // prevent recursive call
 
-        var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
+        var gameRules = TemUtils.GetGameRules();
 
         if (dormant_power_rules.Count == 0)
         {
@@ -1224,6 +1225,9 @@ public class BotDisguise : ISuperPower
 
     private void ChangeNameRevertable(CCSPlayerController player)
     {
+        if (player.IsBot)
+            return;
+
         ulong uuid = player.SteamID;
 
         if (!originalNames.ContainsKey(uuid))
@@ -1247,6 +1251,9 @@ public class BotDisguise : ISuperPower
 
     private void RevertName(CCSPlayerController player)
     {
+        if (player.IsBot)
+            return;
+
         ulong uuid = player.SteamID;
 
         if (originalNames.ContainsKey(uuid))
@@ -1260,4 +1267,43 @@ public class BotDisguise : ISuperPower
 
     public Dictionary<ulong, string> originalNames = [];
     public Dictionary<ulong, string> chosenNames = [];
+}
+
+
+public class BotGuesser : ISuperPower
+{
+    public BotGuesser() => Triggers = [typeof(EventRoundStart)];
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        var gameRules = TemUtils.GetGameRules();
+
+        if (gameRules.TotalRoundsPlayed == 0)
+            return HookResult.Continue;
+
+        foreach (var user in Users)
+        {
+            user.PrintToChat("make a vote maggot");
+
+            can_vote[user.SteamID] = true;
+        }
+
+        return HookResult.Continue;
+    }
+
+    public override SIGNAL_STATUS OnSignal(CCSPlayerController? player, List<string> args)
+    {
+        // TODO: actualy implekement the "voting" and "kicking" feature depending on the type of bot guess game mode
+        // if(SuperPowerController.GetMode() == "guess_bot")
+        // {}
+        if (args[0] == "kick")
+        {
+            Server.PrintToChatAll($"desired to kick {args[1]}");
+            return SIGNAL_STATUS.ACCEPTED;
+        }
+
+        return SIGNAL_STATUS.IGNORED;
+    }
+
+    public Dictionary<ulong, bool> can_vote = [];
+    public override string GetDescription() => $"Allows to kick bots each round";
 }

@@ -374,14 +374,7 @@ public class TemUtils
                 "m_szClanName"
             );
 
-            var gameRules = CounterStrikeSharp
-                .API.Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules")
-                .FirstOrDefault();
-
-            if (gameRules is null)
-            {
-                return;
-            }
+            var gameRules = GetGameRulesProxy();
 
             gameRules.GameRules!.NextUpdateTeamClanNamesTime = Server.CurrentTime - 0.01f;
             CounterStrikeSharp.API.Utilities.SetStateChanged(
@@ -393,6 +386,16 @@ public class TemUtils
 
         // force the client to update the player name
         new EventNextlevelChanged(false).FireEventToClient(player);
+    }
+
+    public static CCSGameRules GetGameRules()
+    {
+        return Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
+    }
+
+    public static CCSGameRulesProxy GetGameRulesProxy()
+    {
+        return Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").FirstOrDefault()!;
     }
 
 
