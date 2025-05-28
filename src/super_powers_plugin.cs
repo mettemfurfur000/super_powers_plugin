@@ -163,9 +163,9 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         CsTeam csteam = TemUtils.ParseTeam(teamStr);
         if (csteam == CsTeam.None)
-            commandInfo.ReplyToCommand( $"Unrecognized option: {teamStr}");
+            commandInfo.ReplyToCommand($"Unrecognized option: {teamStr}");
         else
-            commandInfo.ReplyToCommand( SuperPowerController.AddPowers("unused", powerNamePattern, now_flag, csteam));
+            commandInfo.ReplyToCommand(SuperPowerController.AddPowers("unused", powerNamePattern, now_flag, csteam));
     }
 
     [ConsoleCommand("sp_remove", "Removes a superpower from specified player, supports wildcards")]
@@ -175,7 +175,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     {
         var playerNamePattern = commandInfo.GetArg(1);
         var powerNamePattern = commandInfo.GetArg(2);
-        commandInfo.ReplyToCommand( SuperPowerController.RemovePowers(playerNamePattern, powerNamePattern));
+        commandInfo.ReplyToCommand(SuperPowerController.RemovePowers(playerNamePattern, powerNamePattern));
     }
 
     [ConsoleCommand("sp_remove_team", "Removes a superpower from specified team, supports wildcards")]
@@ -188,9 +188,9 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         CsTeam csteam = TemUtils.ParseTeam(teamStr);
         if (csteam == CsTeam.None)
-            commandInfo.ReplyToCommand( $"Unrecognized option: {teamStr}");
+            commandInfo.ReplyToCommand($"Unrecognized option: {teamStr}");
         else
-            commandInfo.ReplyToCommand( SuperPowerController.RemovePowers("unused", powerNamePattern, csteam));
+            commandInfo.ReplyToCommand(SuperPowerController.RemovePowers("unused", powerNamePattern, csteam));
     }
 
     [ConsoleCommand("sp_mode", "todo")]
@@ -202,7 +202,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         SuperPowerController.SetMode(mode);
 
-        commandInfo.ReplyToCommand( $"Mode {mode} set");
+        commandInfo.ReplyToCommand($"Mode {mode} set");
     }
 
     [ConsoleCommand("sp_list", "lists all posibl powers")]
@@ -221,7 +221,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
                     out_table += $"{TemUtils.GetSnakeName(type)}, ";
             }
 
-        commandInfo.ReplyToCommand( $"\tsuperpowers\ttriggers\n{out_table}");
+        commandInfo.ReplyToCommand($"\tsuperpowers\ttriggers\n{out_table}");
     }
 
     [ConsoleCommand("sp_status", "lists all users of certain powers")]
@@ -229,7 +229,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     [RequiresPermissions("@css/root")]
     public void OnPowerStatus(CCSPlayerController? player, CommandInfo commandInfo)
     {
-        commandInfo.ReplyToCommand( $"{SuperPowerController.GetUsersTable()}");
+        commandInfo.ReplyToCommand($"{SuperPowerController.GetUsersTable()}");
     }
 
     [ConsoleCommand("sp_reconfigure", "parses your input as a config and applies it")]
@@ -247,7 +247,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         SuperPowerController.Reconfigure(forced_cfg, commandInfo.GetArg(1));
         Config.args = SuperPowerController.GenerateDefaultConfig();
         TemConfigExtensions.Update(Config);
-        commandInfo.ReplyToCommand( "Reconfigured!");
+        commandInfo.ReplyToCommand("Reconfigured!");
     }
 
     [ConsoleCommand("sp_inspect", "reflects on a power class and dumps its values")]
@@ -260,7 +260,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         var powers = SuperPowerController.SelectPowers(powerNamePattern);
         if (powers == null)
         {
-            commandInfo.ReplyToCommand( $"No powers found for {powerNamePattern}");
+            commandInfo.ReplyToCommand($"No powers found for {powerNamePattern}");
             return;
         }
 
@@ -268,7 +268,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         {
             string? power_field_values = TemUtils.InspectPowerReflective(power, power.GetType());
             if (power_field_values != null)
-                commandInfo.ReplyToCommand( TemUtils.GetPowerNameReadable(power) + ":\n" + power_field_values);
+                commandInfo.ReplyToCommand(TemUtils.GetPowerNameReadable(power) + ":\n" + power_field_values);
         }
     }
 
@@ -285,7 +285,9 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             args.Add(commandInfo.GetArg(i));
         }
 
-        SuperPowerController.Signal(caller, args);
+        string ret = SuperPowerController.Signal(caller, args);
+        if (ret.Length != 0)
+            commandInfo.ReplyToCommand(ret);
     }
 
     [ConsoleCommand("signal")]

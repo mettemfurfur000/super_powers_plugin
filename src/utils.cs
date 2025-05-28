@@ -94,6 +94,30 @@ public class TemUtils
             .Where(player => Regex.IsMatch(player.PlayerName, r_pattern, RegexOptions.IgnoreCase));
     }
 
+    // public static IEnumerable<CCSPlayerController> SelectPlayersBotsIncluded(string name_pattern)
+    // {
+    //     string r_pattern = WildCardToRegular(name_pattern);
+
+    //     return Utilities.GetPlayers().Where(player => Regex.IsMatch(player.PlayerName, r_pattern, RegexOptions.IgnoreCase));
+    // }
+
+    // public static List<CCSPlayerController> GetPlayers()
+    // {
+    //     List<CCSPlayerController> players = new();
+
+    //     for (int i = 0; i < Server.MaxPlayers; i++)
+    //     {
+    //         var controller = Utilities.GetPlayerFromSlot(i);
+
+    //         if (controller == null || !controller.IsValid || controller.Connected != PlayerConnectedState.PlayerConnected)
+    //             continue;
+
+    //         players.Add(controller);
+    //     }
+
+    //     return players;
+    // }
+
     public static IEnumerable<CCSPlayerController> SelectTeam(CsTeam team)
     {
         return Utilities.GetPlayers()
@@ -356,7 +380,7 @@ public class TemUtils
             );
         }
 
-        if(tag == null) tag = "";
+        if (tag == null) tag = "";
 
         if (player.Clan != tag)
         {

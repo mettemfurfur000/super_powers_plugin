@@ -36,7 +36,7 @@ public abstract class ISuperPower
     public virtual bool IsUser(CCSPlayerController player) { return Users.Contains(player); }
 
     public virtual void OnRemovePower(CCSPlayerController? player) { }
-    public virtual SIGNAL_STATUS OnSignal(CCSPlayerController? player, List<string> args) { return SIGNAL_STATUS.IGNORED; }
+    public virtual Tuple<SIGNAL_STATUS, string> OnSignal(CCSPlayerController? player, List<string> args) { return Tuple.Create(SIGNAL_STATUS.IGNORED, ""); }
     public virtual void OnRemoveUser(CCSPlayerController? player, bool reasonDisconnect) // called each time player leaves the server
     {
         if (player == null)
@@ -133,7 +133,7 @@ public static class SuperPowerController
         return Powers;
     }
 
-    public static ISuperPower GetPowerUsers(string name_pattern)
+    public static ISuperPower GetPowersByName(string name_pattern)
     {
         var found_powers = SelectPowers(name_pattern);
         return found_powers.First();
@@ -188,15 +188,18 @@ public static class SuperPowerController
     {
         string ret = "";
         foreach (var power in Powers)
-            switch(power.OnSignal(player, args))
+        {
+            var sig_ret = power.OnSignal(player, args);
+            switch (sig_ret.Item1)
             {
                 case SIGNAL_STATUS.ERROR:
-                    ret += $"{TemUtils.GetPowerNameReadable(power)} Failed to process the signal ${args}";
-                break;
+                    ret += $"{TemUtils.GetPowerNameReadable(power)} Failed to process the signal: {sig_ret}";
+                    break;
                 case SIGNAL_STATUS.ACCEPTED:
-                    ret += $"{TemUtils.GetPowerNameReadable(power)} Accepted the signal ${args}";
-                break;
+                    // ret += $"{TemUtils.GetPowerNameReadable(power)} Accepted the signal";
+                    break;
             }
+        }
         return ret;
     }
 
