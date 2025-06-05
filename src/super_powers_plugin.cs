@@ -14,6 +14,7 @@ using CounterStrikeSharp.API.Modules.Extensions;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
+using Microsoft.VisualBasic.FileIO;
 namespace super_powers_plugin.src;
 
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
@@ -48,6 +49,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         RegisterEventHandler<EventBombBegindefuse>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBeginplant>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventBombPlanted>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventWeaponFire>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventGrenadeThrown>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventPlayerHurt>((@event, info) => SuperPowerController.ExecutePower(@event));
@@ -56,6 +58,9 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         RegisterEventHandler<EventPlayerDeath>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBulletImpact>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventItemEquip>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventPlayerBlind>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventSmokegrenadeDetonate>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventSmokegrenadeExpired>((@event, info) => SuperPowerController.ExecutePower(@event));
 
         RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
         {
@@ -132,6 +137,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         commandInfo.ReplyToCommand($"  sp_status \t\t\t\t\t\t - prints status of all powers and its users");
         commandInfo.ReplyToCommand($"  sp_inspect {pw_format} \t\t\t\t\t - prints info about power and its parameters");
         commandInfo.ReplyToCommand($"  sp_reconfigure {pw_format} {pw_format} [key1] [value1] ... \t - reconfigures power");
+        // commandInfo.ReplyToCommand($"  sp_reset_config - resets config, useful for tem");
         commandInfo.ReplyToCommand($"Special:");
         commandInfo.ReplyToCommand($"  sp_signal / signal / s <any input> - pass a signal of arbitrary data to the plugin system");
     }
@@ -238,17 +244,32 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     public void OnReconfigure(CCSPlayerController? player, CommandInfo commandInfo)
     {
         Dictionary<string, string> forced_cfg = [];
+        string resp = "";
         for (int i = 2; i < commandInfo.ArgCount; i += 2) // iterate over all args, except 0 and 1, which is just the name of the command and name of power
         {
             var key = commandInfo.GetArg(i);
             var value = commandInfo.GetArg(i + 1);
             forced_cfg[key] = value;
+            resp += $"Set [{key}] to [{value}]";
         }
         SuperPowerController.Reconfigure(forced_cfg, commandInfo.GetArg(1));
-        Config.args = SuperPowerController.GenerateDefaultConfig();
-        TemConfigExtensions.Update(Config);
-        commandInfo.ReplyToCommand("Reconfigured!");
+        commandInfo.ReplyToCommand("Reconfigured!\n" + resp);
     }
+
+    // this does not work because GenerateDefaultConfig() has to actualy create instances of powers with default values in it to actualy generate a default config
+    // instead he generates config for whatever values are in power private variables instead
+    
+    // [ConsoleCommand("sp_reset_config", "resets config, useful for tem")]
+    // [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    // [RequiresPermissions("@css/root")]
+    // public void OnResetConfig(CCSPlayerController? player, CommandInfo commandInfo)
+    // {
+    //     TemConfigExtensions.ResetConfig(Config);
+    //     // Config.args = SuperPowerController.GenerateDefaultConfig();
+    //     Config = new SuperPowerConfig();
+    //     SuperPowerController.FeedTheConfig(Config);
+    //     commandInfo.ReplyToCommand("Reset Config Successfully\n");
+    // }
 
     [ConsoleCommand("sp_inspect", "reflects on a power class and dumps its values")]
     [CommandHelper(minArgs: 1, usage: "[power]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]

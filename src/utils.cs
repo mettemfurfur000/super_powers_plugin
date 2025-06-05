@@ -8,6 +8,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
+using Microsoft.VisualBasic;
 
 namespace super_powers_plugin.src;
 
@@ -134,6 +135,11 @@ public class TemUtils
             csteam = CsTeam.Terrorist;
 
         return csteam;
+    }
+
+    public static float CalcDistance(Vector v1, Vector v2)
+    {
+        return (float)Math.Sqrt(Math.Pow(v1.X - v2.X, 2) + Math.Pow(v1.Y - v2.Y, 2) + Math.Pow(v1.Z - v2.Z, 2));
     }
 
     public static string? InspectPowerReflective(ISuperPower power, Type type)
@@ -581,6 +587,28 @@ public static class TemConfigExtensions
         catch (Exception ex)
         {
             throw new Exception($"Failed to update configuration file at '{configPath}'.", ex);
+        }
+    }
+
+        /// <summary>
+    /// Updates the configuration file
+    /// </summary>
+    /// <typeparam name="T">Type of the plugin configuration.</typeparam>
+    /// <param name="config">Current configuration instance</param>
+    public static void ResetConfig<T>(this T config)
+    {
+        var configPath = config.GetConfigPath();
+
+        try
+        {
+            if (File.Exists(configPath))
+            {
+                 File.Delete(configPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Failed to delete '{configPath}'.", ex);
         }
     }
 

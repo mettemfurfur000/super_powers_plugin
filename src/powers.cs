@@ -15,6 +15,7 @@ using CounterStrikeSharp.API.Modules.Utils;
 using System.Threading;
 using System.Linq;
 using CounterStrikeSharp.API.Modules.Entities;
+using System.Data.Common;
 namespace super_powers_plugin.src;
 
 /*
@@ -402,7 +403,7 @@ public class EvilAura : ISuperPower
             if (pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE)
                 continue;
 
-            var playersInRadius = players.Where(p => p.PlayerPawn.Value != null && CalcDistance(p.PlayerPawn.Value.AbsOrigin!, pawn.AbsOrigin!) <= distance);
+            var playersInRadius = players.Where(p => p.PlayerPawn.Value != null && TemUtils.CalcDistance(p.PlayerPawn.Value.AbsOrigin!, pawn.AbsOrigin!) <= distance);
 
             foreach (var player_to_harm in playersInRadius)
             {
@@ -423,11 +424,6 @@ public class EvilAura : ISuperPower
                 player_to_harm.PrintToCenter($"You have been hurt by {user.PlayerName}'s evil aura");
             }
         }
-    }
-
-    private float CalcDistance(Vector v1, Vector v2)
-    {
-        return (float)Math.Sqrt(Math.Pow(v1.X - v2.X, 2) + Math.Pow(v1.Y - v2.Y, 2) + Math.Pow(v1.Z - v2.Z, 2));
     }
 
     private float distance = 250;
@@ -844,14 +840,14 @@ public class WarpPeek : ISuperPower
     private int timeout = 30;
 }
 
-public class KillerBonus : ISuperPower
+public class Snowballing : ISuperPower
 {
-    public KillerBonus() => Triggers = [typeof(EventPlayerDeath), typeof(EventRoundStart), typeof(EventPlayerHurt)];
+    public Snowballing() => Triggers = [typeof(EventPlayerDeath), typeof(EventRoundStart), typeof(EventPlayerHurt)];
     public override HookResult Execute(GameEvent gameEvent)
     {
         Type type = gameEvent.GetType();
 
-        if (type == typeof(EventPlayerDeath)) // each  time he kills someone, he gets a heal bonus
+        if (type == typeof(EventPlayerDeath) && giveHealImmediately) // each  time he kills someone, he gets a heal bonus
         {
             EventPlayerDeath realEvent = (EventPlayerDeath)gameEvent;
 
@@ -875,7 +871,8 @@ public class KillerBonus : ISuperPower
             if (!Users.Contains(player))
                 return HookResult.Continue;
 
-            float damage_uncapped_bonus = player.ActionTrackingServices!.MatchStats.Kills * dmg_inc;
+            // match stats contain kills thru de whol game, killCount only contains kills for this round
+            float damage_uncapped_bonus = (resetOnRoundStart == false ? player.ActionTrackingServices!.MatchStats.Kills : player.KillCount) * dmg_inc;
 
             float damage_mult_bonus = max_dmg_inc > 0 ? Math.Min(damage_uncapped_bonus, max_dmg_inc) : damage_uncapped_bonus;
             int bonus_damage = (int)(realEvent.DmgHealth * damage_mult_bonus);
@@ -884,7 +881,7 @@ public class KillerBonus : ISuperPower
             pawn.Health = pawn.Health - bonus_damage;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
-        else if (type == typeof(EventRoundStart))
+        else if (type == typeof(EventRoundStart) && giveHealOnSpawn && resetOnRoundStart == false)
         {
             Users.ForEach(user =>
             {
@@ -899,11 +896,15 @@ public class KillerBonus : ISuperPower
 
     public override string GetDescription() => $"Each kill will give you {heal} more HP and {dmg_inc * 100}% more damage. Limited to {max_heal} HP and {max_dmg_inc * 100}% bonus damage";
 
-    private int heal = 5;
-    private float dmg_inc = 0.02f;
+    private int heal = 25;
+    private float dmg_inc = 0.1f;
 
     private int max_heal = 300;
     private float max_dmg_inc = 1.00f;
+
+    private bool resetOnRoundStart = true;
+    private bool giveHealImmediately = true;
+    private bool giveHealOnSpawn = false;
 }
 
 public class ChargeJump : ISuperPower
@@ -1368,3 +1369,215 @@ public class BotGuesser : ISuperPower
 
     public override string GetDescription() => $"Allows to kick bots each round";
 }
+
+public class HealingZeus : ISuperPower
+{
+    public HealingZeus() => Triggers = [typeof(EventPlayerHurt)];
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        var realEvent = (EventPlayerHurt)gameEvent;
+        var attacker = realEvent.Attacker;
+        var victim = realEvent.Userid;
+
+        if (attacker == null || !attacker.IsValid || victim == null || !victim.IsValid)
+            return HookResult.Continue;
+
+        if (!Users.Contains(attacker))
+            return HookResult.Continue;
+
+        var victim_pawn = victim.PlayerPawn.Value;
+        if (victim_pawn == null || !victim_pawn.IsValid)
+            return HookResult.Continue;
+
+        if (victim_pawn.TeamNum != attacker.TeamNum)
+            return HookResult.Continue;
+
+        victim_pawn.Health = value;
+
+        Utilities.SetStateChanged(victim_pawn, "CBaseEntity", "m_iHealth");
+        return HookResult.Continue;
+    }
+
+    public override string GetDescription() => $"zap your teammates to set their health to {value}";
+
+    private int value = 75;
+}
+
+public class FlashOfDisability : ISuperPower
+{
+    public FlashOfDisability() => Triggers = [typeof(EventPlayerBlind)];
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        var realEvent = (EventPlayerBlind)gameEvent;
+
+        // Server.PrintToChatAll("blind detected");
+
+        var attacker = realEvent.Attacker;
+        var victim = realEvent.Userid;
+
+        if (attacker == null || !attacker.IsValid || victim == null || !victim.IsValid)
+            return HookResult.Continue;
+
+        if (!Users.Contains(attacker))
+            return HookResult.Continue;
+
+        if (ignore_self_flash && attacker == victim)
+            return HookResult.Continue;
+
+        // SuperPowerController.DisablePlayer(victim, (int)(victim.PlayerPawn.Value!.BlindStartTime - victim.PlayerPawn.Value!.BlindUntilTime));
+        SuperPowerController.DisablePlayer(victim, (int)victim.PlayerPawn.Value!.FlashDuration * 64);
+
+        return HookResult.Continue;
+    }
+
+    public override string GetDescription() => $"enemies have their powers disabled if you flash them";
+
+    private bool ignore_self_flash = true;
+}
+
+public class PoisonedSmoke : ISuperPower
+{
+    public PoisonedSmoke() => Triggers = [typeof(EventSmokegrenadeDetonate), typeof(EventSmokegrenadeExpired)];
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        Type type = gameEvent.GetType();
+        if (type == typeof(EventSmokegrenadeDetonate))
+        {
+            var realEvent = (EventSmokegrenadeDetonate)gameEvent;
+
+            var thrower = realEvent.Userid;
+
+            if (thrower == null || !thrower.IsValid)
+                return HookResult.Continue;
+
+            if (!Users.Contains(thrower))
+                return HookResult.Continue;
+
+            SmokesActivePos.Add(Tuple.Create(realEvent.Entityid, new Vector(realEvent.X, realEvent.Y, realEvent.Z)));
+
+            var smokeEntity = Utilities.GetEntityFromIndex<CSmokeGrenadeProjectile>(realEvent.Entityid);
+
+            if (smokeEntity != null)
+            {
+                smokeEntity.SmokeColor.X = 0.0f;
+                smokeEntity.SmokeColor.Y = Random.Shared.NextSingle() * 255.0f;
+                smokeEntity.SmokeColor.Z = 0.0f;
+                // Utilities.SetStateChanged(smokeEntity, "CSmokeGrenadeProjectile", "m_vSmokeColor");
+                // Server.PrintToChatAll($"set to green entity {smokeEntity.DesignerName}");
+            }
+
+        }
+
+        if (type == typeof(EventSmokegrenadeExpired))
+        {
+            var realEvent = (EventSmokegrenadeExpired)gameEvent;
+
+            SmokesActivePos.RemoveAll(t => t.Item1 == realEvent.Entityid);
+        }
+
+        return HookResult.Continue;
+    }
+
+    public override void Update()
+    {
+        if (Server.TickCount % 64 != 0)
+            return;
+
+        var players = Utilities.GetPlayers();
+
+        foreach (var pos in SmokesActivePos)
+        {
+            var playersInRadius = players.Where(p => p.PlayerPawn.Value != null && TemUtils.CalcDistance(p.PlayerPawn.Value.AbsOrigin!, pos.Item2) <= smoke_radius);
+
+            foreach (var player_to_harm in playersInRadius)
+            {
+                if (player_to_harm.TeamNum == 1) // skip spectators, just in case
+                    continue;
+                var harm_pawn = player_to_harm.PlayerPawn.Value!;
+                if (harm_pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) // only harm alive specimens
+                    continue;
+                if (harm_pawn.Health <= value) // dont ever touch players with low health
+                {
+                    harm_pawn.CommitSuicide(false, true);
+                    continue;
+                }
+
+                harm_pawn.Health = harm_pawn.Health - value;
+                Utilities.SetStateChanged(harm_pawn, "CBaseEntity", "m_iHealth");
+            }
+        }
+
+    }
+
+    public List<Tuple<int, Vector>> SmokesActivePos = [];
+
+    public override string GetDescription() => $"your smoke poisons anyone in it, {value} damage per second";
+
+    private int value = 2;
+    private int smoke_radius = 144;
+}
+
+public class DamageLoss : ISuperPower
+{
+    public DamageLoss() => Triggers = [typeof(EventPlayerHurt)];
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        var realEvent = (EventPlayerHurt)gameEvent;
+        var victim = realEvent.Userid;
+
+        if (victim == null || !victim.IsValid)
+            return HookResult.Continue;
+
+        if (!Users.Contains(victim))
+            return HookResult.Continue;
+
+        if (Random.Shared.NextSingle() < probability / 100.0f)
+            return HookResult.Continue;
+
+        var victim_pawn = victim.PlayerPawn.Value;
+        if (victim_pawn == null || !victim_pawn.IsValid)
+            return HookResult.Continue;
+
+        victim_pawn.Health += realEvent.DmgHealth;
+        victim_pawn.ArmorValue += realEvent.DmgArmor;
+
+        Utilities.SetStateChanged(victim_pawn, "CBaseEntity", "m_iHealth");
+        Utilities.SetStateChanged(victim_pawn, "CCSPlayerPawn", "m_ArmorValue");
+
+        return HookResult.Continue;
+    }
+
+    public override string GetDescription() => $"{probability}% chance to ignore incoming damage event";
+
+    private int probability = 50;
+}
+
+public class ShortFusedBomb : ISuperPower
+{
+    public ShortFusedBomb() => Triggers = [typeof(EventBombPlanted)];
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        var realEvent = (EventBombPlanted)gameEvent;
+
+        if (!Users.Contains(realEvent.Userid!))
+            return HookResult.Continue;
+
+        var bombEntity = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
+        if (bombEntity != null)
+        {
+            bombEntity.TimerLength *= 2;
+            Server.PrintToChatAll($"set timer to {bombEntity.TimerLength}");
+            Utilities.SetStateChanged(bombEntity, "CPlantedC4", "m_flTimerLength");
+            // bombEntity.DefuseCountDown = 2;
+            // Utilities.SetStateChanged(bombEntity, "CPlantedC4", "m_flDefuseCountDown");
+        }
+
+        return HookResult.Continue;
+    }
+
+    public override string GetDescription() => $"bomb have detonation time divided by {divisor} (T only)";
+
+    private int divisor = 2;
+}
+
+

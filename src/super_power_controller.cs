@@ -25,6 +25,7 @@ public abstract class ISuperPower
 {
     public List<Type> Triggers = [];
     public List<CCSPlayerController> Users = [];
+    public List<Tuple<CCSPlayerController, int>> UsersDisabled = [];
     public List<ulong> UsersSteamIDs = [];
     public List<string> NeededResources = [];
 
@@ -39,7 +40,7 @@ public abstract class ISuperPower
     public virtual Tuple<SIGNAL_STATUS, string> OnSignal(CCSPlayerController? player, List<string> args) { return Tuple.Create(SIGNAL_STATUS.IGNORED, ""); }
     public virtual void OnRemoveUser(CCSPlayerController? player, bool reasonDisconnect) // called each time player leaves the server
     {
-        if (player == null)
+        if (player == null) // clear all
         {
             Users.Clear();
             UsersSteamIDs.Clear();
@@ -96,7 +97,8 @@ public static class SuperPowerController
         Powers.Add(new ExplosionUponDeath());
         Powers.Add(new Regeneration());
         Powers.Add(new WarpPeek());
-        Powers.Add(new KillerBonus());
+        Powers.Add(new Snowballing());
+        // Powers.Add(new Snowballing());
         Powers.Add(new ChargeJump());
 
         //Powers.Add(new SmallSize()); // must write a clientside cheat thing so i can just modify a viewangle
@@ -116,6 +118,12 @@ public static class SuperPowerController
         // Powers.Add(new Builder());
         Powers.Add(new BotDisguise());
         Powers.Add(new BotGuesser());
+
+        Powers.Add(new HealingZeus());
+        Powers.Add(new FlashOfDisability());
+        Powers.Add(new PoisonedSmoke());
+        Powers.Add(new DamageLoss());
+        // Powers.Add(new ShortFusedBomb()); // no luck
     }
 
     public static void SetMode(string _mode)
@@ -180,6 +188,8 @@ public static class SuperPowerController
 
     public static void Update()
     {
+        if (Server.TickCount % 32 == 0)
+            CheckDisabled();
         foreach (var power in Powers)
             power.Update();
     }
@@ -225,14 +235,57 @@ public static class SuperPowerController
 
     public static HookResult ExecutePower(GameEvent gameEvent)
     {
+        int cur_tick = Server.TickCount;
+
         HookResult ret = HookResult.Continue;
         Type type = gameEvent.GetType();
+
         foreach (var power in Powers)
             if (power.Triggers.Contains(type) || type == typeof(GameEvent))
                 if (power.Execute(gameEvent) == HookResult.Stop)
                     ret = HookResult.Stop;
 
         return ret;
+    }
+
+    public static void CheckDisabled()
+    {
+        int cur_tick = Server.TickCount;
+
+        List<CCSPlayerController> forRemoval = [];
+
+        foreach (var power in Powers)
+        {
+            foreach (var u_tuple in power.UsersDisabled)
+                if (u_tuple.Item2 >= cur_tick)
+                {
+                    forRemoval.Add(u_tuple.Item1);
+                    power.OnAdd(u_tuple.Item1);
+
+                    if (!power.Triggers.Contains(typeof(EventRoundStart))) // ignore start round triggered events
+                        try
+                        { power.Execute(new GameEvent(0)); }
+                        catch { }
+                }
+
+            foreach (var item in forRemoval)
+                power.UsersDisabled.RemoveAll(t => t.Item1 == item);
+
+            forRemoval.Clear();
+        }
+    }
+
+    public static void DisablePlayer(CCSPlayerController player, int ticks)
+    {
+        // TemUtils.Log($"Disabling powers for {ticks} ticks");
+        int future_tick = Server.TickCount + ticks;
+        foreach (var power in Powers)
+            if (power.Users.Contains(player))
+            {
+                power.UsersDisabled.Add(Tuple.Create(player, future_tick));
+                power.OnRemovePower(player);
+                power.OnRemoveUser(player, false);
+            }
     }
 
     public static void AddNewPower(ISuperPower power)

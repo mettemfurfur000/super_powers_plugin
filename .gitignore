@@ -4,3 +4,5 @@ obj/*
 *.dll
 *.pdb
 *.txt
+*.deps.json
+*.sln
