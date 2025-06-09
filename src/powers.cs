@@ -367,9 +367,7 @@ public class NukeNades : ISuperPower
             grenade.Damage *= multiplier;
             grenade.DmgRadius *= multiplier;
 
-            //grenade.DetonateTime *= 3;
-
-            //TemUtils.MakeModelGlow(grenade);
+            grenade.DetonateTime += 1;
         }
 
         return HookResult.Continue;
@@ -1581,3 +1579,113 @@ public class ShortFusedBomb : ISuperPower
 }
 
 
+public class InstantNades : ISuperPower
+{
+    public InstantNades() => Triggers = [typeof(EventGrenadeThrown)];
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        var realEvent = (EventGrenadeThrown)gameEvent;
+        var player = realEvent.Userid;
+        if (player == null || !player.IsValid)
+            return HookResult.Continue;
+
+        if (!Users.Contains(player))
+            return HookResult.Continue;
+
+        Server.PrintToChatAll(realEvent.Weapon);
+
+        var match_grenade = Utilities.FindAllEntitiesByDesignerName<CHEGrenadeProjectile>(realEvent.Weapon + "_projectile");
+        if (match_grenade.Count() == 0)
+            return HookResult.Continue;
+
+        var grenade = match_grenade.First();
+
+        if (grenade != null && player.UserId == grenade.Thrower.Value!.OriginalController.Value!.UserId)
+        {
+            grenade.DetonateTime = Server.CurrentTime + 1 / divider;
+        }
+
+        return HookResult.Continue;
+    }
+
+    public override string GetDescription() => $"Reduce grenade and flash fuse by {divider} times";
+
+    private int divider = 4;
+}
+
+public class Pacifism : ISuperPower
+{
+    public Pacifism() => Triggers = [typeof(EventPlayerHurt), typeof(EventRoundStart)];
+
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        if (gameEvent.GetType() == typeof(EventPlayerHurt))
+        {
+            var realEvent = (EventPlayerHurt)gameEvent;
+            var victim = realEvent.Userid;
+            var attacker = realEvent.Attacker;
+
+            if (victim == null || !victim.IsValid || attacker == null || !attacker.IsValid)
+                return HookResult.Continue;
+
+            if (Users.Contains(attacker)) // if attacker is a user, reset its capabilities
+            {
+                // Server.PrintToChatAll("pacifism removed");
+                status.Remove(attacker);
+
+                attacker.PrintToCenter("Pacifism removed");
+            }
+
+            if (Users.Contains(victim)) // check if victim might be le pacifist
+            {
+                // Server.PrintToChatAll("pacifism victom found");
+                if (status.Contains(victim)) // effect is active, cancel all damage
+                {
+                    // Server.PrintToChatAll("damage sustained");
+
+                    var victim_pawn = victim.PlayerPawn.Value;
+                    if (victim_pawn == null || !victim_pawn.IsValid)
+                        return HookResult.Continue;
+
+                    victim_pawn.Health += realEvent.DmgHealth;
+                    victim_pawn.ArmorValue += realEvent.DmgArmor;
+
+                    Utilities.SetStateChanged(victim_pawn, "CBaseEntity", "m_iHealth");
+                    Utilities.SetStateChanged(victim_pawn, "CCSPlayerPawn", "m_ArmorValue");
+                }
+            }
+        }
+        else
+        {
+            // Server.PrintToChatAll("Gained pacifism");
+            // reset pacifism status
+            status.Clear();
+            status = [.. Users];
+
+            Users.ForEach((c) => c.PrintToCenter("Gained Pacifism"));
+
+            // Server.PrintToChatAll(status.ToString());
+        }
+
+        return HookResult.Continue;
+    }
+
+    public override void OnRemovePower(CCSPlayerController? player)
+    {
+        if (player != null)
+        {
+            status.Remove(player);
+            player.PrintToCenter("Pacifism removed");
+        }
+        else
+        {
+            status.Clear();
+            status.ForEach((c) => c.PrintToCenter("Pacifism removed"));
+        }
+    }
+
+    // public Dictionary<CCSPlayerController, bool> status;
+    public List<CCSPlayerController> status = [];
+
+    public override string GetDescription() => $"On round start, gain invincibility until you start dealing damage";
+}

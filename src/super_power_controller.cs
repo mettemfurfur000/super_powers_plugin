@@ -123,7 +123,10 @@ public static class SuperPowerController
         Powers.Add(new FlashOfDisability());
         Powers.Add(new PoisonedSmoke());
         Powers.Add(new DamageLoss());
+
         // Powers.Add(new ShortFusedBomb()); // no luck
+        Powers.Add(new InstantNades());
+        Powers.Add(new Pacifism());
     }
 
     public static void SetMode(string _mode)
