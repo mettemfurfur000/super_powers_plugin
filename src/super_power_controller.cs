@@ -30,6 +30,14 @@ public abstract class ISuperPower
     public List<ulong> UsersSteamIDs = [];
     public List<string> NeededResources = [];
 
+    public CsTeam teamNumUsedOnly = CsTeam.None;
+
+    public List<ISuperPower> Incompatibilities = [];
+    private bool disabled = false;
+
+    public void setDisabled() { disabled = true; }
+    public bool IsDisabled() => disabled;
+
     public virtual string GetDescription() => "";
 
     public virtual HookResult Execute(GameEvent gameEvent) { return HookResult.Continue; }
@@ -53,10 +61,15 @@ public abstract class ISuperPower
             UsersSteamIDs.Remove(player.SteamID);
     }
 
-    public virtual void OnAdd(CCSPlayerController player) // called to add player to power
+    public virtual bool OnAdd(CCSPlayerController player, bool forced = false) // called to add player to power
     {
+        if (teamNumUsedOnly != CsTeam.None && player.TeamNum != (byte)teamNumUsedOnly && forced == false)
+            return false;
+
         Users.Add(player);
         UsersSteamIDs.Add(player.SteamID);
+
+        return true;
     }
 
     public virtual void OnRejoin(CCSPlayerController player) // called each time player joins to check if player has this power
@@ -84,48 +97,61 @@ public static class SuperPowerController
 
     static SuperPowerController()
     {
-        Powers.Add(new DormantPower()); // utilities
-        Powers.Add(new BotDisguise());
-        Powers.Add(new BotGuesser());
-        Powers.Add(new Banana());
-        // real powers
-        Powers.Add(new BonusHealth());
-        Powers.Add(new BonusArmor());
-        Powers.Add(new InstantDefuse());
-        Powers.Add(new InstantPlant());
-        Powers.Add(new InfiniteAmmo());
-        Powers.Add(new SuperSpeed());
-        Powers.Add(new HeadshotImmunity());
-        Powers.Add(new InfiniteMoney());
-        Powers.Add(new NukeNades());
-        Powers.Add(new EvilAura());
-        Powers.Add(new DamageBonus());
-        Powers.Add(new Vampirism());
-        Powers.Add(new SuperJump());
-        Powers.Add(new Invisibility());
-        Powers.Add(new ExplosionUponDeath());
-        Powers.Add(new Regeneration());
-        Powers.Add(new WarpPeek());
-        Powers.Add(new Snowballing());
-        Powers.Add(new ChargeJump());
+        RegisterPower(new DormantPower(), null, CsTeam.None, true); // utilities
+        RegisterPower(new BotDisguise(), null, CsTeam.None, true);
+        RegisterPower(new BotGuesser(), null, CsTeam.None, true);
+        RegisterPower(new Banana(), null, CsTeam.None, true);
+
+        RegisterPower(new BonusHealth()); // powers
+        RegisterPower(new BonusArmor());
+        RegisterPower(new InstantDefuse(), null, CsTeam.CounterTerrorist);
+        RegisterPower(new InstantPlant(), null, CsTeam.Terrorist);
+        RegisterPower(new InfiniteAmmo());
+        RegisterPower(new SuperSpeed());
+        RegisterPower(new HeadshotImmunity());
+        RegisterPower(new InfiniteMoney());
+        RegisterPower(new NukeNades());
+        RegisterPower(new EvilAura());
+        RegisterPower(new DamageBonus());
+        RegisterPower(new Vampirism());
+        RegisterPower(new SuperJump());
+        RegisterPower(new Invisibility());
+        RegisterPower(new ExplosionUponDeath());
+        RegisterPower(new Regeneration());
+        RegisterPower(new WarpPeek());
+        RegisterPower(new Snowballing());
+        RegisterPower(new ChargeJump());
+        RegisterPower(new RageMode()); // TODO: rename
+        RegisterPower(new HealingZeus());
+        RegisterPower(new FlashOfDisability());
+        RegisterPower(new PoisonedSmoke());
+        RegisterPower(new DamageLoss());
+        RegisterPower(new InstantNades());
+        RegisterPower(new Pacifism());
+        RegisterPower(new Rebirth());
+        RegisterPower(new TheSacrifice());
+        RegisterPower(new Talisman());
+        RegisterPower(new BiocodedWeapons());
+        RegisterPower(new EternalNade());
+
+        // cant implement rn
         //Powers.Add(new SmallSize()); // hull size vector is stored as a static variable and all players share the same size
         // should look for da pattern in le memory or somethin idk
         // Powers.Add(new WallHack()); // hav to wrtite check transmit "subsystem" so evry other power coud use it without much headache
         // Powers.Add(new WeaponMaster()); // no recoil?
-        Powers.Add(new RageMode());
         // Powers.Add(new Builder()); // needa find models for blocks good enough to make it work
-        Powers.Add(new HealingZeus());
-        Powers.Add(new FlashOfDisability());
-        Powers.Add(new PoisonedSmoke());
-        Powers.Add(new DamageLoss());
         // Powers.Add(new ShortFusedBomb()); // no luck
-        Powers.Add(new InstantNades());
-        Powers.Add(new Pacifism());
-        Powers.Add(new Rebirth());
-        Powers.Add(new TheSacrifice());
-        Powers.Add(new Talisman());
-        Powers.Add(new BiocodedWeapons());
-        Powers.Add(new EternalNade());
+    }
+
+    public static void RegisterPower(ISuperPower item, List<ISuperPower>? incompat = null, CsTeam teamReq = 0, bool disable = false)
+    {
+        if (incompat != null)
+            item.Incompatibilities = incompat;
+
+        item.teamNumUsedOnly = teamReq;
+        if (disable)
+            item.setDisabled();
+        Powers.Add(item);
     }
 
     public static void SetMode(string _mode)
@@ -274,7 +300,7 @@ public static class SuperPowerController
                 if (u_tuple.Item2 >= cur_tick)
                 {
                     forRemoval.Add(u_tuple.Item1);
-                    power.OnAdd(u_tuple.Item1);
+                    power.OnAdd(u_tuple.Item1); // ignore return code
 
                     if (!power.Triggers.Contains(typeof(EventRoundStart))) // ignore start round triggered events
                         try
@@ -324,39 +350,11 @@ public static class SuperPowerController
 
         Powers.ToList().ForEach((power) =>
         {
-            string powerName = TemUtils.GetPowerName(power);
-            if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.Terrorist && cfg.t_blacklist.Contains(powerName))
-                return;
-            if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.CounterTerrorist && cfg.ct_blacklist.Contains(powerName))
-                return;
-            if (cfg.power_blacklist.Contains(powerName))
-                return;
-
-            ret.Add(power);
+            if (power.teamNumUsedOnly != CsTeam.None && player.Team == power.teamNumUsedOnly)
+                ret.Add(power);
         });
 
         return ret;
-    }
-
-    public static string AddMenuViewerPowerToEveryone()
-    {
-        CleanPowers();
-
-        var players = Utilities.GetPlayers();
-        if (!players.Any())
-            return "Error: No players found";
-
-        foreach (var player in players)
-        {
-            var power = Powers.First(p => TemUtils.GetPowerName(p) == "menu_viewer");
-            power.OnAdd(player);
-
-            try
-            { power.Execute(new GameEvent(0)); }
-            catch { }
-        }
-
-        return "Menu viewer added to all players";
     }
 
     public static string AddPowerRandomlyToEveryone(SuperPowerConfig cfg, bool silent = true)
@@ -369,28 +367,11 @@ public static class SuperPowerController
 
         foreach (var player in players)
         {
-            ISuperPower? power = null;
-            while (true)
-            {
-                power = Powers.ElementAt(new Random().Next(Powers.Count));
+        again:
+            ISuperPower power = Powers.ElementAt(new Random().Next(Powers.Count));
 
-                if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.Terrorist)
-                    if (cfg.t_blacklist.Contains(TemUtils.GetPowerName(power)))
-                        continue;
-
-                if (player.Team == CounterStrikeSharp.API.Modules.Utils.CsTeam.CounterTerrorist)
-                    if (cfg.ct_blacklist.Contains(TemUtils.GetPowerName(power)))
-                        continue;
-
-                if (cfg.power_blacklist.Contains(TemUtils.GetPowerName(power)))
-                    continue;
-
-                break;
-            }
-
-            //power.Users.Add(player);
-
-            power.OnAdd(player);
+            if (power.OnAdd(player) == false)
+                goto again;
             string alert = $"Your power for this round:\n{ChatColors.Blue}{TemUtils.GetPowerNameReadable(power)}";
             player.PrintToChat(alert);
             string description = $"Power description:\n{ChatColors.Blue}{power.GetDescription()}";
@@ -406,7 +387,7 @@ public static class SuperPowerController
         return "Successfully added random powers to everyone";
     }
 
-    public static string AddPowers(string player_name_pattern, string power_name_pattern, bool now = false, CsTeam team = CsTeam.None, bool silent = true)
+    public static string AddPowers(string player_name_pattern, string power_name_pattern, bool now = false, CsTeam team = CsTeam.None, bool silent = true, bool forced = false)
     {
         var status_message = "";
         IEnumerable<CCSPlayerController>? players = null;
@@ -431,6 +412,7 @@ public static class SuperPowerController
             foreach (var power in powers)
             {
                 var powerName = TemUtils.GetPowerName(power);
+                bool added = false;
 
                 if (power.Users.Contains(player))
                 {
@@ -441,27 +423,32 @@ public static class SuperPowerController
                 try
                 {
                     //power.Users.Add(player);
-                    power.OnAdd(player);
-                    added_powers_feedback += $" {ChatColors.Blue}{TemUtils.GetPowerNameReadable(power)}{ChatColors.White},";
-                    added_powers++;
+                    if (power.IsDisabled() == false)
+                        if (power.OnAdd(player, forced) == true)
+                        {
+                            added_powers_feedback += $" {ChatColors.Blue}{TemUtils.GetPowerNameReadable(power)}{ChatColors.White},";
+                            added_powers++;
+                            added = true;
+                        }
                 }
                 catch { status_message += $"Something bad happened while adding {powerName} to {player.PlayerName}, ignoring it\n"; }
 
                 var now_tip = now ? ", now" : "";
 
-                if (now)
-                    try
-                    {
-                        power.Execute(new GameEvent(0));
-                        status_message += $"Added {powerName} to {player.PlayerName}{now_tip}\n";
-                        added_powers_feedback += $"{ChatColors.Green}(NOW)";
-                    }
-                    catch (Exception e)
-                    {
-                        status_message += $"Something bad happened while triggering {powerName}, ignoring it\n";
-                        added_powers_feedback += $"{ChatColors.Red}(FAILED)";
-                        Server.PrintToConsole(e.ToString());
-                    }
+                if (added)
+                    if (now)
+                        try
+                        {
+                            power.Execute(new GameEvent(0));
+                            status_message += $"Added {powerName} to {player.PlayerName}{now_tip}\n";
+                            added_powers_feedback += $"{ChatColors.Green}(NOW)";
+                        }
+                        catch (Exception e)
+                        {
+                            status_message += $"Something bad happened while triggering {powerName}, ignoring it\n";
+                            added_powers_feedback += $"{ChatColors.Red}(FAILED)";
+                            Server.PrintToConsole(e.ToString());
+                        }
             }
 
             if (added_powers != 0)

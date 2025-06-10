@@ -1,20 +1,9 @@
-#define DON_DO_INVIS
-
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
-using CounterStrikeSharp.API.Core.Capabilities;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
-using CounterStrikeSharp.API.Modules.Events;
-using CounterStrikeSharp.API.Modules.Extensions;
-using CounterStrikeSharp.API.Modules.Memory;
-using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
-using Microsoft.VisualBasic.FileIO;
 namespace super_powers_plugin.src;
 
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
@@ -35,10 +24,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         {
             if (SuperPowerController.GetMode() == "random")
                 SuperPowerController.AddPowerRandomlyToEveryone(Config);
-
-            // if (SuperPowerController.GetMode() == "roguelike")
-            //     SuperPowerController.AddMenuViewerPowerToEveryone();
-
             Server.PrintToConsole($"Round started, mode: {SuperPowerController.GetMode()}");
 
             return SuperPowerController.ExecutePower(@event);
@@ -46,6 +31,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         // surely theres a better way of doing this
         // until then, i dont care
+
+        // there is, but i don care
 
         // RegisterEventHandler<EventPlayerSpawned>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBegindefuse>((@event, info) => SuperPowerController.ExecutePower(@event));
@@ -65,24 +52,19 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         RegisterEventHandler<EventHegrenadeDetonate>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventMolotovDetonate>((@event, info) => SuperPowerController.ExecutePower(@event));
-        // RegisterEventHandler<EventSmokegrenadeDetonate>((@event, info) => SuperPowerController.ExecutePower(@event));
+
         RegisterEventHandler<EventFlashbangDetonate>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventDecoyDetonate>((@event, info) => SuperPowerController.ExecutePower(@event));
-        
+
         RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
         {
-            //SuperPowerUsersStorage.OnPlayerDisconnected(@event.Userid!);
-            // Server.PrintToConsole($"guy disconencted - {@event.Userid!.PlayerName}");
-            // Server.PrintToConsole($"userid disconencted - {@event.Userid!.SteamID}");
             Server.PrintToConsole(SuperPowerController.RemovePowers(@event.Userid!.PlayerName, "*", CsTeam.None, true, true)); // FIX ME
             return HookResult.Continue;
         });
 
         RegisterEventHandler<EventPlayerConnectFull>((@event, info) =>
         {
-            //Server.PrintToConsole($"guy joined - {@event.Userid!.PlayerName}");
             SuperPowerController.Rejoined(@event.Userid!);
-            //SuperPowerUsersStorage.OnPlayerConnected(@event.Userid!);
             return HookResult.Continue;
         });
 
@@ -116,8 +98,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         commandInfo.ReplyToCommand($"  sp_help \t\t\t\t\t\t - should help in most cases");
         commandInfo.ReplyToCommand($"  sp_add {pl_format} {pw_format} (now) \t\t\t - adds power to player");
         commandInfo.ReplyToCommand($"  sp_add_team {team_format} {pw_format} (now)  \t\t\t - adds power to all players of team");
-        commandInfo.ReplyToCommand($"  sp_remove {pl_format} {pw_format} (now) \t\t\t - removes power from player");
-        commandInfo.ReplyToCommand($"  sp_remove_team {team_format}  {pw_format} (now) \t\t - removes power from all players of team");
+        commandInfo.ReplyToCommand($"  sp_remove {pl_format} {pw_format} \t\t\t - removes power from player");
+        commandInfo.ReplyToCommand($"  sp_remove_team {team_format}  {pw_format} \t\t - removes power from all players of team");
         commandInfo.ReplyToCommand($"  sp_list {pl_format}  \t\t\t\t\t - lists availiable powers");
         commandInfo.ReplyToCommand($"  sp_mode [normal, random] \t\t\t\t - sets a special gamemode");
         commandInfo.ReplyToCommand($"flag 'now' triggers the power immediaty");
@@ -125,7 +107,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         commandInfo.ReplyToCommand($"  sp_status \t\t\t\t\t\t - prints status of all powers and its users");
         commandInfo.ReplyToCommand($"  sp_inspect {pw_format} \t\t\t\t\t - prints info about power and its parameters");
         commandInfo.ReplyToCommand($"  sp_reconfigure {pw_format} {pw_format} [key1] [value1] ... \t - reconfigures power");
-        // commandInfo.ReplyToCommand($"  sp_reset_config - resets config, useful for tem");
         commandInfo.ReplyToCommand($"Special:");
         commandInfo.ReplyToCommand($"  sp_signal / signal / s <any input> - pass a signal of arbitrary data to the plugin system");
     }
@@ -138,10 +119,14 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         var playerNamePattern = commandInfo.GetArg(1);
         var powerNamePattern = commandInfo.GetArg(2);
         var now_flag = false;
+        var force_flag = false;
         if (commandInfo.ArgCount >= 4)
+        {
             now_flag = commandInfo.GetArg(3).ToLower().Contains("now");
+            force_flag = commandInfo.GetArg(3).ToLower().Contains("force");
+        }
 
-        commandInfo.ReplyToCommand(SuperPowerController.AddPowers(playerNamePattern, powerNamePattern, now_flag));
+        commandInfo.ReplyToCommand(SuperPowerController.AddPowers(playerNamePattern, powerNamePattern, now_flag, CsTeam.None, true, force_flag));
     }
 
     [ConsoleCommand("sp_add_team", "Adds a superpower to specified team, supports wildcards")]
@@ -152,14 +137,18 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         var teamStr = commandInfo.GetArg(1);
         var powerNamePattern = commandInfo.GetArg(2);
         var now_flag = false;
+        var force_flag = false;
         if (commandInfo.ArgCount >= 4)
+        {
             now_flag = commandInfo.GetArg(3).ToLower().Contains("now");
+            force_flag = commandInfo.GetArg(3).ToLower().Contains("force");
+        }
 
         CsTeam csteam = TemUtils.ParseTeam(teamStr);
         if (csteam == CsTeam.None)
             commandInfo.ReplyToCommand($"Unrecognized option: {teamStr}");
         else
-            commandInfo.ReplyToCommand(SuperPowerController.AddPowers("unused", powerNamePattern, now_flag, csteam));
+            commandInfo.ReplyToCommand(SuperPowerController.AddPowers("unused", powerNamePattern, now_flag, csteam, true, force_flag));
     }
 
     [ConsoleCommand("sp_remove", "Removes a superpower from specified player, supports wildcards")]
@@ -204,18 +193,14 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     [RequiresPermissions("@css/root")]
     public void OnPowerList(CCSPlayerController? player, CommandInfo commandInfo)
     {
-        var powers = SuperPowerController.GetPowerList();
-        var types = SuperPowerController.GetPowerTriggerEvents();
-        var out_table = "";
-        if (powers != null && types != null)
-            for (int i = 0; i < powers.Count; i++)
-            {
-                out_table += $"\n\t{powers[i]}\t";
-                foreach (var type in types[i])
-                    out_table += $"{TemUtils.GetSnakeName(type)}, ";
-            }
+        var powers = SuperPowerController.GetPowers();
+        commandInfo.ReplyToCommand($"\tsuperpowers\n");
 
-        commandInfo.ReplyToCommand($"\tsuperpowers\ttriggers\n{out_table}");
+        if (powers != null)
+            foreach (var power in powers)
+                commandInfo.ReplyToCommand($"\t{TemUtils.GetSnakeName(power.GetType())}\t{power.GetDescription()}\n");
+
+        // commandInfo.ReplyToCommand($"\tsuperpowers\ttriggers\n{out_table}");
     }
 
     [ConsoleCommand("sp_status", "lists all users of certain powers")]
@@ -243,21 +228,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         SuperPowerController.Reconfigure(forced_cfg, commandInfo.GetArg(1));
         commandInfo.ReplyToCommand("Reconfigured!\n" + resp);
     }
-
-    // this does not work because GenerateDefaultConfig() has to actualy create instances of powers with default values in it to actualy generate a default config
-    // instead he generates config for whatever values are in power private variables instead
-
-    // [ConsoleCommand("sp_reset_config", "resets config, useful for tem")]
-    // [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    // [RequiresPermissions("@css/root")]
-    // public void OnResetConfig(CCSPlayerController? player, CommandInfo commandInfo)
-    // {
-    //     TemConfigExtensions.ResetConfig(Config);
-    //     // Config.args = SuperPowerController.GenerateDefaultConfig();
-    //     Config = new SuperPowerConfig();
-    //     SuperPowerController.FeedTheConfig(Config);
-    //     commandInfo.ReplyToCommand("Reset Config Successfully\n");
-    // }
 
     [ConsoleCommand("sp_inspect", "reflects on a power class and dumps its values")]
     [CommandHelper(minArgs: 1, usage: "[power]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
@@ -289,10 +259,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     {
         List<string> args = [];
 
-        for (int i = 1; i < commandInfo.ArgCount; i++) // iterate over all args, except 0 and 1, which is just the name of the command and name of power
-        {
+        for (int i = 1; i < commandInfo.ArgCount; i++)
             args.Add(commandInfo.GetArg(i));
-        }
 
         string ret = SuperPowerController.Signal(caller, args);
         if (ret.Length != 0)
@@ -321,23 +289,5 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         Config = config;
 
         SuperPowerController.FeedTheConfig(Config);
-
-        // MenuManager.Config = config;
     }
-
-    // private static HookResult OnPostThink(DynamicHook hook)
-    // {
-    //     CCSPlayerPawnBase? pawnBase = hook.GetParam<CCSPlayerPawnBase>(0);
-    //     if (pawnBase == null)
-    //         return HookResult.Continue;
-
-    //     pawnBase.ViewOffset.Z = 10;
-    //     Utilities.SetStateChanged(pawnBase, "CBaseModelEntity", "m_vecViewOffset");
-    //     // player.PrintToConsole("maggot");
-
-    //     Server.PrintToConsole("maggot");
-
-    //     return HookResult.Continue;
-    // }
-
 }

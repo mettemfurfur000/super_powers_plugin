@@ -1594,7 +1594,7 @@ public class InstantNades : ISuperPower
         if (!Users.Contains(player))
             return HookResult.Continue;
 
-        Server.PrintToChatAll(realEvent.Weapon);
+        // Server.PrintToChatAll(realEvent.Weapon);
 
         var match_grenade = Utilities.FindAllEntitiesByDesignerName<CHEGrenadeProjectile>(realEvent.Weapon + "_projectile");
         if (match_grenade.Count() == 0)

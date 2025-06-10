@@ -590,7 +590,7 @@ public static class TemConfigExtensions
         }
     }
 
-        /// <summary>
+    /// <summary>
     /// Updates the configuration file
     /// </summary>
     /// <typeparam name="T">Type of the plugin configuration.</typeparam>
@@ -603,7 +603,7 @@ public static class TemConfigExtensions
         {
             if (File.Exists(configPath))
             {
-                 File.Delete(configPath);
+                File.Delete(configPath);
             }
         }
         catch (Exception ex)
