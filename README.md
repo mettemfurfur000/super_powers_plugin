@@ -67,6 +67,10 @@ Special:
 
 you can also use flag `force` instead of `now` to set the power regardless of team requirements or if power is disabled, but i never said anything like that ok?
 
+# config
+
+configuration is generated reflectivly from powers private fields, pretti cool i think
+
 # buildink
 
 don mind my makefile here i use it with my msys2 developend enviorent
