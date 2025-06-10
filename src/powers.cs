@@ -16,6 +16,8 @@ using System.Threading;
 using System.Linq;
 using CounterStrikeSharp.API.Modules.Entities;
 using System.Data.Common;
+// using System.Numerics;
+
 namespace super_powers_plugin.src;
 
 /*
@@ -1688,4 +1690,285 @@ public class Pacifism : ISuperPower
     public List<CCSPlayerController> status = [];
 
     public override string GetDescription() => $"On round start, gain invincibility until you start dealing damage";
+}
+
+// supposed to warp players back a few seconds after they get hurt
+public class Rebirth : ISuperPower
+{
+    public Rebirth() => Triggers = [typeof(EventPlayerDeath), typeof(EventRoundStart)];
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        if (gameEvent is null)
+            return HookResult.Continue;
+
+        if (gameEvent.GetType() == typeof(EventPlayerDeath))
+        {
+            EventPlayerDeath realEvent = (EventPlayerDeath)gameEvent;
+
+            // Server.PrintToChatAll("men am ded");
+
+            var player = realEvent.Userid;
+            if (player == null)
+                return HookResult.Continue;
+
+            if (Users.Contains(player))
+            {
+                // Server.PrintToChatAll("user");
+                var pawn = player.PlayerPawn.Value!;
+                positions[player] = new Tuple<Vector, QAngle>(
+                    new Vector(pawn.AbsOrigin!.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z),
+                    new QAngle(pawn.V_angle.X, pawn.V_angle.Y, pawn.V_angle.Z)
+                    );
+                // Server.PrintToChatAll($"{pawn.AbsOrigin!.X}, {pawn.AbsOrigin.Y}, {pawn.AbsOrigin.Z}");
+            }
+        }
+
+        if (gameEvent.GetType() == typeof(EventRoundStart))
+        {
+            EventRoundStart realEvent = (EventRoundStart)gameEvent;
+
+            Users.ForEach(player =>
+            {
+                var pawn = player.PlayerPawn.Value!;
+
+                // Server.PrintToChatAll("men i wana spawn");
+
+                if (Users.Contains(player))
+                {
+                    // Server.PrintToChatAll("user spawn");
+                    if (positions.TryGetValue(player, out Tuple<Vector, QAngle>? value))
+                    {
+                        // Server.PrintToChatAll("position found");
+
+                        Server.NextFrame(() => pawn.Teleport(value.Item1, value.Item2, new Vector(0, 0, 0)));
+
+                        if (allowBuy)
+                        {
+                            pawn.InBuyZone = true;
+                            buyspamactive.Add(player);
+                            TemUtils.__plugin?.AddTimer(allowBuyTime, () =>
+                            {
+                                pawn.InBuyZone = false;
+                                pawn.WasInBuyZone = true;
+                                buyspamactive.Remove(player);
+                            });
+                        }
+
+                        positions.Remove(player);
+                    }
+                }
+            });
+        }
+
+        return HookResult.Continue;
+    }
+
+    public override void Update()
+    {
+        buyspamactive.ForEach(user =>
+        {
+            user.PlayerPawn.Value!.InBuyZone = true;
+        });
+    }
+
+    public override string GetDescription() => $"Respawn at your last death location. If survived, spawn with yout team as before";
+
+    // each user must have their own position history
+    // has a static array for memory economy
+    public Dictionary<CCSPlayerController, Tuple<Vector, QAngle>> positions = [];
+    public List<CCSPlayerController> buyspamactive = [];
+
+    private bool allowBuy = true;
+    private int allowBuyTime = 20;
+}
+
+public class TheSacrifice : ISuperPower
+{
+    public TheSacrifice() => Triggers = [typeof(EventPlayerDeath)];
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        EventPlayerDeath realEvent = (EventPlayerDeath)gameEvent;
+
+        var player = realEvent.Userid!;
+        if (Users.Contains(player))
+        {
+            var players = Utilities.GetPlayers();
+
+            players.ForEach(p =>
+            {
+                if (p.TeamNum == player.TeamNum)
+                {
+                    var pawn = p.PlayerPawn.Value;
+                    if (pawn == null)
+                        return;
+
+                    p.PrintToCenter($"{player.PlayerName} Sacrificed {value} health for you");
+
+                    pawn.Health += value;
+                    Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
+                }
+            });
+        }
+
+        return HookResult.Continue;
+    }
+
+    public override string GetDescription() => $"+{value} HP to all teammates on your death";
+    private int value = 50;
+}
+
+public class Talisman : ISuperPower
+{
+    public Talisman() => Triggers = [typeof(EventRoundStart)];
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        foreach (var user in Users)
+        {
+            if (user.ActionTrackingServices!.MatchStats!.Deaths == 0)
+                continue;
+            float kd = user.ActionTrackingServices!.MatchStats!.Kills / user.ActionTrackingServices!.MatchStats!.Deaths;
+            if (kd < gate)
+            {
+                user.InGameMoneyServices!.Account += value;
+                Utilities.SetStateChanged(user, "CCSPlayerController", "m_pInGameMoneyServices");
+
+                user.PrintToCenter($"Talisman gives you a bonus\n of {value}$ based on your k/d {kd}");
+            }
+        }
+        return HookResult.Continue;
+    }
+
+    public override string GetDescription() => $"if k/d is below {gate}, gain {value}$";
+    private int value = 2500;
+    private float gate = 1.0f;
+}
+
+public class BiocodedWeapons : ISuperPower
+{
+    public BiocodedWeapons() => Triggers = [typeof(EventWeaponFire)];
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        EventWeaponFire realEvent = (EventWeaponFire)gameEvent;
+
+        ulong ownerId = Combine(realEvent.Userid!.PlayerPawn!.Value!.WeaponServices!.ActiveWeapon.Value!.OriginalOwnerXuidLow, realEvent.Userid!.PlayerPawn!.Value!.WeaponServices!.ActiveWeapon.Value!.OriginalOwnerXuidHigh);
+
+        var shooter = realEvent.Userid;
+        ulong shooterId = shooter.SteamID;
+
+        CCSPlayerController? owner = null;
+
+        if (ownerId != shooterId) // shoter don match de weapon owner
+            foreach (var user in Users)
+                if (user.SteamID == ownerId) // owner found, he has dis power
+                {
+                    owner = user;
+                    break;
+                }
+
+        if (owner == null) // owner not founde - donm car
+            return HookResult.Continue;
+
+        shooter.DropActiveWeapon();
+        shooter.PrintToCenter($"Weapon is biocoded to {owner.PlayerName} and can't be used");
+
+        if (damageOnUseBiocoded > 0)
+        {
+            var pawn = shooter.PlayerPawn.Value!;
+
+            pawn.Health = pawn.Health <= damageOnUseBiocoded ? 1 : pawn.Health - damageOnUseBiocoded;
+            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
+        }
+
+        return HookResult.Continue;
+    }
+
+    private static ulong Combine(uint a, uint b)
+    {
+        uint ua = (uint)a;
+        ulong ub = (uint)b;
+        return ub << 32 | ua;
+    }
+
+    public override string GetDescription() => $"Only you can use weapons you bought";
+    private int damageOnUseBiocoded = 15;
+}
+
+public class EternalNade : ISuperPower
+{
+    public EternalNade()
+    {
+        Triggers = [    typeof(EventHegrenadeDetonate),
+                                            typeof(EventMolotovDetonate),
+                                            typeof(EventSmokegrenadeDetonate),
+                                            typeof(EventFlashbangDetonate),
+                                            typeof(EventDecoyDetonate),
+                                            typeof(EventGrenadeThrown),
+
+    ];
+    }
+
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        CCSPlayerController? player = null;
+        Tuple<CCSPlayerController, string>? nadeRecord = null;
+
+        switch (gameEvent)
+        {
+            case EventGrenadeThrown thrown:
+                nadeRecord = new Tuple<CCSPlayerController, string>(thrown.Userid!, thrown.Weapon);
+                // Server.PrintToChatAll($"thrown {thrown.Userid!}, {thrown.Weapon}");
+                break;
+            case EventHegrenadeDetonate he:
+                player = he.Userid;
+                break;
+            case EventMolotovDetonate molly:
+                player = molly.Userid;
+                break;
+            case EventSmokegrenadeDetonate smoke:
+                player = smoke.Userid;
+                break;
+            case EventFlashbangDetonate flash:
+                player = flash.Userid;
+                break;
+            case EventDecoyDetonate decoy:
+                player = decoy.Userid;
+                break;
+        }
+
+        if (nadeRecord != null)
+        {
+            nadesThrown.Add(nadeRecord);
+            return HookResult.Continue;
+        }
+
+        if (player == null || !player.IsValid)
+            return HookResult.Continue;
+
+        if (!Users.Contains(player))
+            return HookResult.Continue;
+
+        string weaponName = "";
+
+        foreach (var nade in nadesThrown)
+            if (nade.Item1 == player)
+            {
+                nadeRecord = nade;
+                weaponName = "weapon_" + nade.Item2;
+                break;
+            }
+
+        if (nadeRecord == null)
+            return HookResult.Continue;
+
+        // Server.PrintToChatAll($"removing {nadeRecord}, giving {weaponName}");
+
+        nadesThrown.Remove(nadeRecord);
+        player.GiveNamedItem(weaponName);
+
+        return HookResult.Continue;
+    }
+
+    public List<Tuple<CCSPlayerController, string>> nadesThrown = [];
+
+    public override string GetDescription() => $"Once your grenade detonates, you get it back";
 }

@@ -47,6 +47,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         // surely theres a better way of doing this
         // until then, i dont care
 
+        // RegisterEventHandler<EventPlayerSpawned>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBegindefuse>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBeginplant>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombPlanted>((@event, info) => SuperPowerController.ExecutePower(@event));
@@ -62,6 +63,12 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         RegisterEventHandler<EventSmokegrenadeDetonate>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventSmokegrenadeExpired>((@event, info) => SuperPowerController.ExecutePower(@event));
 
+        RegisterEventHandler<EventHegrenadeDetonate>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventMolotovDetonate>((@event, info) => SuperPowerController.ExecutePower(@event));
+        // RegisterEventHandler<EventSmokegrenadeDetonate>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventFlashbangDetonate>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventDecoyDetonate>((@event, info) => SuperPowerController.ExecutePower(@event));
+        
         RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
         {
             //SuperPowerUsersStorage.OnPlayerDisconnected(@event.Userid!);
@@ -84,25 +91,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             SuperPowerController.Update();
         });
 
-        // RegisterListener<Listeners.OnEntitySpawned>((entity) =>
-        // {
-        //     Server.NextFrame(() =>
-        //     {
-        //         if (entity.DesignerName == "hegrenade_projectile")
-        //         {
-        //             var grenade = entity.As<CHEGrenadeProjectile>();
-        //             if (grenade.OwnerEntity.Value?.As<CCSPlayerPawn>() is null or { IsValid: false })
-        //                 return;
-
-        //             // grenade.Damage = Config.GrenadePower;
-        //             // grenade.DmgRadius = Config.GrenadeRadius;
-        //         }
-        //     });
-        // });
-
-        // temp
-        // VirtualFunctions.CCSPlayerPawnBase_PostThinkFunc.Hook(OnPostThink, HookMode.Pre);
-        VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Hook(OnTakeDamage, HookMode.Pre);
+        SuperPowerController.RegisterHooks();
     }
 
     private void OnServerPrecacheResources(ResourceManifest manifest)
@@ -112,8 +101,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     public override void Unload(bool hotReload)
     {
-        VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Unhook(OnTakeDamage, HookMode.Pre);
-        // VirtualFunctions.CCSPlayerPawnBase_PostThinkFunc.Unhook(OnPostThink, HookMode.Pre);
+        SuperPowerController.UnRegisterHooks();
     }
 
     [ConsoleCommand("sp_help", "should help in most cases")]
@@ -258,7 +246,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     // this does not work because GenerateDefaultConfig() has to actualy create instances of powers with default values in it to actualy generate a default config
     // instead he generates config for whatever values are in power private variables instead
-    
+
     // [ConsoleCommand("sp_reset_config", "resets config, useful for tem")]
     // [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
     // [RequiresPermissions("@css/root")]
@@ -335,11 +323,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         SuperPowerController.FeedTheConfig(Config);
 
         // MenuManager.Config = config;
-    }
-
-    private static HookResult OnTakeDamage(DynamicHook hook)
-    {
-        return HookResult.Continue;
     }
 
     // private static HookResult OnPostThink(DynamicHook hook)

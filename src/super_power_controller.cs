@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
+using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 
 namespace super_powers_plugin.src;
@@ -63,6 +64,9 @@ public abstract class ISuperPower
         if (UsersSteamIDs.Contains(player.SteamID))
             Users.Add(player);
     }
+
+    public virtual void RegisterHooks() { }
+    public virtual void UnRegisterHooks() { }
 }
 
 public static class SuperPowerController
@@ -80,6 +84,11 @@ public static class SuperPowerController
 
     static SuperPowerController()
     {
+        Powers.Add(new DormantPower()); // utilities
+        Powers.Add(new BotDisguise());
+        Powers.Add(new BotGuesser());
+        Powers.Add(new Banana());
+        // real powers
         Powers.Add(new BonusHealth());
         Powers.Add(new BonusArmor());
         Powers.Add(new InstantDefuse());
@@ -98,35 +107,25 @@ public static class SuperPowerController
         Powers.Add(new Regeneration());
         Powers.Add(new WarpPeek());
         Powers.Add(new Snowballing());
-        // Powers.Add(new Snowballing());
         Powers.Add(new ChargeJump());
-
-        //Powers.Add(new SmallSize()); // must write a clientside cheat thing so i can just modify a viewangle
-
-        // Powers.Add(new WallHack());
-        // Powers.Add(new Teleport());
-        // Powers.Add(new GravityControl());
-        // Powers.Add(new TimeFreeze());
-        // Powers.Add(new CloneAbility());
-        // Powers.Add(new WeaponMaster());
-        // Powers.Add(new ElementalAmmo());
-        // Powers.Add(new PhaseWalk());
-
+        //Powers.Add(new SmallSize()); // hull size vector is stored as a static variable and all players share the same size
+        // should look for da pattern in le memory or somethin idk
+        // Powers.Add(new WallHack()); // hav to wrtite check transmit "subsystem" so evry other power coud use it without much headache
+        // Powers.Add(new WeaponMaster()); // no recoil?
         Powers.Add(new RageMode());
-        Powers.Add(new DormantPower());
-        Powers.Add(new Banana());
-        // Powers.Add(new Builder());
-        Powers.Add(new BotDisguise());
-        Powers.Add(new BotGuesser());
-
+        // Powers.Add(new Builder()); // needa find models for blocks good enough to make it work
         Powers.Add(new HealingZeus());
         Powers.Add(new FlashOfDisability());
         Powers.Add(new PoisonedSmoke());
         Powers.Add(new DamageLoss());
-
         // Powers.Add(new ShortFusedBomb()); // no luck
         Powers.Add(new InstantNades());
         Powers.Add(new Pacifism());
+        Powers.Add(new Rebirth());
+        Powers.Add(new TheSacrifice());
+        Powers.Add(new Talisman());
+        Powers.Add(new BiocodedWeapons());
+        Powers.Add(new EternalNade());
     }
 
     public static void SetMode(string _mode)
@@ -249,6 +248,18 @@ public static class SuperPowerController
                     ret = HookResult.Stop;
 
         return ret;
+    }
+
+    public static void RegisterHooks()
+    {
+        foreach (var power in Powers)
+            power.RegisterHooks();
+    }
+
+    public static void UnRegisterHooks()
+    {
+        foreach (var power in Powers)
+            power.UnRegisterHooks();
     }
 
     public static void CheckDisabled()
