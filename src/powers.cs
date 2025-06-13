@@ -114,7 +114,12 @@ public class BonusArmor : ISuperPower
 
 public class InstantDefuse : ISuperPower
 {
-    public InstantDefuse() => Triggers = [typeof(EventBombBegindefuse)];
+    public InstantDefuse()
+    {
+        Triggers = [typeof(EventBombBegindefuse)];
+        teamReq = CsTeam.CounterTerrorist;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventBombBegindefuse)gameEvent;
@@ -145,7 +150,12 @@ public class InstantDefuse : ISuperPower
 
 public class InstantPlant : ISuperPower
 {
-    public InstantPlant() => Triggers = [typeof(EventBombBeginplant)];
+    public InstantPlant()
+    {
+        Triggers = [typeof(EventBombBeginplant)];
+        teamReq = CsTeam.Terrorist;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventBombBeginplant)gameEvent;
@@ -177,6 +187,8 @@ public class Banana : ISuperPower
     {
         Triggers = [typeof(EventRoundStart)];
         NeededResources = ["models/food/fruits/banana01a.vmdl"];
+
+        setDisabled();
     }
 
     public override HookResult Execute(GameEvent gameEvent)
@@ -435,7 +447,12 @@ public class EvilAura : ISuperPower
 
 public class DormantPower : ISuperPower
 {
-    public DormantPower() => Triggers = [typeof(EventRoundStart)];
+    public DormantPower()
+    {
+        Triggers = [typeof(EventRoundStart)];
+        setDisabled();
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         if (gameEvent.Handle == 0)
@@ -1191,7 +1208,12 @@ public class Builder : ISuperPower
 
 public class BotDisguise : ISuperPower
 {
-    public BotDisguise() => Triggers = [typeof(EventRoundStart)]; // TODO: clear player names from dropped weapons
+    public BotDisguise()
+    {
+        Triggers = [typeof(EventRoundStart)];
+        setDisabled();
+    } // TODO: clear player names from dropped weapons
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         var e = gameEvent as EventRoundStart;
@@ -1273,7 +1295,12 @@ public class BotDisguise : ISuperPower
 
 public class BotGuesser : ISuperPower
 {
-    public BotGuesser() => Triggers = [typeof(EventRoundStart)];
+    public BotGuesser()
+    {
+        Triggers = [typeof(EventRoundStart)];
+        setDisabled();
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         var gameRules = TemUtils.GetGameRules();
@@ -1971,4 +1998,39 @@ public class EternalNade : ISuperPower
     public List<Tuple<CCSPlayerController, string>> nadesThrown = [];
 
     public override string GetDescription() => $"Once your grenade detonates, you get it back";
+}
+
+public class GoldenBullet : ISuperPower
+{
+    public GoldenBullet() => Triggers = [typeof(EventPlayerHurt)];
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        EventPlayerHurt realEvent = (EventPlayerHurt)gameEvent;
+
+        var shooter = realEvent.Attacker!;
+
+        if (!Users.Contains(shooter))
+            return HookResult.Continue;
+
+        var weapon = shooter.PlayerPawn.Value!.WeaponServices!.ActiveWeapon;
+
+        if (weapon.Value!.Clip1 == 1)
+        {
+            // Server.PrintToChatAll("last");
+
+            var victim = realEvent.Userid!;
+            var pawn = victim.PlayerPawn.Value!;
+
+            pawn.Health -= realEvent.DmgHealth * mult;
+            pawn.ArmorValue -= realEvent.DmgArmor * mult;
+
+            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
+            Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
+        }
+
+        return HookResult.Continue;
+    }
+
+    public override string GetDescription() => $"Last bullet in your chamber always hits x{mult} damage";
+    private int mult = 4;
 }

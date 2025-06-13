@@ -30,9 +30,9 @@ public abstract class ISuperPower
     public List<ulong> UsersSteamIDs = [];
     public List<string> NeededResources = [];
 
-    public CsTeam teamNumUsedOnly = CsTeam.None;
+    public CsTeam teamReq = CsTeam.None;
 
-    public List<ISuperPower> Incompatibilities = [];
+    public List<Type> Incompatibilities = [];
     private bool disabled = false;
 
     public void setDisabled() { disabled = true; }
@@ -63,7 +63,10 @@ public abstract class ISuperPower
 
     public virtual bool OnAdd(CCSPlayerController player, bool forced = false) // called to add player to power
     {
-        if (teamNumUsedOnly != CsTeam.None && player.TeamNum != (byte)teamNumUsedOnly && forced == false)
+        if (teamReq != CsTeam.None && player.TeamNum != (byte)teamReq && forced == false)
+            return false;
+
+        if (!SuperPowerController.IsPowerCompatible(player, this))
             return false;
 
         Users.Add(player);
@@ -97,42 +100,43 @@ public static class SuperPowerController
 
     static SuperPowerController()
     {
-        RegisterPower(new DormantPower(), null, CsTeam.None, true); // utilities
-        RegisterPower(new BotDisguise(), null, CsTeam.None, true);
-        RegisterPower(new BotGuesser(), null, CsTeam.None, true);
-        RegisterPower(new Banana(), null, CsTeam.None, true);
+        Powers.Add(new DormantPower()); // utilities
+        Powers.Add(new BotDisguise());
+        Powers.Add(new BotGuesser());
+        Powers.Add(new Banana());
 
-        RegisterPower(new BonusHealth()); // powers
-        RegisterPower(new BonusArmor());
-        RegisterPower(new InstantDefuse(), null, CsTeam.CounterTerrorist);
-        RegisterPower(new InstantPlant(), null, CsTeam.Terrorist);
-        RegisterPower(new InfiniteAmmo());
-        RegisterPower(new SuperSpeed());
-        RegisterPower(new HeadshotImmunity());
-        RegisterPower(new InfiniteMoney());
-        RegisterPower(new NukeNades());
-        RegisterPower(new EvilAura());
-        RegisterPower(new DamageBonus());
-        RegisterPower(new Vampirism());
-        RegisterPower(new SuperJump());
-        RegisterPower(new Invisibility());
-        RegisterPower(new ExplosionUponDeath());
-        RegisterPower(new Regeneration());
-        RegisterPower(new WarpPeek());
-        RegisterPower(new Snowballing());
-        RegisterPower(new ChargeJump());
-        RegisterPower(new RageMode()); // TODO: rename
-        RegisterPower(new HealingZeus());
-        RegisterPower(new FlashOfDisability());
-        RegisterPower(new PoisonedSmoke());
-        RegisterPower(new DamageLoss());
-        RegisterPower(new InstantNades());
-        RegisterPower(new Pacifism());
-        RegisterPower(new Rebirth());
-        RegisterPower(new TheSacrifice());
-        RegisterPower(new Talisman());
-        RegisterPower(new BiocodedWeapons());
-        RegisterPower(new EternalNade());
+        Powers.Add(new BonusHealth()); // powers
+        Powers.Add(new BonusArmor());
+        Powers.Add(new InstantDefuse());
+        Powers.Add(new InstantPlant());
+        Powers.Add(new InfiniteAmmo());
+        Powers.Add(new SuperSpeed());
+        Powers.Add(new HeadshotImmunity());
+        Powers.Add(new InfiniteMoney());
+        Powers.Add(new NukeNades());
+        Powers.Add(new EvilAura());
+        Powers.Add(new DamageBonus());
+        Powers.Add(new Vampirism());
+        Powers.Add(new SuperJump());
+        Powers.Add(new Invisibility());
+        Powers.Add(new ExplosionUponDeath());
+        Powers.Add(new Regeneration());
+        Powers.Add(new WarpPeek());
+        Powers.Add(new Snowballing());
+        Powers.Add(new ChargeJump());
+        Powers.Add(new RageMode()); // TODO: rename
+        Powers.Add(new HealingZeus());
+        Powers.Add(new FlashOfDisability());
+        Powers.Add(new PoisonedSmoke());
+        Powers.Add(new DamageLoss());
+        Powers.Add(new InstantNades());
+        Powers.Add(new Pacifism());
+        Powers.Add(new Rebirth());
+        Powers.Add(new TheSacrifice());
+        Powers.Add(new Talisman());
+        Powers.Add(new BiocodedWeapons());
+        Powers.Add(new EternalNade());
+        Powers.Add(new GoldenBullet());
 
         // cant implement rn
         //Powers.Add(new SmallSize()); // hull size vector is stored as a static variable and all players share the same size
@@ -141,17 +145,6 @@ public static class SuperPowerController
         // Powers.Add(new WeaponMaster()); // no recoil?
         // Powers.Add(new Builder()); // needa find models for blocks good enough to make it work
         // Powers.Add(new ShortFusedBomb()); // no luck
-    }
-
-    public static void RegisterPower(ISuperPower item, List<ISuperPower>? incompat = null, CsTeam teamReq = 0, bool disable = false)
-    {
-        if (incompat != null)
-            item.Incompatibilities = incompat;
-
-        item.teamNumUsedOnly = teamReq;
-        if (disable)
-            item.setDisabled();
-        Powers.Add(item);
     }
 
     public static void SetMode(string _mode)
@@ -276,6 +269,19 @@ public static class SuperPowerController
         return ret;
     }
 
+    public static bool IsPowerCompatible(CCSPlayerController player, ISuperPower power)
+    {
+        List<Type> powersAssigned = [];
+
+        foreach (var p in Powers)
+            if (p.Users.Contains(player))
+                powersAssigned.Add(p.GetType());
+
+        if (powersAssigned.Contains(power.GetType())) return false;
+
+        return true;
+    }
+
     public static void RegisterHooks()
     {
         foreach (var power in Powers)
@@ -350,7 +356,7 @@ public static class SuperPowerController
 
         Powers.ToList().ForEach((power) =>
         {
-            if (power.teamNumUsedOnly != CsTeam.None && player.Team == power.teamNumUsedOnly)
+            if (power.teamReq != CsTeam.None && player.Team == power.teamReq)
                 ret.Add(power);
         });
 

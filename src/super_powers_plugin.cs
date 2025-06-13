@@ -35,6 +35,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         // there is, but i don care
 
         // RegisterEventHandler<EventPlayerSpawned>((@event, info) => SuperPowerController.ExecutePower(@event));
+        // RegisterEventHandler<EventBulletDamage>((@event, info) => SuperPowerController.ExecutePower(@event));
+        
         RegisterEventHandler<EventBombBegindefuse>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBeginplant>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombPlanted>((@event, info) => SuperPowerController.ExecutePower(@event));
@@ -198,7 +200,11 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         if (powers != null)
             foreach (var power in powers)
-                commandInfo.ReplyToCommand($"\t{TemUtils.GetSnakeName(power.GetType())}\t{power.GetDescription()}\n");
+                commandInfo.ReplyToCommand($"\t{TemUtils.GetSnakeName(power.GetType())}\t{power.GetDescription()}"
+                + (power.IsDisabled() ? "\t(Disabled)" : "")
+                + (power.teamReq != CsTeam.None ? (
+                    power.teamReq == CsTeam.Terrorist ? "\t(T Only)" : "\t(CT Only)"
+                ) : "") + "\n");
 
         // commandInfo.ReplyToCommand($"\tsuperpowers\ttriggers\n{out_table}");
     }
