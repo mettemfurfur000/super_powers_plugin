@@ -501,7 +501,7 @@ public class DormantPower : ISuperPower
         return HookResult.Continue;
     }
 
-    private Dictionary<int, HashSet<string>> dormant_power_rules = [];
+    public Dictionary<int, HashSet<string>> dormant_power_rules = [];
 
     public override string GetDescription() => $"Internal use only";
 
@@ -1166,8 +1166,8 @@ public class RageMode : ISuperPower
     private int HealthRegenPerUpdate = 1;
     private double InvincibilitySeconds = 1.5d;
 
-    public List<CCSPlayerController> ActivatedUsers { get; set; } = [];
-    public List<Tuple<CCSPlayerController, int>> InvicibilityTicks { get; set; } = [];
+    public List<CCSPlayerController> ActivatedUsers = [];
+    public List<Tuple<CCSPlayerController, int>> InvicibilityTicks = [];
 }
 
 public class Builder : ISuperPower

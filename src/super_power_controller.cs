@@ -526,6 +526,7 @@ public static class SuperPowerController
     public static Dictionary<string, Dictionary<string, string>> GenerateDefaultConfig()
     {
         Dictionary<string, Dictionary<string, string>> args = new Dictionary<string, Dictionary<string, string>>();
+
         foreach (var power in Powers)
         {
             var power_name = TemUtils.GetPowerName(power);
@@ -533,27 +534,35 @@ public static class SuperPowerController
             {
                 continue;
             }
-            //Server.PrintToConsole($"{power_name}:");
-            var fields = power.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+
             args.Add(power_name, new Dictionary<string, string>());
+
+            AppendFieldsRecursive(args[power_name], power, power.GetType());
+        }
+        return args;
+    }
+
+    private static void AppendFieldsRecursive(Dictionary<string, string> dest, object instance, Type type)
+    {
+        var iter = type;
+
+        do
+        {
+            var fields = iter.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+
             foreach (var property in fields)
             {
                 if (property.IsPublic) continue;
-                if (property.Name.Contains("Triggers")) continue;
-                if (property.Name.Contains("Users")) continue;
 
                 var property_name = property.Name;
-                var property_value = property.GetValue(power);
-
-                //Server.PrintToConsole($"\tField {property_name}");
+                var property_value = property.GetValue(instance);
 
                 if (property_value != null)
-                {
-                    args[power_name].Add(property_name, property_value.ToString() ?? "null");
-                }
+                    dest.Add(property_name, property_value.ToString() ?? "null");
             }
-        }
-        return args;
+
+            iter = iter.BaseType;
+        } while (iter != null);
     }
 
     public static void PrecachePowers(ResourceManifest manifest)

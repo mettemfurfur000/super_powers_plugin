@@ -7,5 +7,5 @@ public class SuperPowerConfig : IBasePluginConfig
 {
     [JsonPropertyName("args")]
     public Dictionary<string, Dictionary<string, string>> args { get; set; } = SuperPowerController.GenerateDefaultConfig();
-    public int Version { get; set; } = 0x0ff - 0x17;
+    public int Version { get; set; } = 0x0ff - 0x0a;
 }
