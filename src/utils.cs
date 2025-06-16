@@ -67,6 +67,14 @@ public class TemUtils
                 : c.ToString()));
     }
 
+    public static string FirstUpper(string input)
+    {
+        return string.Concat(input.Select((c, i) =>
+            i == 0 && char.IsUpper(c)
+                ? char.ToUpper(c).ToString()
+                : c.ToString()));
+    }
+
     public static string GetPowerNameReadable(ISuperPower power)
     {
         return ToReadableCase(power.GetType().ToString().Split(".").Last());

@@ -1,0 +1,34 @@
+using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Events;
+
+namespace super_powers_plugin.src;
+
+public class ShortFusedBomb : ISuperPower
+{
+    public ShortFusedBomb() => Triggers = [typeof(EventBombPlanted)];
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        var realEvent = (EventBombPlanted)gameEvent;
+
+        if (!Users.Contains(realEvent.Userid!))
+            return HookResult.Continue;
+
+        var bombEntity = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
+        if (bombEntity != null)
+        {
+            bombEntity.TimerLength *= 2;
+            Server.PrintToChatAll($"set timer to {bombEntity.TimerLength}");
+            Utilities.SetStateChanged(bombEntity, "CPlantedC4", "m_flTimerLength");
+            // bombEntity.DefuseCountDown = 2;
+            // Utilities.SetStateChanged(bombEntity, "CPlantedC4", "m_flDefuseCountDown");
+        }
+
+        return HookResult.Continue;
+    }
+
+    public override string GetDescription() => $"bomb have detonation time divided by {divisor} (T only)";
+
+    private int divisor = 2;
+}
+

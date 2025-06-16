@@ -6,3 +6,4 @@ obj/*
 *.txt
 *.deps.json
 *.sln
+boing/*

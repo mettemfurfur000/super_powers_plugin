@@ -1,0 +1,39 @@
+using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Events;
+
+namespace super_powers_plugin.src;
+
+public class DamageBonus : ISuperPower
+{
+    public DamageBonus() => Triggers = [typeof(EventPlayerHurt)];
+    public override HookResult Execute(GameEvent gameEvent)
+    {
+        var realEvent = (EventPlayerHurt)gameEvent;
+        var attacker = realEvent.Attacker;
+
+        if (attacker == null || !attacker.IsValid)
+            return HookResult.Continue;
+
+        if (!Users.Contains(attacker))
+            return HookResult.Continue;
+
+        var victim = realEvent.Userid;
+        if (victim == null || !victim.IsValid)
+            return HookResult.Continue;
+
+        var pawn = victim.PlayerPawn.Value;
+        if (pawn == null || !pawn.IsValid)
+            return HookResult.Continue;
+
+        pawn.Health = pawn.Health - realEvent.DmgHealth * damage_multiplier;
+        Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
+
+        return HookResult.Continue;
+    }
+
+    public override string GetDescription() => $"All your damage is multiplied by {damage_multiplier}";
+
+    private int damage_multiplier = 2;
+}
+

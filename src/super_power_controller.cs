@@ -138,6 +138,8 @@ public static class SuperPowerController
         Powers.Add(new EternalNade());
         Powers.Add(new GoldenBullet());
 
+        Powers.Add(new RandomLoadout());
+        
         // cant implement rn
         //Powers.Add(new SmallSize()); // hull size vector is stored as a static variable and all players share the same size
         // should look for da pattern in le memory or somethin idk
