@@ -11,28 +11,32 @@ using super_powers_plugin.src;
 
 public class BasePower
 {
-    public List<Type> Triggers = [];
-    public List<CCSPlayerController> Users = [];
-    public List<Tuple<CCSPlayerController, int>> UsersDisabled = [];
-    public List<ulong> UsersSteamIDs = [];
-    public List<string> NeededResources = [];
+    public List<Type> Triggers = [];                                    // ! Put types of events that trigger this power logic here
+    public List<CCSPlayerController> Users = [];                        // ! Active users live here
+    public List<Tuple<CCSPlayerController, int>> UsersDisabled = [];    // Temporary disabled users live here, useful when powers disable other powers
+    public List<ulong> UsersSteamIDs = [];                              // Active but offline users, useful when someone disconnects mid-game
+    public List<string> NeededResources = [];                           // ! Put custom assets or models that need to be precached
 
-    public CsTeam teamReq = CsTeam.None;
+    public CsTeam teamReq = CsTeam.None;                                // ! If not none, only specified team will be able to use this power
 
-    public List<Type> Incompatibilities = [];
-    private bool disabled = false;
+    public List<Type> Incompatibilities = [];                           // Unimplemented
+    private bool enabled = true;                                        // Disabled powers wont show up anywhere
 
-    public void SetDisabled() { disabled = true; }
-    public bool IsDisabled() => disabled;
+    public void SetDisabled() { enabled = false; }
+    public bool IsDisabled() => !enabled;
 
-    public virtual string GetDescription() => "";
+    public virtual string GetDescription() => "";                       // ! Set custom description here
 
-    public virtual HookResult Execute(GameEvent gameEvent) { return HookResult.Continue; }
-    public virtual void Update() { }
+    public virtual HookResult Execute(GameEvent gameEvent)
+    {
+        return HookResult.Continue;                                     // ! Put custom logic here
+    }
+    public virtual void Update() { }                                    // ! Update will be executed every tick, do not put heavy operations in here if possible
     public virtual void ParseCfg(Dictionary<string, string> cfg) { TemUtils.ParseConfigReflectiveRecursive(this, this.GetType(), cfg); }
     public virtual bool IsUser(CCSPlayerController player) { return Users.Contains(player); }
 
-    public virtual void OnRemovePower(CCSPlayerController? player) { }
+    public virtual void OnRemovePower(CCSPlayerController? player) { }  // ! Put custom logic that is needed to rever player to its original state
+
     public virtual Tuple<SIGNAL_STATUS, string> OnSignal(CCSPlayerController? player, List<string> args) { return Tuple.Create(SIGNAL_STATUS.IGNORED, ""); }
     public virtual void OnRemoveUser(CCSPlayerController? player, bool reasonDisconnect) // called each time player leaves the server
     {
@@ -68,6 +72,6 @@ public class BasePower
             Users.Add(player);
     }
 
-    public virtual void RegisterHooks() { }
-    public virtual void UnRegisterHooks() { }
+    public virtual void RegisterHooks() { }     // Custom hooks go here, but i dont use them much
+    public virtual void UnRegisterHooks() { }   //
 }
