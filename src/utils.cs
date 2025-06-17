@@ -18,6 +18,7 @@ public class TemUtils
     {
         //return $"[{ChatColors.Gold} Super Powers {ChatColors.Default}] {color} {message}";
         return $"[Super Powers] {message}";
+        // return message;
     }
 
     public static void Print(string message, char color)

@@ -72,6 +72,7 @@ public static class SuperPowerController
         Powers.Add(new FakePassport());
         
         // cant implement rn
+        // Powers.Add(new ConcreteSmoke()); // voxel data is so mystical...
         //Powers.Add(new SmallSize()); // hull size vector is stored as a static variable and all players share the same size
         // should look for da pattern in le memory or somethin idk
         // Powers.Add(new WallHack()); // hav to wrtite check transmit "subsystem" so evry other power coud use it without much headache
