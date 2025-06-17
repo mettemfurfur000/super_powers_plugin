@@ -3,9 +3,9 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Memory;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class Invisibility : ISuperPower
+public class Invisibility : BasePower
 {
     public Invisibility() => Triggers = [typeof(EventPlayerSound), typeof(EventWeaponFire)];
     public override HookResult Execute(GameEvent gameEvent)

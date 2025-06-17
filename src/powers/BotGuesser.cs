@@ -2,14 +2,14 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class BotGuesser : ISuperPower
+public class BotGuesser : BasePower
 {
     public BotGuesser()
     {
         Triggers = [typeof(EventRoundStart)];
-        setDisabled();
+        SetDisabled();
     }
 
     public override HookResult Execute(GameEvent gameEvent)

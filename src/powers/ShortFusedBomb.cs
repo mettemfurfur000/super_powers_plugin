@@ -2,9 +2,9 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class ShortFusedBomb : ISuperPower
+public class ShortFusedBomb : BasePower
 {
     public ShortFusedBomb() => Triggers = [typeof(EventBombPlanted)];
     public override HookResult Execute(GameEvent gameEvent)

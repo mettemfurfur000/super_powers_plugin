@@ -14,9 +14,9 @@ using System.Linq;
 using CounterStrikeSharp.API.Modules.Entities;
 using System.Data.Common;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class BonusHealth : ISuperPower
+public class BonusHealth : BasePower
 {
     public BonusHealth() => Triggers = [typeof(EventRoundStart)];
     public override HookResult Execute(GameEvent gameEvent)

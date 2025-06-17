@@ -2,14 +2,14 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class BotDisguise : ISuperPower
+public class BotDisguise : BasePower
 {
     public BotDisguise()
     {
         Triggers = [typeof(EventRoundStart)];
-        setDisabled();
+        SetDisabled();
     } // TODO: clear player names from dropped weapons
 
     public override HookResult Execute(GameEvent gameEvent)

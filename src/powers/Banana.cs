@@ -3,16 +3,16 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Events;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class Banana : ISuperPower
+public class Banana : BasePower
 {
     public Banana()
     {
         Triggers = [typeof(EventRoundStart)];
         NeededResources = ["models/food/fruits/banana01a.vmdl"];
 
-        setDisabled();
+        SetDisabled();
     }
 
     public override HookResult Execute(GameEvent gameEvent)

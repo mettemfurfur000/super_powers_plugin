@@ -1,20 +1,19 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class EternalNade : ISuperPower
+public class EternalNade : BasePower
 {
     public EternalNade()
     {
         Triggers = [    typeof(EventHegrenadeDetonate),
-                                            typeof(EventMolotovDetonate),
-                                            typeof(EventSmokegrenadeDetonate),
-                                            typeof(EventFlashbangDetonate),
-                                            typeof(EventDecoyDetonate),
-                                            typeof(EventGrenadeThrown),
-
-    ];
+                        typeof(EventMolotovDetonate),
+                        typeof(EventSmokegrenadeDetonate),
+                        typeof(EventFlashbangDetonate),
+                        typeof(EventDecoyDetonate),
+                        typeof(EventGrenadeThrown),
+                    ];
     }
 
     public override HookResult Execute(GameEvent gameEvent)

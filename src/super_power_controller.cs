@@ -15,83 +15,13 @@ public enum SIGNAL_STATUS
     ERROR
 };
 
-// TODO:
-// - add dependency list thing for powers
-// - add incompabiliti list for powers
-// - allow multiple powers to affect the same variable (add by a value or mult by a value)
-
-// abscaraftlks
-
-public abstract class ISuperPower
-{
-    public List<Type> Triggers = [];
-    public List<CCSPlayerController> Users = [];
-    public List<Tuple<CCSPlayerController, int>> UsersDisabled = [];
-    public List<ulong> UsersSteamIDs = [];
-    public List<string> NeededResources = [];
-
-    public CsTeam teamReq = CsTeam.None;
-
-    public List<Type> Incompatibilities = [];
-    private bool disabled = false;
-
-    public void setDisabled() { disabled = true; }
-    public bool IsDisabled() => disabled;
-
-    public virtual string GetDescription() => "";
-
-    public virtual HookResult Execute(GameEvent gameEvent) { return HookResult.Continue; }
-    public virtual void Update() { }
-    public virtual void ParseCfg(Dictionary<string, string> cfg) { TemUtils.ParseConfigReflective(this, this.GetType(), cfg); }
-    public virtual bool IsUser(CCSPlayerController player) { return Users.Contains(player); }
-
-    public virtual void OnRemovePower(CCSPlayerController? player) { }
-    public virtual Tuple<SIGNAL_STATUS, string> OnSignal(CCSPlayerController? player, List<string> args) { return Tuple.Create(SIGNAL_STATUS.IGNORED, ""); }
-    public virtual void OnRemoveUser(CCSPlayerController? player, bool reasonDisconnect) // called each time player leaves the server
-    {
-        if (player == null) // clear all
-        {
-            Users.Clear();
-            UsersSteamIDs.Clear();
-            return;
-        }
-
-        Users.Remove(player);
-        if (reasonDisconnect == false)
-            UsersSteamIDs.Remove(player.SteamID);
-    }
-
-    public virtual bool OnAdd(CCSPlayerController player, bool forced = false) // called to add player to power
-    {
-        if (teamReq != CsTeam.None && player.TeamNum != (byte)teamReq && forced == false)
-            return false;
-
-        if (!SuperPowerController.IsPowerCompatible(player, this))
-            return false;
-
-        Users.Add(player);
-        UsersSteamIDs.Add(player.SteamID);
-
-        return true;
-    }
-
-    public virtual void OnRejoin(CCSPlayerController player) // called each time player joins to check if player has this power
-    {
-        if (UsersSteamIDs.Contains(player.SteamID))
-            Users.Add(player);
-    }
-
-    public virtual void RegisterHooks() { }
-    public virtual void UnRegisterHooks() { }
-}
-
 public static class SuperPowerController
 {
-    //private static Dictionary<ulong, List<ISuperPower>> backup_powers = new Dictionary<ulong, List<ISuperPower>>();
-    private static HashSet<ISuperPower> Powers = new HashSet<ISuperPower>();
+    //private static Dictionary<ulong, List<BasePower>> backup_powers = new Dictionary<ulong, List<BasePower>>();
+    private static HashSet<BasePower> Powers = new HashSet<BasePower>();
     private static string mode = "normal";
 
-    public static IEnumerable<ISuperPower> SelectPowers(string pattern)
+    public static IEnumerable<BasePower> SelectPowers(string pattern)
     {
         string r_pattern = TemUtils.WildCardToRegular(pattern);
 
@@ -159,12 +89,12 @@ public static class SuperPowerController
         return mode;
     }
 
-    public static HashSet<ISuperPower> GetPowers()
+    public static HashSet<BasePower> GetPowers()
     {
         return Powers;
     }
 
-    public static ISuperPower GetPowersByName(string name_pattern)
+    public static BasePower GetPowersByName(string name_pattern)
     {
         var found_powers = SelectPowers(name_pattern);
         return found_powers.First();
@@ -271,7 +201,7 @@ public static class SuperPowerController
         return ret;
     }
 
-    public static bool IsPowerCompatible(CCSPlayerController player, ISuperPower power)
+    public static bool IsPowerCompatible(CCSPlayerController player, BasePower power)
     {
         List<Type> powersAssigned = [];
 
@@ -336,7 +266,7 @@ public static class SuperPowerController
             }
     }
 
-    public static void AddNewPower(ISuperPower power)
+    public static void AddNewPower(BasePower power)
     {
         Powers.Add(power);
     }
@@ -352,9 +282,9 @@ public static class SuperPowerController
         }
     }
 
-    public static List<ISuperPower> GetPlayablePowers(SuperPowerConfig cfg, CCSPlayerController player)
+    public static List<BasePower> GetPlayablePowers(SuperPowerConfig cfg, CCSPlayerController player)
     {
-        List<ISuperPower> ret = [];
+        List<BasePower> ret = [];
 
         Powers.ToList().ForEach((power) =>
         {
@@ -376,7 +306,7 @@ public static class SuperPowerController
         foreach (var player in players)
         {
         again:
-            ISuperPower power = Powers.ElementAt(new Random().Next(Powers.Count));
+            BasePower power = Powers.ElementAt(new Random().Next(Powers.Count));
 
             if (power.OnAdd(player) == false)
                 goto again;

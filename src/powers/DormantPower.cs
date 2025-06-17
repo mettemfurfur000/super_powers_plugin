@@ -3,14 +3,14 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Utils;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class DormantPower : ISuperPower
+public class DormantPower : BasePower
 {
     public DormantPower()
     {
         Triggers = [typeof(EventRoundStart)];
-        setDisabled();
+        SetDisabled();
     }
 
     public override HookResult Execute(GameEvent gameEvent)

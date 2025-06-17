@@ -2,9 +2,9 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class SmallSize : ISuperPower
+public class SmallSize : BasePower
 {
     public SmallSize() => Triggers = [typeof(EventRoundStart)];
     public override HookResult Execute(GameEvent gameEvent)

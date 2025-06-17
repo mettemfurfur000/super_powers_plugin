@@ -3,9 +3,9 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Utils;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class PoisonedSmoke : ISuperPower
+public class PoisonedSmoke : BasePower
 {
     public PoisonedSmoke() => Triggers = [typeof(EventSmokegrenadeDetonate), typeof(EventSmokegrenadeExpired)];
     public override HookResult Execute(GameEvent gameEvent)

@@ -75,12 +75,12 @@ public class TemUtils
                 : c.ToString()));
     }
 
-    public static string GetPowerNameReadable(ISuperPower power)
+    public static string GetPowerNameReadable(BasePower power)
     {
         return ToReadableCase(power.GetType().ToString().Split(".").Last());
     }
 
-    public static string GetPowerName(ISuperPower power)
+    public static string GetPowerName(BasePower power)
     {
         return ToSnakeCase(power.GetType().ToString().Split(".").Last());
     }
@@ -150,7 +150,7 @@ public class TemUtils
         return (float)Math.Sqrt(Math.Pow(v1.X - v2.X, 2) + Math.Pow(v1.Y - v2.Y, 2) + Math.Pow(v1.Z - v2.Z, 2));
     }
 
-    public static string? InspectPowerReflective(ISuperPower power, Type type)
+    public static string? InspectPowerReflective(BasePower power, Type type)
     {
         string output = "";
 
@@ -178,7 +178,7 @@ public class TemUtils
         return output;
     }
 
-    public static void ParseConfigReflective(ISuperPower power, Type type, Dictionary<string, string> cfg)
+    public static void ParseConfigReflective(BasePower power, Type type, Dictionary<string, string> cfg)
     {
         foreach (var field in cfg)
         {
@@ -208,6 +208,53 @@ public class TemUtils
                 // aah whatever
             }
         }
+    }
+
+    public static void ParseConfigReflectiveRecursive(BasePower power, Type iter_type, Dictionary<string, string> cfg_unresolved)
+    {
+        if (cfg_unresolved.Count == 0)
+            return;
+        Dictionary<string, string> next_unresolved = [];
+
+        // Log($"reading {iter_type}");
+
+        foreach (var field in cfg_unresolved)
+        {
+            var fieldInfo = iter_type.GetField(field.Key, BindingFlags.Instance | BindingFlags.NonPublic);
+
+            if (fieldInfo == null)
+            {
+                next_unresolved.Add(field.Key, field.Value);
+                continue;
+            }
+
+            try
+            {
+                try { fieldInfo.SetValue(power, Convert.ChangeType(field.Value, fieldInfo.FieldType)); }
+                catch (InvalidCastException ex) { TemUtils.AlertError($"Error occured while processing {iter_type} : Failed to convert value for {fieldInfo.Name}: {ex.Message}"); }
+                catch (FormatException ex) { TemUtils.AlertError($"Error occured while processing {iter_type} : Invalid format for {fieldInfo.Name}: {ex.Message}"); }
+                // Log($"resloved {field.Key}");
+            }
+            catch
+            {
+                // aah whatever
+            }
+        }
+
+        if (iter_type.BaseType != null)
+            ParseConfigReflectiveRecursive(power, iter_type.BaseType, next_unresolved);
+        else if (next_unresolved.SequenceEqual(cfg_unresolved))
+        {
+            TemUtils.AlertError("Failed to resolve some fields for '" + iter_type + "', list of them:");
+            foreach (var field in next_unresolved)
+                TemUtils.AlertError(field.Key + " : " + field.Value);
+            AlertError("All fields for current type:");
+            foreach (var field in iter_type.GetRuntimeFields())
+                AlertError(field.ToString()!);
+
+            return;
+        }
+        // Log($"null base class for {iter_type}");
     }
 
     public static string ReflectPrintClass(object thing)

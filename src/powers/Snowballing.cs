@@ -2,9 +2,9 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class Snowballing : ISuperPower
+public class Snowballing : BasePower
 {
     public Snowballing() => Triggers = [typeof(EventPlayerDeath), typeof(EventRoundStart), typeof(EventPlayerHurt)];
     public override HookResult Execute(GameEvent gameEvent)

@@ -3,10 +3,10 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Utils;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
 // supposed to warp players back a few seconds after they get hurt
-public class WarpPeek : ISuperPower
+public class WarpPeek : BasePower
 {
     public WarpPeek() => Triggers = [typeof(EventPlayerHurt)];
     public override HookResult Execute(GameEvent gameEvent)

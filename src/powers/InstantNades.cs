@@ -2,9 +2,9 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class InstantNades : ISuperPower
+public class InstantNades : BasePower
 {
     public InstantNades() => Triggers = [typeof(EventGrenadeThrown)];
     public override HookResult Execute(GameEvent gameEvent)

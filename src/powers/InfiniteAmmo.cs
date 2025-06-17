@@ -1,9 +1,9 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class InfiniteAmmo : ISuperPower
+public class InfiniteAmmo : BasePower
 {
     public InfiniteAmmo() => Triggers = [typeof(EventWeaponFire)];
     public override HookResult Execute(GameEvent gameEvent)

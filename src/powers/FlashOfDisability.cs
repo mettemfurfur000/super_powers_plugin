@@ -1,9 +1,9 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class FlashOfDisability : ISuperPower
+public class FlashOfDisability : BasePower
 {
     public FlashOfDisability() => Triggers = [typeof(EventPlayerBlind)];
     public override HookResult Execute(GameEvent gameEvent)

@@ -2,10 +2,9 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Utils;
+using super_powers_plugin.src;
 
-namespace super_powers_plugin.src;
-
-public class RandomLoadout : ISuperPower
+public class RandomLoadout : BasePower
 {
     public RandomLoadout() => Triggers = [typeof(EventRoundStart)];
 

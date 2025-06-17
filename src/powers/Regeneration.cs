@@ -1,9 +1,9 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 
-namespace super_powers_plugin.src;
+using super_powers_plugin.src;
 
-public class Regeneration : ISuperPower
+public class Regeneration : BasePower
 {
     public Regeneration() => Triggers = [typeof(EventRoundStart)];
     public override void Update()
