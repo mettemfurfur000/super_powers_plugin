@@ -69,6 +69,7 @@ public static class SuperPowerController
         Powers.Add(new GoldenBullet());
 
         Powers.Add(new RandomLoadout());
+        Powers.Add(new FakePassport());
         
         // cant implement rn
         //Powers.Add(new SmallSize()); // hull size vector is stored as a static variable and all players share the same size

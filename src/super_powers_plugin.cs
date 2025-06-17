@@ -37,6 +37,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         // RegisterEventHandler<EventPlayerSpawned>((@event, info) => SuperPowerController.ExecutePower(@event));
         // RegisterEventHandler<EventBulletDamage>((@event, info) => SuperPowerController.ExecutePower(@event));
         
+        RegisterEventHandler<EventRoundEnd>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBegindefuse>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBeginplant>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombPlanted>((@event, info) => SuperPowerController.ExecutePower(@event));
