@@ -36,12 +36,12 @@ public class BotGuesser : BasePower
 
     public override Tuple<SIGNAL_STATUS, string> OnSignal(CCSPlayerController? player, List<string> args)
     {
-        if (args.Count != 2)
+        if (args.Count != 3)
             goto shortcut_ignore;
 
         string details = "";
 
-        string subcmd = args[0];
+        string subcmd = args[1];
         if (subcmd == "kick")
         {
             if (allow_vote == false)
@@ -50,13 +50,7 @@ public class BotGuesser : BasePower
                 goto shortcut_error;
             }
 
-            if (args.Count == 1)
-            {
-                details = "Not enough arguments";
-                goto shortcut_error;
-            }
-
-            string target = args[1];
+            string target = args[2];
             // Server.PrintToChatAll($"desired to kick {target}");
 
             var sel = TemUtils.SelectPlayers(target);

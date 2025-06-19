@@ -34,9 +34,29 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         // there is, but i don care
 
+        // converting these keys into my special commands
+        // requires some work on the client side though
+        
+        List<string> keys_considered = [
+            "1",
+            "2",
+            "3",
+            "4",
+            "r",
+            "e",
+        ];
+
+        keys_considered.ForEach(key =>
+        {
+            AddCommand("sp_" + key, "Captures a key being pressed", (player, info) =>
+            {
+                OnSignalFull(player, info);
+            });
+        });
+
         // RegisterEventHandler<EventPlayerSpawned>((@event, info) => SuperPowerController.ExecutePower(@event));
         // RegisterEventHandler<EventBulletDamage>((@event, info) => SuperPowerController.ExecutePower(@event));
-        
+
         RegisterEventHandler<EventRoundEnd>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBegindefuse>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBeginplant>((@event, info) => SuperPowerController.ExecutePower(@event));
@@ -266,7 +286,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     {
         List<string> args = [];
 
-        for (int i = 1; i < commandInfo.ArgCount; i++)
+        for (int i = 0; i < commandInfo.ArgCount; i++)
             args.Add(commandInfo.GetArg(i));
 
         string ret = SuperPowerController.Signal(caller, args);

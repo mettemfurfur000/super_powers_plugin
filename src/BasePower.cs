@@ -9,6 +9,15 @@ using super_powers_plugin.src;
 
 // abscaraftlks
 
+public enum PowerRarity
+{
+    Common,
+    Unusual,
+    Rare,
+    Epic,
+    Legendary
+};
+
 public class BasePower
 {
     public List<Type> Triggers = [];                                    // ! Put types of events that trigger this power logic here
@@ -19,7 +28,7 @@ public class BasePower
 
     public CsTeam teamReq = CsTeam.None;                                // ! If not none, only specified team will be able to use this power
 
-    public List<Type> Incompatibilities = [];                           // Unimplemented
+    public List<Type> Incompatibilities = [];                           // ! Holds types of powers that are criticaly incompatible with this one
     private bool enabled = true;                                        // Disabled powers wont show up anywhere
 
     public void SetDisabled() { enabled = false; }
@@ -37,7 +46,8 @@ public class BasePower
 
     public virtual void OnRemovePower(CCSPlayerController? player) { }  // ! Put custom logic that is needed to rever player to its original state
 
-    public virtual Tuple<SIGNAL_STATUS, string> OnSignal(CCSPlayerController? player, List<string> args) { return Tuple.Create(SIGNAL_STATUS.IGNORED, ""); }
+    // public virtual Tuple<SIGNAL_STATUS, string> OnSignal(CCSPlayerController? player, List<string> args) { return Tuple.Create(SIGNAL_STATUS.IGNORED, ""); }
+    public virtual Tuple<SIGNAL_STATUS, string> OnSignal(CCSPlayerController? player, List<string> args) { return SuperPowerController.ignored_signal; }
     public virtual void OnRemoveUser(CCSPlayerController? player, bool reasonDisconnect) // called each time player leaves the server
     {
         if (player == null) // clear all

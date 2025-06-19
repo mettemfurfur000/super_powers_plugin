@@ -20,6 +20,7 @@ public static class SuperPowerController
     //private static Dictionary<ulong, List<BasePower>> backup_powers = new Dictionary<ulong, List<BasePower>>();
     private static HashSet<BasePower> Powers = new HashSet<BasePower>();
     private static string mode = "normal";
+    public static Tuple<SIGNAL_STATUS, string> ignored_signal = Tuple.Create(SIGNAL_STATUS.IGNORED, "");
 
     public static IEnumerable<BasePower> SelectPowers(string pattern)
     {
@@ -70,7 +71,7 @@ public static class SuperPowerController
 
         Powers.Add(new RandomLoadout());
         Powers.Add(new FakePassport());
-        
+
         // cant implement rn
         // Powers.Add(new ConcreteSmoke()); // voxel data is so mystical...
         //Powers.Add(new SmallSize()); // hull size vector is stored as a static variable and all players share the same size
@@ -205,13 +206,14 @@ public static class SuperPowerController
 
     public static bool IsPowerCompatible(CCSPlayerController player, BasePower power)
     {
-        List<Type> powersAssigned = [];
-
         foreach (var p in Powers)
             if (p.Users.Contains(player))
-                powersAssigned.Add(p.GetType());
-
-        if (powersAssigned.Contains(power.GetType())) return false;
+            {
+                if (p.Incompatibilities.Contains(p.GetType()))
+                    return false;
+                if (power.Incompatibilities.Contains(p.GetType()))
+                    return false;
+            }
 
         return true;
     }
