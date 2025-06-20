@@ -88,31 +88,31 @@ public class RandomLoadout : BasePower
         return null;
     }
 
-    private void SingleItemRoll(CCSPlayerController user, string weapon, string readName, float probability)
+    private void SingleItemRoll(CCSPlayerController user, string weapon, string readName, float probabilityPercentage)
     {
-        if (Random.Shared.NextSingle() < probability)
+        if (Random.Shared.NextSingle() < probabilityPercentage)
         {
             user.GiveNamedItem(weapon);
             if (chatFeedback)
-                user.PrintToChat($"{GetRarityString(1, (int)(1 / probability), "+" + readName)}");
+                user.PrintToChat($"{GetRarityString(1, (int)(1 / probabilityPercentage), "+" + readName)}");
         }
     }
 
-    private static void RollAction(CCSPlayerController user, Action action, float probability)
+    private static void RollAction(CCSPlayerController user, Action action, float probabilityPercentage)
     {
-        if (Random.Shared.NextSingle() < probability)
+        if (Random.Shared.NextSingle() < probabilityPercentage)
             action.Invoke();
     }
 
-    private static char GetRarityColor(float probability)
+    private static char GetRarityColor(float probabilityPercentage)
     {
-        if (probability < 0.10)
+        if (probabilityPercentage < 0.10)
             return ChatColors.Red;
-        if (probability < 0.20)
+        if (probabilityPercentage < 0.20)
             return ChatColors.Purple;
-        if (probability < 0.40)
+        if (probabilityPercentage < 0.40)
             return ChatColors.Blue;
-        if (probability < 0.60)
+        if (probabilityPercentage < 0.60)
             return ChatColors.Green;
         return ChatColors.BlueGrey;
     }

@@ -32,7 +32,7 @@ public class HealingZeus : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"zap your teammates to set their health to {value}";
+    public override string GetDescription() => $"Zap your teammates to set their health to {value}";
 
     private int value = 75;
 }

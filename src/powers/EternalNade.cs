@@ -7,13 +7,14 @@ public class EternalNade : BasePower
 {
     public EternalNade()
     {
-        Triggers = [    typeof(EventHegrenadeDetonate),
-                        typeof(EventMolotovDetonate),
-                        typeof(EventSmokegrenadeDetonate),
-                        typeof(EventFlashbangDetonate),
-                        typeof(EventDecoyDetonate),
-                        typeof(EventGrenadeThrown),
-                    ];
+        Triggers = [
+            typeof(EventHegrenadeDetonate),
+            typeof(EventMolotovDetonate),
+            typeof(EventSmokegrenadeDetonate),
+            typeof(EventFlashbangDetonate),
+            typeof(EventDecoyDetonate),
+            typeof(EventGrenadeThrown),
+        ];
     }
 
     public override HookResult Execute(GameEvent gameEvent)

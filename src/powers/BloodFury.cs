@@ -4,9 +4,9 @@ using CounterStrikeSharp.API.Modules.Events;
 
 using super_powers_plugin.src;
 
-public class RageMode : BasePower
+public class BloodFury : BasePower
 {
-    public RageMode()
+    public BloodFury()
     {
         Triggers = [typeof(EventPlayerDeath), typeof(EventPlayerHurt), typeof(EventRoundStart)];
         NeededResources = ["particles/survival_fx/gas_cannister_impact_child_explosion.vpcf"];
@@ -85,7 +85,9 @@ public class RageMode : BasePower
 
         return HookResult.Continue;
     }
-    public override string GetDescription() => $"When a player gets {KillsToRage} {(CountOnlyHeadshots ? "Headshots" : "Kills")}, he enters 'rage mode,' gaining speed, damage boost, and temporary invincibility";
+    // public override string GetDescription() => $"When a player gets {KillsToRage} {(CountOnlyHeadshots ? "Headshots" : "Kills")}, he enters 'rage mode,' gaining speed, damage boost, and temporary invincibility";
+
+    public override string GetDescription() => $"When a player gets {KillsToRage} {(CountOnlyHeadshots ? "Headshots" : "Kills")}, he enters 'Fury' mode, gaining speed, damage boost, and temporary invincibility";
 
     public override void OnRemovePower(CCSPlayerController? player)
     {

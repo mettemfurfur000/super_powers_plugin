@@ -5,7 +5,6 @@ using CounterStrikeSharp.API.Modules.Utils;
 
 using super_powers_plugin.src;
 
-// supposed to warp players back a few seconds after they get hurt
 public class Rebirth : BasePower
 {
     public Rebirth() => Triggers = [typeof(EventPlayerDeath), typeof(EventRoundStart)];
@@ -86,8 +85,6 @@ public class Rebirth : BasePower
 
     public override string GetDescription() => $"Respawn at your last death location. If survived, spawn with yout team as before";
 
-    // each user must have their own position history
-    // has a static array for memory economy
     public Dictionary<CCSPlayerController, Tuple<Vector, QAngle>> positions = [];
     public List<CCSPlayerController> buyspamactive = [];
 

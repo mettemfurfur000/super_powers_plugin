@@ -78,6 +78,6 @@ public class Pacifism : BasePower
     // public Dictionary<CCSPlayerController, bool> status;
     public List<CCSPlayerController> status = [];
 
-    public override string GetDescription() => $"On round start, gain invincibility until you start dealing damage";
+    public override string GetDescription() => $"On round start, gain invincibility until you start dealing damage first";
 }
 

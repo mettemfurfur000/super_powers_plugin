@@ -4,9 +4,9 @@ using CounterStrikeSharp.API.Modules.Events;
 
 using super_powers_plugin.src;
 
-public class InfiniteMoney : BasePower
+public class BitcoinMiner : BasePower
 {
-    public InfiniteMoney() => Triggers = [typeof(EventRoundStart)];
+    public BitcoinMiner() => Triggers = [];
     public override HookResult Execute(GameEvent gameEvent)
     {
         return HookResult.Continue;
@@ -23,19 +23,10 @@ public class InfiniteMoney : BasePower
         }
     }
 
-    public override void OnRemovePower(CCSPlayerController? player)
-    {
-        if (player != null)
-            player.InGameMoneyServices!.Account = 800;
-        else
-        {
-            Users.ForEach(p =>
-            {
-                p.InGameMoneyServices!.Account = 800;
-            });
-        }
-    }
+    private int moneyBonusAmount = 5555;
+    private int probabilityPercentage = 5;
+    private int periodSeconds = 5;
 
-    public override string GetDescription() => $"Near infinite supply of money";
+    public override string GetDescription() => $"Every ${periodSeconds} second(s), gain ${moneyBonusAmount} with a chance of {probabilityPercentage}%";
 }
 

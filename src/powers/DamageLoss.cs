@@ -18,7 +18,7 @@ public class DamageLoss : BasePower
         if (!Users.Contains(victim))
             return HookResult.Continue;
 
-        if (Random.Shared.NextSingle() < probability / 100.0f)
+        if (Random.Shared.NextSingle() < probabilityPercentage / 100.0f)
             return HookResult.Continue;
 
         var victim_pawn = victim.PlayerPawn.Value;
@@ -34,8 +34,8 @@ public class DamageLoss : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"{probability}% chance to ignore incoming damage event";
+    public override string GetDescription() => $"{probabilityPercentage}% chance to ignore incoming damage event";
 
-    private int probability = 50;
+    private int probabilityPercentage = 50;
 }
 

@@ -27,6 +27,8 @@ public class BasePower
     public List<string> NeededResources = [];                           // ! Put custom assets or models that need to be precached
 
     public CsTeam teamReq = CsTeam.None;                                // ! If not none, only specified team will be able to use this power
+    public int priority = 0;                                            // internal use, list of powers will be sorted by priority, so 
+                                                                        // additive powers activate before multiplicative
 
     public List<Type> Incompatibilities = [];                           // ! Holds types of powers that are criticaly incompatible with this one
     private bool enabled = true;                                        // Disabled powers wont show up anywhere

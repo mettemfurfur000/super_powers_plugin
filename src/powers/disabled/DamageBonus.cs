@@ -6,7 +6,12 @@ using super_powers_plugin.src;
 
 public class DamageBonus : BasePower
 {
-    public DamageBonus() => Triggers = [typeof(EventPlayerHurt)];
+    public DamageBonus()
+    {
+        Triggers = [typeof(EventPlayerHurt)]; // too rewarding for nothing
+        SetDisabled();
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventPlayerHurt)gameEvent;

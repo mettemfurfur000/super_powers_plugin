@@ -6,7 +6,12 @@ using super_powers_plugin.src;
 
 public class BonusArmor : BasePower
 {
-    public BonusArmor() => Triggers = [typeof(EventRoundStart)];
+    public BonusArmor()
+    {
+        Triggers = [typeof(EventRoundStart)];
+        SetDisabled();
+    }
+    
     public override HookResult Execute(GameEvent gameEvent)
     {
         foreach (var user in Users)

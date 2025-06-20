@@ -81,7 +81,7 @@ public class PoisonedSmoke : BasePower
 
     public List<Tuple<int, Vector>> SmokesActivePos = [];
 
-    public override string GetDescription() => $"your smoke poisons anyone in it, {value} damage per second";
+    public override string GetDescription() => $"Your smoke is poisoned, deals {value} damage, but cant kill on its own";
 
     private int value = 2;
     private int smoke_radius = 144;

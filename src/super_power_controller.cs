@@ -43,7 +43,7 @@ public static class SuperPowerController
         Powers.Add(new InfiniteAmmo());
         Powers.Add(new SuperSpeed());
         Powers.Add(new HeadshotImmunity());
-        Powers.Add(new InfiniteMoney());
+        Powers.Add(new BitcoinMiner());
         Powers.Add(new NukeNades());
         Powers.Add(new EvilAura());
         Powers.Add(new DamageBonus());
@@ -55,7 +55,7 @@ public static class SuperPowerController
         Powers.Add(new WarpPeek());
         Powers.Add(new Snowballing());
         Powers.Add(new ChargeJump());
-        Powers.Add(new RageMode()); // TODO: rename
+        Powers.Add(new BloodFury()); // TODO: rename
         Powers.Add(new HealingZeus());
         Powers.Add(new FlashOfDisability());
         Powers.Add(new PoisonedSmoke());

@@ -103,6 +103,18 @@ public class TemUtils
         return Utilities.GetPlayers()
             .Where(player => Regex.IsMatch(player.PlayerName, r_pattern, RegexOptions.IgnoreCase));
     }
+    
+    public static ulong Combine(uint a, uint b)
+    {
+        uint ua = (uint)a;
+        ulong ub = (uint)b;
+        return ub << 32 | ua;
+    }
+
+    public static ulong GetActiveWeaponUserSteamId64(CCSPlayerController user)
+    {
+        return Combine(user.PlayerPawn!.Value!.WeaponServices!.ActiveWeapon.Value!.OriginalOwnerXuidLow, user.PlayerPawn!.Value!.WeaponServices!.ActiveWeapon.Value!.OriginalOwnerXuidHigh);
+    }
 
     // public static IEnumerable<CCSPlayerController> SelectPlayersBotsIncluded(string name_pattern)
     // {

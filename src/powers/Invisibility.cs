@@ -88,7 +88,7 @@ public class Invisibility : BasePower
         TemUtils.SetPlayerVisibilityLevel(player, 0.0f);
     }
 
-    public override string GetDescription() => $"I cant really see you";
+    public override string GetDescription() => $"Gain invisibility, when not moving (Custom items will still be seen)";
 
     public double[] Levels = new double[65];
 }

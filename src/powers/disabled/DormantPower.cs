@@ -5,6 +5,8 @@ using CounterStrikeSharp.API.Modules.Utils;
 
 using super_powers_plugin.src;
 
+// needs sum rework, mayb make it activate a random power each time you get attacked once each round
+
 public class DormantPower : BasePower
 {
     public DormantPower()
