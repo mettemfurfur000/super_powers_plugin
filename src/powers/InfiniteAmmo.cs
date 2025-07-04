@@ -5,7 +5,13 @@ using super_powers_plugin.src;
 
 public class InfiniteAmmo : BasePower
 {
-    public InfiniteAmmo() => Triggers = [typeof(EventWeaponFire)];
+    public InfiniteAmmo()
+    {
+        Triggers = [typeof(EventWeaponFire)];
+        Price = 6500;
+        Rarity = PowerRarity.Uncommon;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventWeaponFire)gameEvent;
@@ -34,6 +40,7 @@ public class InfiniteAmmo : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Zeus included, nades not included";
+    public override string GetDescription() => $"Free ammo, yay!";
+    public override string GetDescriptionColored() => NiceText.Blue("Free ammo, yay!");
 }
 

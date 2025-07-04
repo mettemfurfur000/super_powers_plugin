@@ -10,6 +10,8 @@ public class BloodFury : BasePower
     {
         Triggers = [typeof(EventPlayerDeath), typeof(EventPlayerHurt), typeof(EventRoundStart)];
         NeededResources = ["particles/survival_fx/gas_cannister_impact_child_explosion.vpcf"];
+        Price = 7000;
+        Rarity = PowerRarity.Rare;
     }
 
     public override HookResult Execute(GameEvent gameEvent)
@@ -87,7 +89,6 @@ public class BloodFury : BasePower
     }
     // public override string GetDescription() => $"When a player gets {KillsToRage} {(CountOnlyHeadshots ? "Headshots" : "Kills")}, he enters 'rage mode,' gaining speed, damage boost, and temporary invincibility";
 
-    public override string GetDescription() => $"When a player gets {KillsToRage} {(CountOnlyHeadshots ? "Headshots" : "Kills")}, he enters 'Fury' mode, gaining speed, damage boost, and temporary invincibility";
 
     public override void OnRemovePower(CCSPlayerController? player)
     {
@@ -136,6 +137,9 @@ public class BloodFury : BasePower
     private double DamageBonusMult = 0.25d;
     private int HealthRegenPerUpdate = 1;
     private double InvincibilitySeconds = 1.5d;
+
+    public override string GetDescription() => $"After getting {KillsToRage} {(CountOnlyHeadshots ? "Headshots" : "Kills")}, gain speed, +%damage, and temporary invincibility";
+    public override string GetDescriptionColored() => "After " + NiceText.Red(KillsToRage) + (CountOnlyHeadshots ? " Headshots" : " Kills") + ", gain speed, extra damage, and " + NiceText.Blue("temporary invincibility");
 
     public List<CCSPlayerController> ActivatedUsers = [];
     public List<Tuple<CCSPlayerController, int>> InvicibilityTicks = [];

@@ -6,7 +6,13 @@ using super_powers_plugin.src;
 
 public class HealingZeus : BasePower
 {
-    public HealingZeus() => Triggers = [typeof(EventPlayerHurt)];
+    public HealingZeus()
+    {
+        Triggers = [typeof(EventPlayerHurt)];
+        Price = 2500;
+        Rarity = PowerRarity.Common;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventPlayerHurt)gameEvent;
@@ -33,6 +39,7 @@ public class HealingZeus : BasePower
     }
 
     public override string GetDescription() => $"Zap your teammates to set their health to {value}";
+    public override string GetDescriptionColored() => $"Zap your " + NiceText.Green("teammates") + " to set their health to " + NiceText.Green(value);
 
     private int value = 75;
 }

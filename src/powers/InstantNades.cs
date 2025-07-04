@@ -6,7 +6,13 @@ using super_powers_plugin.src;
 
 public class InstantNades : BasePower
 {
-    public InstantNades() => Triggers = [typeof(EventGrenadeThrown)];
+    public InstantNades()
+    {
+        Triggers = [typeof(EventGrenadeThrown)];
+        Price = 3500;
+        Rarity = PowerRarity.Uncommon;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventGrenadeThrown)gameEvent;
@@ -33,7 +39,8 @@ public class InstantNades : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Reduce grenade and flash fuse by {divider} times";
+    public override string GetDescription() => $"Reduce nade and flash fuse time by {divider} times";
+    public override string GetDescriptionColored() => "Reduce nade and flash fuse time by " + NiceText.Red(divider) + " times";
 
     private int divider = 4;
 }

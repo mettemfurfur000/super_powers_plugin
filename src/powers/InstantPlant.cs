@@ -11,6 +11,9 @@ public class InstantPlant : BasePower
     {
         Triggers = [typeof(EventBombBeginplant)];
         teamReq = CsTeam.Terrorist;
+
+        Price = 2500;
+        Rarity = PowerRarity.Common;
     }
 
     public override HookResult Execute(GameEvent gameEvent)
@@ -36,5 +39,6 @@ public class InstantPlant : BasePower
     }
 
     public override string GetDescription() => $"Plant a bomb with no delay";
+    public override string GetDescriptionColored() => $"Plant a " + NiceText.Red("bomb") + " with " + NiceText.Red("no delay");
 }
 

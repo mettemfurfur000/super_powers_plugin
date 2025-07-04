@@ -18,7 +18,7 @@ public enum SIGNAL_STATUS
 public static class SuperPowerController
 {
     //private static Dictionary<ulong, List<BasePower>> backup_powers = new Dictionary<ulong, List<BasePower>>();
-    private static HashSet<BasePower> Powers = new HashSet<BasePower>();
+    private static List<BasePower> Powers = new List<BasePower>();
     private static string mode = "normal";
     public static Tuple<SIGNAL_STATUS, string> ignored_signal = Tuple.Create(SIGNAL_STATUS.IGNORED, "");
 
@@ -26,7 +26,7 @@ public static class SuperPowerController
     {
         string r_pattern = TemUtils.WildCardToRegular(pattern);
 
-        return Powers.Where(p => Regex.IsMatch(TemUtils.GetPowerName(p), r_pattern));
+        return Powers.Where(p => Regex.IsMatch(NiceText.GetPowerName(p), r_pattern));
     }
 
     static SuperPowerController()
@@ -55,7 +55,7 @@ public static class SuperPowerController
         Powers.Add(new WarpPeek());
         Powers.Add(new Snowballing());
         Powers.Add(new ChargeJump());
-        Powers.Add(new BloodFury()); // TODO: rename
+        Powers.Add(new BloodFury());
         Powers.Add(new HealingZeus());
         Powers.Add(new FlashOfDisability());
         Powers.Add(new PoisonedSmoke());
@@ -64,13 +64,15 @@ public static class SuperPowerController
         Powers.Add(new Pacifism());
         Powers.Add(new Rebirth());
         Powers.Add(new TheSacrifice());
-        Powers.Add(new Talisman());
+        Powers.Add(new SocialSecurity());
         Powers.Add(new BiocodedWeapons());
         Powers.Add(new EternalNade());
         Powers.Add(new GoldenBullet());
 
         Powers.Add(new RandomLoadout());
         Powers.Add(new FakePassport());
+
+        Powers.Add(new TheShopper());
 
         // cant implement rn
         // Powers.Add(new ConcreteSmoke()); // voxel data is so mystical...
@@ -80,6 +82,9 @@ public static class SuperPowerController
         // Powers.Add(new WeaponMaster()); // no recoil?
         // Powers.Add(new Builder()); // needa find models for blocks good enough to make it work
         // Powers.Add(new ShortFusedBomb()); // no luck
+
+        Powers.Sort((a, b) => a.priority.CompareTo(b.priority)); // sort by priority
+        // Powers.Reverse(); // reverse to have highest priority first
     }
 
     public static void SetMode(string _mode)
@@ -94,7 +99,7 @@ public static class SuperPowerController
 
     public static HashSet<BasePower> GetPowers()
     {
-        return Powers;
+        return Powers.ToHashSet();
     }
 
     public static BasePower GetPowersByName(string name_pattern)
@@ -107,7 +112,7 @@ public static class SuperPowerController
     {
         List<string> list = new List<string>();
         foreach (var p in Powers)
-            list.Add(TemUtils.GetPowerName(p));
+            list.Add(NiceText.GetPowerName(p));
         return list;
     }
 
@@ -125,7 +130,7 @@ public static class SuperPowerController
         foreach (var p in Powers)
             if (p.Users.Count != 0)
             {
-                out_string += "\n\t" + TemUtils.GetPowerName(p) + ":";
+                out_string += "\n\t" + NiceText.GetPowerName(p) + ":";
                 foreach (var user in p.Users)
                     out_string += $"\t{user.PlayerName} ";
             }
@@ -134,7 +139,7 @@ public static class SuperPowerController
         foreach (var p in Powers)
             if (p.UsersSteamIDs.Count != 0)
             {
-                out_string += "\n\t" + TemUtils.GetPowerName(p) + ":";
+                out_string += "\n\t" + NiceText.GetPowerName(p) + ":";
                 foreach (var id in p.UsersSteamIDs)
                     out_string += $"\t{id} ";
             }
@@ -159,10 +164,12 @@ public static class SuperPowerController
             switch (sig_ret.Item1)
             {
                 case SIGNAL_STATUS.ERROR:
-                    ret += $"{TemUtils.GetPowerNameReadable(power)} Failed to process the signal: {sig_ret}";
+                    // ret += $"{TemUtils.GetPowerNameReadable(power)} Failed to process the signal: {sig_ret}";
+                    ret += sig_ret.Item2;
                     break;
                 case SIGNAL_STATUS.ACCEPTED:
-                    // ret += $"{TemUtils.GetPowerNameReadable(power)} Accepted the signal";
+                    // ret += $"{TemUtils.GetPowerNameReadable(power)} Accepted the signal, response:";
+                    ret += sig_ret.Item2;
                     break;
             }
         }
@@ -178,7 +185,7 @@ public static class SuperPowerController
     public static void FeedTheConfig(SuperPowerConfig cfg)
     {
         foreach (var power in Powers)
-            try { power.ParseCfg(cfg.args[TemUtils.GetPowerName(power)]); }
+            try { power.ParseCfg(cfg.args[NiceText.GetPowerName(power)]); }
             catch { }
     }
 
@@ -299,6 +306,41 @@ public static class SuperPowerController
         return ret;
     }
 
+    public static BasePower? GetRandomPower(PowerRarity powerRarity)
+    {
+        var powers = Powers.Where(p => p.Rarity == powerRarity).ToList();
+        if (powers.Count == 0)
+            return null;
+
+        return powers.ElementAt(new Random().Next(powers.Count));
+    }
+
+    public static bool IsPowerPlayable(CCSPlayerController player, BasePower power)
+    {
+        if (power.teamReq != CsTeam.None && player.TeamNum != (byte)power.teamReq)
+            return false;
+
+        if (!SuperPowerController.IsPowerCompatible(player, power))
+            return false;
+        return true;
+    }
+
+    public static string EnsureEveryoneHasPower(BasePower power)
+    {
+        var players = Utilities.GetPlayers();
+        if (players.Count == 0)
+            return "Error: No players found";
+
+        players.ForEach((user) =>
+        {
+        again:
+            if (power.OnAdd(user) == false)
+                goto again;
+        });
+
+        return $"Successfully added {power.Name} to everyone";
+    }
+
     public static string AddPowerRandomlyToEveryone(SuperPowerConfig cfg, bool silent = true)
     {
         CleanPowers();
@@ -314,16 +356,17 @@ public static class SuperPowerController
 
             if (power.OnAdd(player) == false)
                 goto again;
-            string alert = $"Your power for this round:\n{ChatColors.Blue}{TemUtils.GetPowerNameReadable(power)}";
+            string alert = $"Your power for this round:\n{ChatColors.Blue}{NiceText.GetPowerNameReadable(power)}";
             player.PrintToChat(alert);
             string description = $"Power description:\n{ChatColors.Blue}{power.GetDescription()}";
             player.PrintToChat(description);
             if (!silent)
                 player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
 
-            try
-            { power.Execute(new GameEvent(0)); }
-            catch { }
+            // may trigger multiple times
+            // try
+            // { power.Execute(new GameEvent(0)); } 
+            // catch { }
         }
 
         return "Successfully added random powers to everyone";
@@ -353,7 +396,7 @@ public static class SuperPowerController
             string added_powers_feedback = "Server added the following powers to you:\n";
             foreach (var power in powers)
             {
-                var powerName = TemUtils.GetPowerName(power);
+                var powerName = NiceText.GetPowerName(power);
                 bool added = false;
 
                 if (power.Users.Contains(player))
@@ -368,7 +411,7 @@ public static class SuperPowerController
                     if (power.IsDisabled() == false)
                         if (power.OnAdd(player, forced) == true)
                         {
-                            added_powers_feedback += $" {ChatColors.Blue}{TemUtils.GetPowerNameReadable(power)}{ChatColors.White},";
+                            added_powers_feedback += $" {ChatColors.Blue}{NiceText.GetPowerNameReadable(power)}{ChatColors.White},";
                             added_powers++;
                             added = true;
                         }
@@ -430,7 +473,7 @@ public static class SuperPowerController
             string removed_powers_feedback = "Server removed the following powers from you:\n";
             foreach (var power in powers)
             {
-                var powerName = TemUtils.GetPowerName(power);
+                var powerName = NiceText.GetPowerName(power);
 
                 if (power.Users.Contains(player))
                 {
@@ -439,7 +482,7 @@ public static class SuperPowerController
                         //power.Users.Remove(player);
                         power.OnRemovePower(player);
                         power.OnRemoveUser(player, reasonDisconnect);
-                        removed_powers_feedback += $" {ChatColors.Red}{TemUtils.GetPowerNameReadable(power)}{ChatColors.White},";
+                        removed_powers_feedback += $" {ChatColors.Red}{NiceText.GetPowerNameReadable(power)}{ChatColors.White},";
                         status_message += $"Removed {powerName} from {player.PlayerName}\n";
                         removed_powers++;
                     }
@@ -465,7 +508,7 @@ public static class SuperPowerController
 
         foreach (var power in Powers)
         {
-            var power_name = TemUtils.GetPowerName(power);
+            var power_name = NiceText.GetPowerName(power);
             if (power_name == null)
             {
                 continue;

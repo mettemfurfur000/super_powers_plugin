@@ -6,7 +6,12 @@ using super_powers_plugin.src;
 
 public class Pacifism : BasePower
 {
-    public Pacifism() => Triggers = [typeof(EventPlayerHurt), typeof(EventRoundStart)];
+    public Pacifism()
+    {
+        Triggers = [typeof(EventPlayerHurt), typeof(EventRoundStart)];
+        Price = 6000;
+        Rarity = PowerRarity.Uncommon;
+    }
 
     public override HookResult Execute(GameEvent gameEvent)
     {
@@ -24,7 +29,7 @@ public class Pacifism : BasePower
                 // Server.PrintToChatAll("pacifism removed");
                 status.Remove(attacker);
 
-                attacker.PrintToCenter("Pacifism removed");
+                attacker.PrintToChat("Pacifism removed");
             }
 
             if (Users.Contains(victim)) // check if victim might be le pacifist
@@ -53,7 +58,7 @@ public class Pacifism : BasePower
             status.Clear();
             status = [.. Users];
 
-            Users.ForEach((c) => c.PrintToCenter("Gained Pacifism"));
+            Users.ForEach((c) => c.PrintToChat("Gained Pacifism"));
 
             // Server.PrintToChatAll(status.ToString());
         }
@@ -66,18 +71,19 @@ public class Pacifism : BasePower
         if (player != null)
         {
             status.Remove(player);
-            player.PrintToCenter("Pacifism removed");
+            player.PrintToChat("Pacifism removed");
         }
         else
         {
             status.Clear();
-            status.ForEach((c) => c.PrintToCenter("Pacifism removed"));
+            status.ForEach((c) => c.PrintToChat("Pacifism removed"));
         }
     }
 
     // public Dictionary<CCSPlayerController, bool> status;
     public List<CCSPlayerController> status = [];
 
-    public override string GetDescription() => $"On round start, gain invincibility until you start dealing damage first";
+    public override string GetDescription() => $"Gain invincibility until you deal damage first";
+    public override string GetDescriptionColored() => "Gain " + NiceText.Blue("invincibility") + " until you deal damage first";
 }
 

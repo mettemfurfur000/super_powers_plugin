@@ -6,7 +6,13 @@ using super_powers_plugin.src;
 
 public class NukeNades : BasePower
 {
-    public NukeNades() => Triggers = [typeof(EventGrenadeThrown)];
+    public NukeNades()
+    {
+        Triggers = [typeof(EventGrenadeThrown)];
+        Price = 7000;
+        Rarity = PowerRarity.Rare;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventGrenadeThrown)gameEvent;
@@ -33,7 +39,8 @@ public class NukeNades : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"HE grenades, but {multiplier} times more explosive";
+    public override string GetDescription() => $"HE grenades are {multiplier} times more explosive";
+    public override string GetDescriptionColored() => "HE grenades are " + NiceText.Red(multiplier) + " times more explosive";
 
     private float multiplier = 10;
 }

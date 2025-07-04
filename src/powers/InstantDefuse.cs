@@ -11,6 +11,9 @@ public class InstantDefuse : BasePower
     {
         Triggers = [typeof(EventBombBegindefuse)];
         teamReq = CsTeam.CounterTerrorist;
+
+        Price = 2500;
+        Rarity = PowerRarity.Common;
     }
 
     public override HookResult Execute(GameEvent gameEvent)
@@ -38,6 +41,7 @@ public class InstantDefuse : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Defuse bombs instantly (even withot defuse kit)";
+    public override string GetDescription() => $"Defuse bombs instantly";
+    public override string GetDescriptionColored() => NiceText.Blue("Defuse") + " bombs instantly";
 }
 

@@ -7,7 +7,13 @@ using super_powers_plugin.src;
 
 public class ExplosionUponDeath : BasePower
 {
-    public ExplosionUponDeath() => Triggers = [typeof(EventPlayerDeath)];
+    public ExplosionUponDeath()
+    {
+        Triggers = [typeof(EventPlayerDeath)];
+        Price = 2500;
+        Rarity = PowerRarity.Common;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         if (gameEvent is null)
@@ -45,7 +51,8 @@ public class ExplosionUponDeath : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Explode on death, dealing {damage} damage in a {radius} units radius";
+    public override string GetDescription() => $"Explode on death, dealing {damage} damage in a {radius}Hu radius";
+    public override string GetDescriptionColored() => "Explode on death, dealing " + NiceText.Red(damage.ToString() + " dmg") + " in a " + NiceText.Blue(radius) + " Hu radius";
 
     private int radius = 500;
     private float damage = 125f;

@@ -6,7 +6,13 @@ using super_powers_plugin.src;
 
 public class TheSacrifice : BasePower
 {
-    public TheSacrifice() => Triggers = [typeof(EventPlayerDeath)];
+    public TheSacrifice()
+    {
+        Triggers = [typeof(EventPlayerDeath)];
+        Price = 5500;
+        Rarity = PowerRarity.Uncommon;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         EventPlayerDeath realEvent = (EventPlayerDeath)gameEvent;
@@ -24,7 +30,7 @@ public class TheSacrifice : BasePower
                     if (pawn == null)
                         return;
 
-                    p.PrintToCenter($"{player.PlayerName} Sacrificed {value} health for you");
+                    p.PrintToChat($"{player.PlayerName} Sacrificed {value} health for you");
 
                     pawn.Health += value;
                     Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
@@ -36,6 +42,7 @@ public class TheSacrifice : BasePower
     }
 
     public override string GetDescription() => $"+{value} HP to all teammates on your death";
+    public override string GetDescriptionColored() => NiceText.Green("+" + value) + " HP to all teammates on your death";
     private int value = 50;
 }
 

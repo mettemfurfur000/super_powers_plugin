@@ -6,7 +6,14 @@ using super_powers_plugin.src;
 
 public class SmallSize : BasePower
 {
-    public SmallSize() => Triggers = [typeof(EventRoundStart)];
+    public SmallSize()
+    {
+        Triggers = [typeof(EventRoundStart)];
+        // Price = 5000;
+        // Rarity = PowerRarity.Uncommon;
+        NoShop = true;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         Users.ForEach(user =>

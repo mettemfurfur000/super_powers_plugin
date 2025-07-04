@@ -7,7 +7,13 @@ using super_powers_plugin.src;
 
 public class ChargeJump : BasePower
 {
-    public ChargeJump() => Triggers = [typeof(EventPlayerJump)];
+    public ChargeJump()
+    {
+        Triggers = [typeof(EventPlayerJump)];
+        Price = 2500;
+        Rarity = PowerRarity.Common;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         EventPlayerJump realEvent = (EventPlayerJump)gameEvent;
@@ -41,6 +47,7 @@ public class ChargeJump : BasePower
     }
 
     public override string GetDescription() => $"Jump while crouching to make a leap forward";
+    public override string GetDescriptionColored() => NiceText.Blue("Jump while crouching") + " to make a " + NiceText.Blue("leap forward");
 
     private float jump_force = 600f;
 }

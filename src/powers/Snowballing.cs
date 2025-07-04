@@ -6,7 +6,13 @@ using super_powers_plugin.src;
 
 public class Snowballing : BasePower
 {
-    public Snowballing() => Triggers = [typeof(EventPlayerDeath), typeof(EventRoundStart), typeof(EventPlayerHurt)];
+    public Snowballing()
+    {
+        Triggers = [typeof(EventPlayerDeath), typeof(EventRoundStart), typeof(EventPlayerHurt)];
+        Price = 7500;
+        Rarity = PowerRarity.Rare;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         Type type = gameEvent.GetType();
@@ -38,7 +44,7 @@ public class Snowballing : BasePower
             // match stats contain kills thru de whol game, killCount only contains kills for this round
             float damage_uncapped_bonus = (resetOnRoundStart == false ? player.ActionTrackingServices!.MatchStats.Kills : player.KillCount) * dmg_inc;
 
-            float damage_mult_bonus = max_dmg_inc > 0 ? Math.Min(damage_uncapped_bonus, max_dmg_inc) : damage_uncapped_bonus;
+            float damage_mult_bonus = damage_uncapped_bonus;
             int bonus_damage = (int)(realEvent.DmgHealth * damage_mult_bonus);
 
             var pawn = realEvent.Userid!.PlayerPawn.Value!;
@@ -50,7 +56,7 @@ public class Snowballing : BasePower
             Users.ForEach(user =>
             {
                 var pawn = user.PlayerPawn.Value!;
-                pawn.Health = pawn.Health + Math.Min(user.ActionTrackingServices!.MatchStats.Kills * heal, max_heal);
+                pawn.Health = pawn.Health + user.ActionTrackingServices!.MatchStats.Kills * heal;
                 Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
             });
         }
@@ -58,13 +64,11 @@ public class Snowballing : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Each kill will give you {heal} more HP and {dmg_inc * 100}% more damage. Limited to {max_heal} HP and {max_dmg_inc * 100}% bonus damage";
+    public override string GetDescription() => $"Each kill will give you {heal} more HP and {dmg_inc * 100}% more damage";
+    public override string GetDescriptionColored() => "Each kill will give you " + NiceText.Green(heal) + " more HP and " + NiceText.Red((dmg_inc * 100) + "%") + " more damage";
 
     private int heal = 25;
     private float dmg_inc = 0.1f;
-
-    private int max_heal = 300;
-    private float max_dmg_inc = 1.00f;
 
     private bool resetOnRoundStart = true;
     private bool giveHealImmediately = true;

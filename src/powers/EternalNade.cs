@@ -15,6 +15,9 @@ public class EternalNade : BasePower
             typeof(EventDecoyDetonate),
             typeof(EventGrenadeThrown),
         ];
+        
+        Price = 6000;
+        Rarity = PowerRarity.Rare;
     }
 
     public override HookResult Execute(GameEvent gameEvent)
@@ -80,6 +83,7 @@ public class EternalNade : BasePower
 
     public List<Tuple<CCSPlayerController, string>> nadesThrown = [];
 
-    public override string GetDescription() => $"Once your grenade detonates, you get it back";
+    public override string GetDescription() => $"When your grenade detonates, you get it back";
+    public override string GetDescriptionColored() => $"When your grenade " + NiceText.Red("detonates") + ", you get it back";
 }
 

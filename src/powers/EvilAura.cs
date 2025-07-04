@@ -6,7 +6,12 @@ using super_powers_plugin.src;
 
 public class EvilAura : BasePower
 {
-    public EvilAura() => Triggers = [typeof(EventRoundStart)];
+    public EvilAura()
+    {
+        Triggers = [typeof(EventRoundStart)];
+        Price = 9000;
+        Rarity = PowerRarity.Rare;
+    }
 
     public override HookResult Execute(GameEvent gameEvent)
     {
@@ -43,9 +48,6 @@ public class EvilAura : BasePower
 
                 harm_pawn.Health = harm_pawn.Health - damage;
                 Utilities.SetStateChanged(harm_pawn, "CBaseEntity", "m_iHealth");
-
-                user.PrintToCenter($"Harmed someone for {damage}...");
-                player_to_harm.PrintToCenter($"You have been hurt by {user.PlayerName}'s evil aura");
             }
         }
     }
@@ -55,5 +57,6 @@ public class EvilAura : BasePower
     private int period = 16;
 
     public override string GetDescription() => $"Slowly harm enemies close to you. Can't kill";
+    public override string GetDescriptionColored() => $"Slowly " + NiceText.Red("harm") + " enemies close to you. Can't kill";
 }
 

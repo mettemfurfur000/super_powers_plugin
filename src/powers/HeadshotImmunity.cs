@@ -6,7 +6,13 @@ using super_powers_plugin.src;
 
 public class HeadshotImmunity : BasePower
 {
-    public HeadshotImmunity() => Triggers = [typeof(EventPlayerHurt)];
+    public HeadshotImmunity()
+    {
+        Triggers = [typeof(EventPlayerHurt)];
+        Price = 9000;
+        Rarity = PowerRarity.Rare;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventPlayerHurt)gameEvent;
@@ -33,5 +39,6 @@ public class HeadshotImmunity : BasePower
     }
 
     public override string GetDescription() => $"Calcels all headshots, landed on your head";
+    public override string GetDescriptionColored() => NiceText.Green("Calcels all headshots") + ", landed on your head";
 }
 

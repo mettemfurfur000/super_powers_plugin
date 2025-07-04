@@ -7,7 +7,14 @@ using super_powers_plugin.src;
 
 public class Invisibility : BasePower
 {
-    public Invisibility() => Triggers = [typeof(EventPlayerSound), typeof(EventWeaponFire)];
+    public Invisibility()
+    {
+        Triggers = [typeof(EventPlayerSound), typeof(EventWeaponFire)];
+
+        Price = 8000;
+        Rarity = PowerRarity.Legendary;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         if (gameEvent is EventPlayerSound realEventSound)
@@ -88,7 +95,8 @@ public class Invisibility : BasePower
         TemUtils.SetPlayerVisibilityLevel(player, 0.0f);
     }
 
-    public override string GetDescription() => $"Gain invisibility, when not moving (Custom items will still be seen)";
+    public override string GetDescription() => $"Gain invisibility, when not making sounds (Custom items will still be seen)";
+    public override string GetDescriptionColored() => $"Gain " + NiceText.Blue("invisibility") + ", when not making sounds (Custom items will still be seen)";
 
     public double[] Levels = new double[65];
 }

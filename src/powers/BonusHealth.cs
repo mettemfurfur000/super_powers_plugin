@@ -18,7 +18,13 @@ using super_powers_plugin.src;
 
 public class BonusHealth : BasePower
 {
-    public BonusHealth() => Triggers = [typeof(EventRoundStart)];
+    public BonusHealth()
+    {
+        Triggers = [typeof(EventRoundStart)];
+        Price = 2000;
+        Rarity = PowerRarity.Common;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         foreach (var user in Users)
@@ -34,6 +40,7 @@ public class BonusHealth : BasePower
     }
 
     public override string GetDescription() => $"+{value - 100} HP on the start of each round";
+    public override string GetDescriptionColored() => "+" + NiceText.Green((value - 100).ToString() + " Health ") + "on the start of the round";
     private int value = 250;
 }
 

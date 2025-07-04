@@ -6,7 +6,14 @@ using super_powers_plugin.src;
 
 public class DamageLoss : BasePower
 {
-    public DamageLoss() => Triggers = [typeof(EventPlayerHurt)];
+    public DamageLoss()
+    {
+        Triggers = [typeof(EventPlayerHurt)];
+        Price = 5000;
+        Rarity = PowerRarity.Uncommon;
+        priority = 1; // this power should be executed after others to cancel their effects
+    }
+    
     public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventPlayerHurt)gameEvent;
@@ -35,6 +42,7 @@ public class DamageLoss : BasePower
     }
 
     public override string GetDescription() => $"{probabilityPercentage}% chance to ignore incoming damage event";
+    public override string GetDescriptionColored() => NiceText.Green(probabilityPercentage) + "% chance to ignore incoming damage event";
 
     private int probabilityPercentage = 50;
 }

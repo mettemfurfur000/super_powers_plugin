@@ -7,7 +7,13 @@ using super_powers_plugin.src;
 
 public class Rebirth : BasePower
 {
-    public Rebirth() => Triggers = [typeof(EventPlayerDeath), typeof(EventRoundStart)];
+    public Rebirth()
+    {
+        Triggers = [typeof(EventPlayerDeath), typeof(EventRoundStart)];
+        Price = 8000;
+        Rarity = PowerRarity.Legendary;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         if (gameEvent is null)
@@ -84,6 +90,7 @@ public class Rebirth : BasePower
     }
 
     public override string GetDescription() => $"Respawn at your last death location. If survived, spawn with yout team as before";
+    public override string GetDescriptionColored() => $"Respawn at your " + NiceText.Blue("last death location") + ". If survived, spawn with yout team as before";
 
     public Dictionary<CCSPlayerController, Tuple<Vector, QAngle>> positions = [];
     public List<CCSPlayerController> buyspamactive = [];

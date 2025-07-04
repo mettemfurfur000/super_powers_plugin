@@ -6,7 +6,12 @@ using super_powers_plugin.src;
 
 public class SuperJump : BasePower
 {
-    public SuperJump() => Triggers = [typeof(EventPlayerJump)];
+    public SuperJump()
+    {
+        Triggers = [typeof(EventPlayerJump)];
+        Price = 2500;
+        Rarity = PowerRarity.Common;
+    }
     public override HookResult Execute(GameEvent gameEvent)
     {
         EventPlayerJump realEvent = (EventPlayerJump)gameEvent;
@@ -36,6 +41,7 @@ public class SuperJump : BasePower
     }
 
     public override string GetDescription() => $"Look up and jump to get {multiplier} times higher";
+    public override string GetDescriptionColored() => "Look up and jump to get " + NiceText.Blue(multiplier) + " times higher";
 
     private float multiplier = 2;
 }

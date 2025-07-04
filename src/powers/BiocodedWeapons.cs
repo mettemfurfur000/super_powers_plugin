@@ -1,12 +1,18 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
-
+using CounterStrikeSharp.API.Modules.Utils;
 using super_powers_plugin.src;
 
 public class BiocodedWeapons : BasePower
 {
-    public BiocodedWeapons() => Triggers = [typeof(EventWeaponFire), typeof(EventInspectWeapon)];
+    public BiocodedWeapons()
+    {
+        Triggers = [typeof(EventWeaponFire), typeof(EventInspectWeapon)];
+        Price = 2500;
+        Rarity = PowerRarity.Uncommon;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         CCSPlayerController? shooter = null;
@@ -28,7 +34,7 @@ public class BiocodedWeapons : BasePower
         {
             if (gameEvent.GetType() == typeof(EventWeaponFire))
                 shooter.DropActiveWeapon();
-            shooter.PrintToCenter($"Weapon is biocoded and can't be used");
+            shooter.PrintToChat($"{ChatColors.DarkRed}[BIOCODED] Weapon is biocoded and can't be used");
         }
 
         return HookResult.Continue;
@@ -49,5 +55,6 @@ public class BiocodedWeapons : BasePower
     }
 
     public override string GetDescription() => $"Only you can use weapons you bought";
+    public override string GetDescriptionColored() => "Only you can use your " + NiceText.Red("weapons");
 }
 

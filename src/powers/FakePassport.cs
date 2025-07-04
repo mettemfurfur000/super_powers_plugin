@@ -6,7 +6,13 @@ using super_powers_plugin.src;
 
 public class FakePassport : BasePower
 {
-    public FakePassport() => Triggers = [typeof(EventRoundStart), typeof(EventPlayerDeath), typeof(EventRoundEnd)];
+    public FakePassport()
+    {
+        Triggers = [typeof(EventRoundStart), typeof(EventPlayerDeath), typeof(EventRoundEnd)];
+        Price = 4500;
+        Rarity = PowerRarity.Uncommon;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         if (gameEvent == null)
@@ -65,6 +71,7 @@ public class FakePassport : BasePower
     }
 
     public override string GetDescription() => $"Gain {health_mult}X health on the round start for each consecutive death {(requireHeadshotDealth ? "from a headshot" : "")}";
+    public override string GetDescriptionColored() => "Gain " + NiceText.Green($"{health_mult}X health") + " on the round start for each " + NiceText.Red("consecutive death" + (requireHeadshotDealth ? " from a headshot" : ""));
 
     private float health_mult = 2f;
     private bool requireHeadshotDealth = true;

@@ -8,7 +8,13 @@ using super_powers_plugin.src;
 // supposed to warp players back a few seconds after they get hurt
 public class WarpPeek : BasePower
 {
-    public WarpPeek() => Triggers = [typeof(EventPlayerHurt)];
+    public WarpPeek()
+    {
+        Triggers = [typeof(EventPlayerHurt)];
+        Price = 7000;
+        Rarity = PowerRarity.Rare;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         if (gameEvent is null)
@@ -75,7 +81,8 @@ public class WarpPeek : BasePower
             current_index = 0;
     }
 
-    public override string GetDescription() => $"Warp back in time when hit. Only position is saved";
+    public override string GetDescription() => $"Warp back in time when hit";
+    public override string GetDescriptionColored() => "Warp " + NiceText.Blue("back in time") + " when hit";
 
     // each user must have their own position history
     // has a static array for memory economy

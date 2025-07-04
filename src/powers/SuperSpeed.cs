@@ -6,7 +6,12 @@ using super_powers_plugin.src;
 
 public class SuperSpeed : BasePower
 {
-    public SuperSpeed() => Triggers = [typeof(EventRoundStart)];
+    public SuperSpeed()
+    {
+        Triggers = [typeof(EventRoundStart)];
+        Price = 3500;
+        Rarity = PowerRarity.Common;
+    }
 
     public override HookResult Execute(GameEvent gameEvent)
     {
@@ -25,7 +30,8 @@ public class SuperSpeed : BasePower
         TemUtils.PowerRemoveSpeedModifier(Users, player);
     }
 
-    public override string GetDescription() => $"Increased walking speed ({(float)value / default_velocity_max})";
+    public override string GetDescription() => $"Increased walking speed ({(float)value / default_velocity_max}X faster)";
+    public override string GetDescriptionColored() => "Increased walking speed (" + NiceText.Blue((float)value / default_velocity_max) + "X faster)";
 
     private int value = 700;
     private int period = 4;

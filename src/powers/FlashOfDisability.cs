@@ -5,7 +5,13 @@ using super_powers_plugin.src;
 
 public class FlashOfDisability : BasePower
 {
-    public FlashOfDisability() => Triggers = [typeof(EventPlayerBlind)];
+    public FlashOfDisability()
+    {
+        Triggers = [typeof(EventPlayerBlind)];
+        Price = 6000;
+        Rarity = PowerRarity.Rare;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         var realEvent = (EventPlayerBlind)gameEvent;
@@ -30,7 +36,8 @@ public class FlashOfDisability : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"enemies have their powers disabled if you flash them";
+    public override string GetDescription() => "Disables powers of players, blinded by your flash" + (ignore_self_flash ? "(Self-flash ignored)" : "");
+    public override string GetDescriptionColored() => "Disables powers of players, blinded by your flash" + (ignore_self_flash ? NiceText.Blue("(Self-flash ignored)") : "");
 
     private bool ignore_self_flash = true;
 }

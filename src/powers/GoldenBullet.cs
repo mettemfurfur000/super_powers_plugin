@@ -6,7 +6,13 @@ using super_powers_plugin.src;
 
 public class GoldenBullet : BasePower
 {
-    public GoldenBullet() => Triggers = [typeof(EventPlayerDeath)];
+    public GoldenBullet()
+    {
+        Triggers = [typeof(EventPlayerDeath)];
+        Price = 4000;
+        Rarity = PowerRarity.Uncommon;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         EventPlayerDeath realEvent = (EventPlayerDeath)gameEvent;
@@ -18,7 +24,7 @@ public class GoldenBullet : BasePower
 
         var weapon = shooter.PlayerPawn.Value!.WeaponServices!.ActiveWeapon;
 
-        if (weapon.Value!.Clip1 == 0)
+        if (weapon.Value!.Clip1 == 1)
         {
             float timesMult = 1.0f;
             Server.PrintToChatAll("last");
@@ -29,17 +35,7 @@ public class GoldenBullet : BasePower
                 timesMult = multOnHeadshot;
             }
 
-            shooter.InGameMoneyServices!.Account += (int)(killReward * timesMult);
-            Utilities.SetStateChanged(shooter, "CCSPlayerController", "m_pInGameMoneyServices");
-
-            // var victim = realEvent.Userid!;
-            // var pawn = victim.PlayerPawn.Value!;
-
-            // pawn.Health -= realEvent.DmgHealth * mult;
-            // pawn.ArmorValue -= realEvent.DmgArmor * mult;
-
-            // Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
-            // Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
+            TemUtils.GiveMoney(shooter, (int)(killReward * timesMult), $"for killing an enemy with a last bullet ({NiceText.GetPowerColoredName(this)})");
         }
 
         return HookResult.Continue;
@@ -47,9 +43,10 @@ public class GoldenBullet : BasePower
 
     // public override string GetDescription() => $"Last bullet in your chamber always hits x{mult} damage";
     public override string GetDescription() => $"Kill with a last bullet gives you ${killReward}{(headshotMultEnabled ? $", X{multOnHeadshot} for headshots" : "")}";
+    public override string GetDescriptionColored() => "Kill with a last bullet gives you $" + NiceText.Green(killReward) + (headshotMultEnabled ? $", X{multOnHeadshot} for headshots" : "");
 
-    private int killReward = 1250;
+    private int killReward = 3000;
     private float multOnHeadshot = 1.5f;
-    private bool headshotMultEnabled = true;
+    private bool headshotMultEnabled = false;
 }
 

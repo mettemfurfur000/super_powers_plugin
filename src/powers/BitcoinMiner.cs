@@ -1,12 +1,18 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
-
+using CounterStrikeSharp.API.Modules.Utils;
 using super_powers_plugin.src;
 
 public class BitcoinMiner : BasePower
 {
-    public BitcoinMiner() => Triggers = [];
+    public BitcoinMiner()
+    {
+        Triggers = [];
+        Price = 5000;
+        Rarity = PowerRarity.Uncommon;
+    }
+
     public override HookResult Execute(GameEvent gameEvent)
     {
         return HookResult.Continue;
@@ -18,8 +24,9 @@ public class BitcoinMiner : BasePower
             return;
         foreach (var user in Users)
         {
-            user.InGameMoneyServices!.Account += 500;
-            Utilities.SetStateChanged(user, "CCSPlayerController", "m_pInGameMoneyServices");
+            // user.InGameMoneyServices!.Account += moneyBonusAmount;
+            // Utilities.SetStateChanged(user, "CCSPlayerController", "m_pInGameMoneyServices");
+            TemUtils.GiveMoney(user, moneyBonusAmount, "from the BitcoinMiner");
         }
     }
 
@@ -28,5 +35,8 @@ public class BitcoinMiner : BasePower
     private int periodSeconds = 5;
 
     public override string GetDescription() => $"Every ${periodSeconds} second(s), gain ${moneyBonusAmount} with a chance of {probabilityPercentage}%";
+    public override string GetDescriptionColored() => "Every" + NiceText.Green(periodSeconds) + ", gain $" + NiceText.Green(moneyBonusAmount) + " with a chance of " + NiceText.Blue(probabilityPercentage.ToString() + "%");
 }
+
+
 

@@ -20,43 +20,46 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         RegisterListener<Listeners.OnServerPrecacheResources>(OnServerPrecacheResources);
 
-        RegisterEventHandler<EventRoundStart>((@event, info) =>
+        RegisterEventHandler<EventRoundEnd>((@event, info) =>
         {
+            var shopper = SuperPowerController.GetPowersByName("the_shopper");
             if (SuperPowerController.GetMode() == "random")
                 SuperPowerController.AddPowerRandomlyToEveryone(Config);
-            Server.PrintToConsole($"Round started, mode: {SuperPowerController.GetMode()}");
+            if (SuperPowerController.GetMode() == "shop")
+                SuperPowerController.EnsureEveryoneHasPower(shopper);
+            Server.PrintToConsole($"Round ended, mode: {SuperPowerController.GetMode()}");
 
             return SuperPowerController.ExecutePower(@event);
         });
+
+        // converting these keys into my special commands
+        // requires some work on the client side though
+
+        List<string> keys_considered = [
+        // "uparrow",
+        // "downarrow",
+        // "leftarrow",
+        // "rightarrow",
+        ];
+
+        keys_considered.ForEach(key =>
+            AddCommand("sp_" + key, "Captures a key being pressed", (player, info) =>
+                OnSignalFull(player, info)
+            )
+        );
+
+        AddCommand("b", "Shopper command", (player, info) => OnSignalFull(player, info));
+
 
         // surely theres a better way of doing this
         // until then, i dont care
 
         // there is, but i don care
 
-        // converting these keys into my special commands
-        // requires some work on the client side though
-        
-        List<string> keys_considered = [
-            "1",
-            "2",
-            "3",
-            "4",
-            "r",
-            "e",
-        ];
-
-        keys_considered.ForEach(key =>
-        {
-            AddCommand("sp_" + key, "Captures a key being pressed", (player, info) =>
-            {
-                OnSignalFull(player, info);
-            });
-        });
-
         // RegisterEventHandler<EventPlayerSpawned>((@event, info) => SuperPowerController.ExecutePower(@event));
         // RegisterEventHandler<EventBulletDamage>((@event, info) => SuperPowerController.ExecutePower(@event));
 
+        RegisterEventHandler<EventRoundStart>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventRoundEnd>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBegindefuse>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBeginplant>((@event, info) => SuperPowerController.ExecutePower(@event));
@@ -141,8 +144,10 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     {
         var playerNamePattern = commandInfo.GetArg(1);
         var powerNamePattern = commandInfo.GetArg(2);
+
         var now_flag = false;
         var force_flag = false;
+        
         if (commandInfo.ArgCount >= 4)
         {
             now_flag = commandInfo.GetArg(3).ToLower().Contains("now");
@@ -221,7 +226,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         if (powers != null)
             foreach (var power in powers)
-                commandInfo.ReplyToCommand($"\t{TemUtils.GetSnakeName(power.GetType())}\t{power.GetDescription()}"
+                commandInfo.ReplyToCommand($"\t{NiceText.GetSnakeName(power.GetType())}\t{power.GetDescription()}"
                 + (power.IsDisabled() ? "\t(Disabled)" : "")
                 + (power.teamReq != CsTeam.None ? (
                     power.teamReq == CsTeam.Terrorist ? "\t(T Only)" : "\t(CT Only)"
@@ -274,7 +279,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         {
             string? power_field_values = TemUtils.InspectPowerReflective(power, power.GetType());
             if (power_field_values != null)
-                commandInfo.ReplyToCommand(TemUtils.GetPowerNameReadable(power) + ":\n" + power_field_values);
+                commandInfo.ReplyToCommand(NiceText.GetPowerNameReadable(power) + ":\n" + power_field_values);
         }
     }
 

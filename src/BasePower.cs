@@ -9,17 +9,9 @@ using super_powers_plugin.src;
 
 // abscaraftlks
 
-public enum PowerRarity
+public class BasePower : ShopPower
 {
-    Common,
-    Unusual,
-    Rare,
-    Epic,
-    Legendary
-};
-
-public class BasePower
-{
+    public string Name => NiceText.GetPowerName(this);
     public List<Type> Triggers = [];                                    // ! Put types of events that trigger this power logic here
     public List<CCSPlayerController> Users = [];                        // ! Active users live here
     public List<Tuple<CCSPlayerController, int>> UsersDisabled = [];    // Temporary disabled users live here, useful when powers disable other powers
@@ -37,6 +29,7 @@ public class BasePower
     public bool IsDisabled() => !enabled;
 
     public virtual string GetDescription() => "";                       // ! Set custom description here
+    public virtual string GetDescriptionColored() => "";                // ! Colored version for the shopper
 
     public virtual HookResult Execute(GameEvent gameEvent)
     {

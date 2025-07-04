@@ -52,43 +52,42 @@ public class TemUtils
         return new string(result);
     }
 
-    public static string ToSnakeCase(string input)
+    public static void InformValueChanged(CCSPlayerController player, int amount, string reason)
     {
-        return string.Concat(input.Select((c, i) =>
-            i > 0 && char.IsUpper(c) && char.IsLower(input[i - 1])
-                ? "_" + char.ToLower(c)
-                : char.ToLower(c).ToString()));
+        string theme = " " + (amount < 0 ? ChatColors.LightRed : ChatColors.Lime);
+        player.PrintToChat(theme + (amount < 0 ? "-$" : "+$") + Math.Abs(amount) + $" {ChatColors.White} " + reason);
     }
 
-    public static string ToReadableCase(string input)
+    public static bool AttemptPaidAction(CCSPlayerController player, int amount, string object_name, Action a)
     {
-        return string.Concat(input.Select((c, i) =>
-            i > 0 && char.IsUpper(c) && char.IsLower(input[i - 1])
-                ? " " + c
-                : c.ToString()));
+        if (player.InGameMoneyServices!.Account < amount && amount > 0)
+        {
+            player.PrintToChat($" {ChatColors.LightRed}Not enough money to buy {object_name}");
+            player.ExecuteClientCommand("play sounds/ui/weapon_cant_buy.vsnd");
+            return false;
+        }
+
+        a.Invoke(); // in case opf an exception at least user will have their moners intact
+
+        player.InGameMoneyServices!.Account -= amount;
+        Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
+        
+        if (amount > 0)
+            TemUtils.InformValueChanged(player, -amount, $"for buying {object_name}");
+        else
+            player.PrintToChat($"{object_name} Acquired");
+        
+        player.ExecuteClientCommand("play sounds/ui/panorama/claim_gift_01.vsnd");
+
+        return true;
     }
 
-    public static string FirstUpper(string input)
+    public static void GiveMoney(CCSPlayerController player, int amount, string reason)
     {
-        return string.Concat(input.Select((c, i) =>
-            i == 0 && char.IsUpper(c)
-                ? char.ToUpper(c).ToString()
-                : c.ToString()));
-    }
+        player.InGameMoneyServices!.Account += amount;
+        Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
 
-    public static string GetPowerNameReadable(BasePower power)
-    {
-        return ToReadableCase(power.GetType().ToString().Split(".").Last());
-    }
-
-    public static string GetPowerName(BasePower power)
-    {
-        return ToSnakeCase(power.GetType().ToString().Split(".").Last());
-    }
-
-    public static string GetSnakeName(Type type)
-    {
-        return ToSnakeCase(type.ToString()).Split(".").Last();
+        TemUtils.InformValueChanged(player, amount, reason);
     }
 
     public static String WildCardToRegular(String value)
@@ -103,7 +102,7 @@ public class TemUtils
         return Utilities.GetPlayers()
             .Where(player => Regex.IsMatch(player.PlayerName, r_pattern, RegexOptions.IgnoreCase));
     }
-    
+
     public static ulong Combine(uint a, uint b)
     {
         uint ua = (uint)a;
