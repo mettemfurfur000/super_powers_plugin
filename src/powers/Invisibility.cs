@@ -25,7 +25,7 @@ public class Invisibility : BasePower
     private int fullRecoverMs = 800;
     private int weaponSilencedRatio = 3;
     private bool sendBar = true;
-    private int tickSkip = 4;
+    private int tickSkip = 3;
 
     public List<CBasePlayerWeapon> washedWeapons = [];
 
@@ -121,11 +121,11 @@ public class Invisibility : BasePower
             }
 
         }
+        if (tickSkip != 0)
+            if (Server.TickCount % tickSkip != 0)
+                return;
 
-        if (Server.TickCount % tickSkip != 0)
-            return;
-
-        double gainEachTick = (tickSkip / ((fullRecoverMs / 1000.0f) * 64.0f));
+        double gainEachTick = tickSkip != 0 ? (tickSkip / ((fullRecoverMs / 1000.0f) * 64.0f)) : ((fullRecoverMs / 1000.0f) * 64.0f);
 
         // Server.PrintToChatAll(fullRecoverMs.ToString());
         // Server.PrintToChatAll(timeRecoverTicks.ToString());
@@ -134,16 +134,14 @@ public class Invisibility : BasePower
         for (int i = 0; i < Users.Count; i++)
         {
             var newValue = Levels[i] < 1.0f ? Levels[i] + gainEachTick : 1.0f;
+            var player = Users[i];
+            TemUtils.SetPlayerInvisibilityLevel(player, (float)newValue);
 
-            if (newValue != Levels[i])
-            {
-                var player = Users[i];
-                TemUtils.SetPlayerInvisibilityLevel(player, (float)newValue);
-                if (sendBar)
+            if (sendBar)
+                if (newValue != Levels[i])
                     UpdateVisibilityBar(player, (float)newValue);
 
-                Levels[i] = newValue;
-            }
+            Levels[i] = newValue;
         }
     }
 
