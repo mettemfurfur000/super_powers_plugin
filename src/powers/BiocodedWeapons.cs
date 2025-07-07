@@ -44,12 +44,23 @@ public class BiocodedWeapons : BasePower
     private bool IsWeaponBiocoded(CCSPlayerController currentUser)
     {
         ulong shooterId = currentUser.SteamID;
-        ulong weaponOwnerId = TemUtils.GetActiveWeaponUserSteamId64(currentUser);
+        // ulong weaponOwnerId = TemUtils.GetActiveWeaponUserSteamId64(currentUser);
 
-        if (shooterId != weaponOwnerId) // if shooter is shooting someon esles weapon, check users
-            foreach (var user in Users)
-                if (user.SteamID == weaponOwnerId) // owner has the power
-                    return true;
+        CCSPlayerController? originalOwner = Utilities.GetPlayerFromSteamId(currentUser.PlayerPawn!.Value!.WeaponServices!.ActiveWeapon.Value!.OriginalOwnerXuidLow);
+
+        if (originalOwner == null)
+            return false;
+
+        if (!Users.Contains(originalOwner))
+            return false;
+
+        if (currentUser != originalOwner)
+            return true;
+
+        // if (shooterId != weaponOwnerId) // if shooter is shooting someon esles weapon, check users
+        //     foreach (var user in Users)
+        //         if (user.SteamID == weaponOwnerId) // owner has the power
+        //             return true;
 
         return false;
     }

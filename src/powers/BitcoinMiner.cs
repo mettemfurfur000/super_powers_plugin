@@ -20,12 +20,11 @@ public class BitcoinMiner : BasePower
 
     public override void Update()
     {
-        if (Server.TickCount % 32 != 0)
+        if (Server.TickCount % (periodSeconds * 64) != 0)
             return;
         foreach (var user in Users)
         {
-            // user.InGameMoneyServices!.Account += moneyBonusAmount;
-            // Utilities.SetStateChanged(user, "CCSPlayerController", "m_pInGameMoneyServices");
+            if (Random.Shared.NextSingle() < 100 / probabilityPercentage)
             TemUtils.GiveMoney(user, moneyBonusAmount, "from the BitcoinMiner");
         }
     }

@@ -71,12 +71,12 @@ public class TemUtils
 
         player.InGameMoneyServices!.Account -= amount;
         Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
-        
+
         if (amount > 0)
             TemUtils.InformValueChanged(player, -amount, $"for buying {object_name}");
         else
             player.PrintToChat($"{object_name} Acquired");
-        
+
         player.ExecuteClientCommand("play sounds/ui/panorama/claim_gift_01.vsnd");
 
         return true;
@@ -110,10 +110,10 @@ public class TemUtils
         return ub << 32 | ua;
     }
 
-    public static ulong GetActiveWeaponUserSteamId64(CCSPlayerController user)
-    {
-        return Combine(user.PlayerPawn!.Value!.WeaponServices!.ActiveWeapon.Value!.OriginalOwnerXuidLow, user.PlayerPawn!.Value!.WeaponServices!.ActiveWeapon.Value!.OriginalOwnerXuidHigh);
-    }
+    // public static ulong GetActiveWeaponUserSteamId64(CCSPlayerController user)
+    // {
+    //     return Combine(user.PlayerPawn!.Value!.WeaponServices!.ActiveWeapon.Value!.OriginalOwnerXuidLow, user.PlayerPawn!.Value!.WeaponServices!.ActiveWeapon.Value!.OriginalOwnerXuidHigh);
+    // }
 
     // public static IEnumerable<CCSPlayerController> SelectPlayersBotsIncluded(string name_pattern)
     // {
@@ -310,10 +310,10 @@ public class TemUtils
         return output.ToString();
     }
 
-    public static void SetPlayerVisibilityLevel(CCSPlayerController player, float invisibilityLevel)
+    public static void SetPlayerInvisibilityLevel(CCSPlayerController player, float invisibilityLevel)
     {
-        var playerPawnValue = player.PlayerPawn.Value;
-        if (playerPawnValue == null || !playerPawnValue.IsValid)
+        var pawn = player.PlayerPawn.Value;
+        if (pawn == null || !pawn.IsValid)
         {
             TemUtils.Log("Player pawn is not valid.");
             return;
@@ -323,29 +323,36 @@ public class TemUtils
         alpha = alpha > 255 ? 255 : alpha < 0 ? 0 : alpha; // >:3
         var fadeColor = Color.FromArgb(alpha, 255, 255, 255);
 
-        //Server.PrintToConsole("alpha for " + player.PlayerName + " is " + alpha);
+        // Server.PrintToChatAll("alpha for " + player.PlayerName + " is " + alpha);
 
-        playerPawnValue.Render = fadeColor;
-        Utilities.SetStateChanged(playerPawnValue, "CBaseModelEntity", "m_clrRender");
-        Utilities.SetStateChanged(playerPawnValue, "CCSPlayer_ViewModelServices", "m_hViewModel");
+        pawn.Render = fadeColor;
+        Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_clrRender");
+        Utilities.SetStateChanged(pawn, "CCSPlayer_ViewModelServices", "m_hViewModel");
 
-        var viewModel = playerPawnValue.ViewModelServices!.Pawn.Value;
-        viewModel.Render = fadeColor;
-        Utilities.SetStateChanged(viewModel, "CBaseModelEntity", "m_clrRender");
+        // pawn.RenderMode = RenderMode_t.kRenderTransAlpha;
+        // Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_nRenderMode");
 
-        var weaponServices = playerPawnValue.WeaponServices;
+        // var viewModel = pawn.ViewModelServices!.Pawn.Value;
+        // viewModel.Render = fadeColor;
+        // Utilities.SetStateChanged(viewModel, "CBaseModelEntity", "m_clrRender");
+
+        // viewModel.RenderMode = RenderMode_t.kRenderTransAlpha;
+        // Utilities.SetStateChanged(viewModel, "CBaseModelEntity", "m_nRenderMode");
+
+        var weaponServices = pawn.WeaponServices;
         if (weaponServices != null)
         {
             var activeWeapon = weaponServices.ActiveWeapon.Value;
             if (activeWeapon != null && activeWeapon.IsValid)
             {
                 activeWeapon.Render = fadeColor;
-                activeWeapon.ShadowStrength = invisibilityLevel;
+                // activeWeapon.ShadowStrength = invisibilityLevel;
                 Utilities.SetStateChanged(activeWeapon, "CBaseModelEntity", "m_clrRender");
+                // Utilities.SetStateChanged(activeWeapon, "CBaseModelEntity", "m_flShadowStrength");
             }
         }
 
-        var myWeapons = playerPawnValue.WeaponServices?.MyWeapons;
+        var myWeapons = pawn.WeaponServices?.MyWeapons;
         if (myWeapons != null)
             foreach (var gun in myWeapons)
             {
@@ -353,33 +360,23 @@ public class TemUtils
                 if (weapon != null)
                 {
                     weapon.Render = fadeColor;
-                    weapon.ShadowStrength = invisibilityLevel;
+                    // weapon.ShadowStrength = invisibilityLevel;
                     Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_clrRender");
-
-                    // if (weapon.DesignerName == "weapon_c4")
-                    // {
-                    //     // Server.PrintToChatAll($"C4 Glow values: {weapon.RenderMode}, {weapon.RenderFX}, {weapon.Glow.GlowColor}, {weapon.Glow.GlowColorOverride}, {weapon.Glow.GlowType}");
-
-                    //     weapon.RenderMode = visibilityLevel <= 1.0f ? RenderMode_t.kRenderNone : RenderMode_t.kRenderNormal;
-                    //     weapon.RenderFX = visibilityLevel <= 1.0f ? RenderFx_t.kRenderFxNone : RenderFx_t.kRenderFxPulseFastWide;
-
-                    //     Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_nRenderMode");
-                    //     Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_nRenderFX");
-                    // }
+                    // Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_flShadowStrength");
                 }
             }
     }
 
     public static void CleanWeaponOwner(CCSPlayerController player)
     {
-        var playerPawnValue = player.PlayerPawn.Value;
-        if (playerPawnValue == null || !playerPawnValue.IsValid)
+        var pawn = player.PlayerPawn.Value;
+        if (pawn == null || !pawn.IsValid)
         {
             TemUtils.Log("Player pawn is not valid.");
             return;
         }
 
-        var weaponServices = playerPawnValue.WeaponServices;
+        var weaponServices = pawn.WeaponServices;
         if (weaponServices != null)
         {
             var activeWeapon = weaponServices.ActiveWeapon.Value;
@@ -407,7 +404,7 @@ public class TemUtils
 
         // return;
 
-        var myWeapons = playerPawnValue.WeaponServices?.MyWeapons;
+        var myWeapons = pawn.WeaponServices?.MyWeapons;
         if (myWeapons != null)
             foreach (var gun in myWeapons)
             {
