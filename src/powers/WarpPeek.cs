@@ -12,7 +12,7 @@ public class WarpPeek : BasePower
     {
         Triggers = [typeof(EventPlayerHurt)];
         Price = 7000;
-        Rarity = PowerRarity.Rare;
+        Rarity = "Rare";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

@@ -10,7 +10,7 @@ public class NukeNades : BasePower
     {
         Triggers = [typeof(EventGrenadeThrown)];
         Price = 7000;
-        Rarity = PowerRarity.Rare;
+        Rarity = "Rare";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

@@ -10,7 +10,7 @@ public class Snowballing : BasePower
     {
         Triggers = [typeof(EventPlayerDeath), typeof(EventRoundStart), typeof(EventPlayerHurt)];
         Price = 7500;
-        Rarity = PowerRarity.Rare;
+        Rarity = "Rare";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

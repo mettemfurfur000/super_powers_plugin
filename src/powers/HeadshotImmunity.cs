@@ -10,7 +10,7 @@ public class HeadshotImmunity : BasePower
     {
         Triggers = [typeof(EventPlayerHurt)];
         Price = 9000;
-        Rarity = PowerRarity.Rare;
+        Rarity = "Rare";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

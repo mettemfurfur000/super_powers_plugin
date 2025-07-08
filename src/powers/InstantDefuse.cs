@@ -13,7 +13,7 @@ public class InstantDefuse : BasePower
         teamReq = CsTeam.CounterTerrorist;
 
         Price = 2500;
-        Rarity = PowerRarity.Common;
+        Rarity = "Common";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

@@ -9,7 +9,7 @@ public class InfiniteAmmo : BasePower
     {
         Triggers = [typeof(EventWeaponFire)];
         Price = 6500;
-        Rarity = PowerRarity.Uncommon;
+        Rarity = "Uncommon";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

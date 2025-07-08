@@ -9,7 +9,7 @@ public class Regeneration : BasePower
     {
         Triggers = [typeof(EventRoundStart)];
         Price = 5000;
-        Rarity = PowerRarity.Uncommon;
+        Rarity = "Uncommon";
     }
 
     public override void Update()

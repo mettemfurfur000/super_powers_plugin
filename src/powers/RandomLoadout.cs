@@ -11,7 +11,7 @@ public class RandomLoadout : BasePower
         Triggers = [typeof(EventRoundStart)];
 
         // Price = 10000;
-        // Rarity = PowerRarity.Rare;
+        // Rarity = "Rare";
         NoShop = true;
     }
 

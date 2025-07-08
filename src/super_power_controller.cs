@@ -311,9 +311,9 @@ public static class SuperPowerController
         return ret;
     }
 
-    public static BasePower? GetRandomPower(PowerRarity powerRarity)
+    public static BasePower? GetRandomPower(string rarity)
     {
-        var powers = Powers.Where(p => p.Rarity == powerRarity).ToList();
+        var powers = Powers.Where(p => p.Rarity == rarity).ToList();
         if (powers.Count == 0)
             return null;
 

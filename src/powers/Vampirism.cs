@@ -10,7 +10,7 @@ public class Vampirism : BasePower
     {
         Triggers = [typeof(EventPlayerHurt)];
         Price = 8000;
-        Rarity = PowerRarity.Legendary;
+        Rarity = "Legendary";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

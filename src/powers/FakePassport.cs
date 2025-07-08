@@ -10,7 +10,7 @@ public class FakePassport : BasePower
     {
         Triggers = [typeof(EventRoundStart), typeof(EventPlayerDeath), typeof(EventRoundEnd)];
         Price = 4500;
-        Rarity = PowerRarity.Uncommon;
+        Rarity = "Uncommon";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

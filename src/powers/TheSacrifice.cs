@@ -10,7 +10,7 @@ public class TheSacrifice : BasePower
     {
         Triggers = [typeof(EventPlayerDeath)];
         Price = 5500;
-        Rarity = PowerRarity.Uncommon;
+        Rarity = "Uncommon";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

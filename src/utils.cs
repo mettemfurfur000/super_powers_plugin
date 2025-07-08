@@ -242,7 +242,10 @@ public class TemUtils
 
             try
             {
-                try { fieldInfo.SetValue(power, Convert.ChangeType(field.Value, fieldInfo.FieldType)); }
+                try
+                {
+                    fieldInfo.SetValue(power, Convert.ChangeType(field.Value, fieldInfo.FieldType));
+                }
                 catch (InvalidCastException ex) { TemUtils.AlertError($"Error occured while processing {iter_type} : Failed to convert value for {fieldInfo.Name}: {ex.Message}"); }
                 catch (FormatException ex) { TemUtils.AlertError($"Error occured while processing {iter_type} : Invalid format for {fieldInfo.Name}: {ex.Message}"); }
                 // Log($"resloved {field.Key}");

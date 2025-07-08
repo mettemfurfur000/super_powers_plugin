@@ -11,7 +11,7 @@ public class ChargeJump : BasePower
     {
         Triggers = [typeof(EventPlayerJump)];
         Price = 2500;
-        Rarity = PowerRarity.Common;
+        Rarity = "Common";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

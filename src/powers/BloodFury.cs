@@ -11,7 +11,7 @@ public class BloodFury : BasePower
         Triggers = [typeof(EventPlayerDeath), typeof(EventPlayerHurt), typeof(EventRoundStart)];
         NeededResources = ["particles/survival_fx/gas_cannister_impact_child_explosion.vpcf"];
         Price = 7000;
-        Rarity = PowerRarity.Rare;
+        Rarity = "Rare";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

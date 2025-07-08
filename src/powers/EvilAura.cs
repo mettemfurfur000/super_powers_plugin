@@ -10,7 +10,7 @@ public class EvilAura : BasePower
     {
         Triggers = [typeof(EventRoundStart)];
         Price = 9000;
-        Rarity = PowerRarity.Rare;
+        Rarity = "Rare";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

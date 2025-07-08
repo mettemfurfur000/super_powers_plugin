@@ -10,7 +10,7 @@ public class InstantNades : BasePower
     {
         Triggers = [typeof(EventGrenadeThrown)];
         Price = 3500;
-        Rarity = PowerRarity.Uncommon;
+        Rarity = "Uncommon";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

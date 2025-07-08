@@ -22,7 +22,7 @@ public class BonusHealth : BasePower
     {
         Triggers = [typeof(EventRoundStart)];
         Price = 2000;
-        Rarity = PowerRarity.Common;
+        Rarity = "Common";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

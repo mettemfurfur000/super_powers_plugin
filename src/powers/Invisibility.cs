@@ -15,11 +15,12 @@ public class Invisibility : BasePower
             typeof(EventPlayerSound),
             typeof(EventWeaponFire),
             typeof(EventItemEquip),
+            typeof(EventWeaponReload),
             typeof(EventRoundStart)
         ];
 
         Price = 8000;
-        Rarity = PowerRarity.Legendary;
+        Rarity = "Legendary";
 
         checkTransmitListenerEnabled = true;
     }
@@ -29,6 +30,7 @@ public class Invisibility : BasePower
     private bool sendBar = true;
     private int tickSkip = 3;
     private float visibilityFloor = 0.5f;
+    private float weaponReloadRevealFactor = 0.35f;
     private float weaponRevealFactor = 0.5f;
     private float weaponRevealFactorSilenced = 0.2f;
 
@@ -80,6 +82,8 @@ public class Invisibility : BasePower
             HandleEvent(realEventSound.Userid, realEventSound.Radius / soundDivider);
         if (gameEvent is EventWeaponFire realEventFire)
             HandleEvent(realEventFire.Userid, (float)(realEventFire.Silenced ? weaponRevealFactorSilenced : weaponRevealFactor));
+        if(gameEvent is EventWeaponReload realEventReload)
+            HandleEvent(realEventReload.Userid, weaponReloadRevealFactor);
 
         return HookResult.Continue;
     }

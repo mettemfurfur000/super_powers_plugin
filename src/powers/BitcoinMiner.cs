@@ -10,7 +10,7 @@ public class BitcoinMiner : BasePower
     {
         Triggers = [];
         Price = 5000;
-        Rarity = PowerRarity.Uncommon;
+        Rarity = "Uncommon";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

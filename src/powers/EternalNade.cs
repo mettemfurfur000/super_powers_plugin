@@ -17,7 +17,7 @@ public class EternalNade : BasePower
         ];
         
         Price = 6000;
-        Rarity = PowerRarity.Rare;
+        Rarity = "Rare";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

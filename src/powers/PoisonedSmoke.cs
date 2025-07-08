@@ -12,7 +12,7 @@ public class PoisonedSmoke : BasePower
         Triggers = [typeof(EventSmokegrenadeDetonate), typeof(EventSmokegrenadeExpired)];
 
         Price = 5000;
-        Rarity = PowerRarity.Uncommon;
+        Rarity = "Uncommon";
     }
     
     public override HookResult Execute(GameEvent gameEvent)

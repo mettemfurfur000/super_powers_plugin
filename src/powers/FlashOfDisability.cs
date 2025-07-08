@@ -9,7 +9,7 @@ public class FlashOfDisability : BasePower
     {
         Triggers = [typeof(EventPlayerBlind)];
         Price = 6000;
-        Rarity = PowerRarity.Rare;
+        Rarity = "Rare";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

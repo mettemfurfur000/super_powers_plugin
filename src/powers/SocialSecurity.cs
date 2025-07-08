@@ -10,7 +10,7 @@ public class SocialSecurity : BasePower
     {
         Triggers = [typeof(EventRoundStart)];
         Price = 3500;
-        Rarity = PowerRarity.Common;
+        Rarity = "Common";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

@@ -10,7 +10,7 @@ public class BiocodedWeapons : BasePower
     {
         Triggers = [typeof(EventWeaponFire), typeof(EventInspectWeapon)];
         Price = 2500;
-        Rarity = PowerRarity.Uncommon;
+        Rarity = "Uncommon";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

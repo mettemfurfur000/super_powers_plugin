@@ -128,12 +128,12 @@ public class TheShopper : BasePower
     {
         List<ShopOption> retList = [];
 
-        List<(int, PowerRarity)> rollWeights =
+        List<(int, string)> rollWeights =
         [
-            (CommonWeight, PowerRarity.Common),
-            (UncommonWeight, PowerRarity.Uncommon),
-            (RareWeight, PowerRarity.Rare),
-            (LegendaryWeight, PowerRarity.Legendary),
+            (CommonWeight, "Common"),
+            (UncommonWeight, "Uncommon"),
+            (RareWeight, "Rare"),
+            (LegendaryWeight, "Legendary"),
         ];
 
         for (int i = 0; i < powersAvailable; i++)

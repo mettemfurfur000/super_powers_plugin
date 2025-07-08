@@ -10,7 +10,7 @@ public class GoldenBullet : BasePower
     {
         Triggers = [typeof(EventPlayerDeath)];
         Price = 4000;
-        Rarity = PowerRarity.Uncommon;
+        Rarity = "Uncommon";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

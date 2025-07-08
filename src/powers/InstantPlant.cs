@@ -13,7 +13,7 @@ public class InstantPlant : BasePower
         teamReq = CsTeam.Terrorist;
 
         Price = 2500;
-        Rarity = PowerRarity.Common;
+        Rarity = "Common";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

@@ -10,7 +10,7 @@ public class DamageLoss : BasePower
     {
         Triggers = [typeof(EventPlayerHurt)];
         Price = 5000;
-        Rarity = PowerRarity.Uncommon;
+        Rarity = "Uncommon";
         priority = 1; // this power should be executed after others to cancel their effects
     }
     

@@ -71,17 +71,17 @@ public static class NiceText
 
     public static string GetPowerColoredName(BasePower power)
     {
-        return $" {GetPowerRarityColor(power)}{NiceText.GetPowerNameReadable(power)}";
+        return $" {GetstringColor(power)}{NiceText.GetPowerNameReadable(power)}";
     }
 
-    public static string GetPowerRarityColor(BasePower power)
+    public static string GetstringColor(BasePower power)
     {
         return power.Rarity switch
         {
-            PowerRarity.Common => ChatColors.White.ToString(),
-            PowerRarity.Uncommon => ChatColors.Green.ToString(),
-            PowerRarity.Rare => ChatColors.Purple.ToString(),
-            PowerRarity.Legendary => ChatColors.Orange.ToString(),
+            "Common" => ChatColors.White.ToString(),
+            "Uncommon" => ChatColors.Green.ToString(),
+            "Rare" => ChatColors.Purple.ToString(),
+            "Legendary" => ChatColors.Orange.ToString(),
             _ => ChatColors.White.ToString()
         };
     }

@@ -10,7 +10,7 @@ public class Pacifism : BasePower
     {
         Triggers = [typeof(EventPlayerHurt), typeof(EventRoundStart)];
         Price = 6000;
-        Rarity = PowerRarity.Uncommon;
+        Rarity = "Uncommon";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

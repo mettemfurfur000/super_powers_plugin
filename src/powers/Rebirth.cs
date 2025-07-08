@@ -11,7 +11,7 @@ public class Rebirth : BasePower
     {
         Triggers = [typeof(EventPlayerDeath), typeof(EventRoundStart)];
         Price = 8000;
-        Rarity = PowerRarity.Legendary;
+        Rarity = "Legendary";
     }
 
     public override HookResult Execute(GameEvent gameEvent)

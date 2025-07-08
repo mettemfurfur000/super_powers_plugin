@@ -10,7 +10,7 @@ public class SmallSize : BasePower
     {
         Triggers = [typeof(EventRoundStart)];
         // Price = 5000;
-        // Rarity = PowerRarity.Uncommon;
+        // Rarity = "Uncommon";
         NoShop = true;
     }
 

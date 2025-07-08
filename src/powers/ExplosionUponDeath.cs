@@ -11,7 +11,7 @@ public class ExplosionUponDeath : BasePower
     {
         Triggers = [typeof(EventPlayerDeath)];
         Price = 2500;
-        Rarity = PowerRarity.Common;
+        Rarity = "Common";
     }
 
     public override HookResult Execute(GameEvent gameEvent)
