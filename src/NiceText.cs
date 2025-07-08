@@ -71,10 +71,10 @@ public static class NiceText
 
     public static string GetPowerColoredName(BasePower power)
     {
-        return $" {GetstringColor(power)}{NiceText.GetPowerNameReadable(power)}";
+        return $" {GetPowerRarityColor(power)}{NiceText.GetPowerNameReadable(power)}";
     }
 
-    public static string GetstringColor(BasePower power)
+    public static string GetPowerRarityColor(BasePower power)
     {
         return power.Rarity switch
         {
