@@ -178,7 +178,7 @@ public class Invisibility : BasePower
                                 hiddenEntitiesBombIncluded.Add(bomb);
                                 hiddenEntities.Add(bomb);
 
-                                Server.PrintToChatAll("bomb found and hidden");
+                                // Server.PrintToChatAll("bomb found and hidden");
                             }
                         }
                 }
