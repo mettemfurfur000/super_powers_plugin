@@ -9,6 +9,8 @@ using super_powers_plugin.src;
 
 // abscaraftlks
 
+// ! Private fields will be exposed to user in an automaticaly generated config, leave fields public if you dont want them to be configurable
+
 public class BasePower : ShopPower
 {
     public string Name => NiceText.GetPowerName(this);
@@ -23,6 +25,12 @@ public class BasePower : ShopPower
                                                                         // additive powers activate before multiplicative
 
     public List<Type> Incompatibilities = [];                           // ! Holds types of powers that are criticaly incompatible with this one
+
+    // Check transmit listener will ask every power for all hidden entities
+    // return null if player is not affected by any check transmit thingies
+    public virtual List<CBaseModelEntity>? GetHiddenEntities(CCSPlayerController player) { return null; }
+    public bool checkTransmitListenerEnabled = false;    // but only if enabled
+
     private bool enabled = true;                                        // Disabled powers wont show up anywhere
 
     public void SetDisabled() { enabled = false; }
@@ -36,7 +44,7 @@ public class BasePower : ShopPower
         return HookResult.Continue;                                     // ! Put custom logic here
     }
     public virtual void Update() { }                                    // ! Update will be executed every tick, do not put heavy operations in here if possible
-    public virtual void ParseCfg(Dictionary<string, string> cfg) { TemUtils.ParseConfigReflectiveRecursive(this, this.GetType(), cfg); }
+    public virtual void ParseCfg(Dictionary<string, string> cfg) { TemUtils.ParseConfigReflectiveRecursive(this, this.GetType(), cfg); } // no touching
     public virtual bool IsUser(CCSPlayerController player) { return Users.Contains(player); }
 
     public virtual void OnRemovePower(CCSPlayerController? player) { }  // ! Put custom logic that is needed to rever player to its original state

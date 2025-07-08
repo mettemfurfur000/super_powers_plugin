@@ -237,6 +237,11 @@ public static class SuperPowerController
             power.UnRegisterHooks();
     }
 
+    public static List<BasePower> GetCheckTransmitEnabled()
+    {
+        return Powers.FindAll(p => p.checkTransmitListenerEnabled);
+    }
+
     public static void CheckDisabled()
     {
         int cur_tick = Server.TickCount;

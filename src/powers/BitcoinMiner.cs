@@ -24,8 +24,8 @@ public class BitcoinMiner : BasePower
             return;
         foreach (var user in Users)
         {
-            if (Random.Shared.NextSingle() < 100 / probabilityPercentage)
-            TemUtils.GiveMoney(user, moneyBonusAmount, "from the BitcoinMiner");
+            if (Random.Shared.NextSingle() < (probabilityPercentage / 100)) // guh
+                TemUtils.GiveMoney(user, moneyBonusAmount, "from the BitcoinMiner");
         }
     }
 

@@ -14,6 +14,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
 
+    public List<BasePower> checkTransmitTargets = [];
+
     public override void Load(bool hotReload)
     {
         TemUtils.__plugin = this;
@@ -99,6 +101,32 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             SuperPowerController.Update();
         });
 
+        checkTransmitTargets = SuperPowerController.GetCheckTransmitEnabled();
+
+        RegisterListener<Listeners.CheckTransmit>(infoList =>
+        {
+            if (checkTransmitTargets.Count == 0)
+                return;
+
+            foreach ((CCheckTransmitInfo info, CCSPlayerController? player) in infoList)
+            {
+                if (player == null) // if player is not real he can see the models
+                    continue;
+
+                foreach (BasePower power in checkTransmitTargets)
+                {
+                    var hiddenEntites = power.GetHiddenEntities(player);
+                    if (hiddenEntites == null)
+                        continue;
+                    foreach (var entity in hiddenEntites)
+                    {
+                        info.TransmitEntities.Remove(entity);
+                        // Server.PrintToChatAll("hidden " + entity.DesignerName);
+                    }
+                }
+            }
+        });
+
         SuperPowerController.RegisterHooks();
     }
 
@@ -110,6 +138,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     public override void Unload(bool hotReload)
     {
         SuperPowerController.UnRegisterHooks();
+
+        checkTransmitTargets.Clear();
     }
 
     [ConsoleCommand("sp_help", "should help in most cases")]
@@ -147,7 +177,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         var now_flag = false;
         var force_flag = false;
-        
+
         if (commandInfo.ArgCount >= 4)
         {
             now_flag = commandInfo.GetArg(3).ToLower().Contains("now");
