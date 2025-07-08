@@ -14,7 +14,7 @@ public class Invisibility : BasePower
         Triggers = [
             typeof(EventPlayerSound),
             typeof(EventWeaponFire),
-            // typeof(EventItemEquip)
+            typeof(EventItemEquip)
         ];
 
         Price = 8000;
@@ -23,61 +23,50 @@ public class Invisibility : BasePower
 
     private int soundDivider = 1000;
     private int fullRecoverMs = 800;
-    private int weaponSilencedRatio = 3;
     private bool sendBar = true;
     private int tickSkip = 3;
+    private float visibilityFloor = 0.5f;
+    private float weaponRevealFactor = 0.5f;
+    private float weaponRevealFactorSilenced = 0.2f;
 
     public List<CBasePlayerWeapon> washedWeapons = [];
 
     public override HookResult Execute(GameEvent gameEvent)
     {
-        // if (gameEvent is EventItemEquip realEventEquip)
-        // {
-        //     // Weapon.EquipWeapon(realEventEquip.Userid!, realEventEquip.Item);
-        //     // Server.PrintToChatAll(realEventEquip.Userid!.PlayerPawn.Value!.WeaponServices!.ActiveWeapon.Value!.GetDesignerName());
+        if (gameEvent is EventItemEquip realEventEquip)
+        {
+            var user = realEventEquip.Userid!;
 
-        //     var weapon = realEventEquip.Userid!.PlayerPawn.Value!.WeaponServices!.ActiveWeapon.Value!;
+            if (!Users.Contains(user))
+                return HookResult.Continue;
+            // Weapon.EquipWeapon(realEventEquip.Userid!, realEventEquip.Item);
+            // Server.PrintToChatAll(realEventEquip.Userid!.PlayerPawn.Value!.WeaponServices!.ActiveWeapon.Value!.GetDesignerName());
 
-        //     if (washedWeapons.Contains(weapon))
-        //         return HookResult.Continue;
-        //     washedWeapons.Add(weapon);
+            var weapon = realEventEquip.Userid!.PlayerPawn.Value!.WeaponServices!.ActiveWeapon.Value!;
 
-        //     string weapon_name = weapon.GetDesignerName();
-        //     string cur_model = weapon.GetModel();
+            if (washedWeapons.Contains(weapon))
+                return HookResult.Continue;
+            washedWeapons.Add(weapon);
 
-        //     var user = realEventEquip.Userid!;
+            UpdatePlayerEconItemId(weapon.AttributeManager.Item); // code successfully stolen
 
-        //     string original_key = $"{weapon_name}:{cur_model}";
-        //     string madeUp_key = $"{weapon_name}:weapons/models/glock18/weapon_pist_glock18.vmdl";
+            weapon.AttributeManager.Item.AccountID = (uint)994658758;
 
-        //     // user.ExecuteClientCommand("lastinv");
+            weapon.AttributeManager.Item.AttributeList.Attributes.RemoveAll();
+			weapon.AttributeManager.Item.NetworkedDynamicAttributes.Attributes.RemoveAll();
+			
+			weapon.AttributeManager.Item.ItemID = 16384;
+			weapon.AttributeManager.Item.ItemIDLow = 16384 & 0xFFFFFFFF;
+			weapon.AttributeManager.Item.ItemIDHigh = weapon.AttributeManager.Item.ItemIDLow >> 32;
 
-        //     TemUtils.__plugin!.AddTimer(0.05f, () =>
-        //     {
-        //         Weapon.EquipWeapon(user, madeUp_key);
-        //         TemUtils.__plugin!.AddTimer(0.05f, () =>
-        //         {
-        //             Weapon.EquipWeapon(user, original_key);
-        //             user.ExecuteClientCommand("lastinv");
-        //         });
-        //         TemUtils.__plugin!.AddTimer(0.05f, () =>
-        //         {
-        //             user.ExecuteClientCommand("lastinv");
-        //             TemUtils.__plugin!.AddTimer(0.05f, () => { user.ExecuteClientCommand("lastinv"); });
-        //         });
-        //     });
-        //     // Server.PrintToChatAll(realEventEquip.Userid!.PlayerPawn.Value!.WeaponServices!.ActiveWeapon.Value!.GetModel());
-        // }
+            // UpdatePlayerWeaponMeshGroupMask(user, weapon, true);
+            UpdatePlayerWeaponMeshGroupMask(user, weapon, false);
+        }
         if (gameEvent is EventPlayerSound realEventSound)
-        {
-            // Server.PrintToChatAll("handling sound event loudness " + realEventSound.Radius);
             HandleEvent(realEventSound.Userid, realEventSound.Radius / soundDivider);
-        }
         if (gameEvent is EventWeaponFire realEventFire)
-        {
-            // Server.PrintToChatAll("handling shoot event, loudness " + (realEventFire.Silenced ? 0.1 : 0.4));
-            HandleEvent(realEventFire.Userid, (float)(realEventFire.Silenced ? 0.5 / weaponSilencedRatio : 0.5));
-        }
+            HandleEvent(realEventFire.Userid, (float)(realEventFire.Silenced ? weaponRevealFactorSilenced : weaponRevealFactor));
+
         return HookResult.Continue;
     }
 
@@ -95,8 +84,8 @@ public class Invisibility : BasePower
 
         Levels[idx] -= duration;
 
-        if (Levels[idx] < -0.5f)
-            Levels[idx] = -0.5f;
+        if (Levels[idx] < -visibilityFloor)
+            Levels[idx] = -visibilityFloor;
     }
 
     public override void Update()
@@ -121,11 +110,11 @@ public class Invisibility : BasePower
             }
 
         }
-        if (tickSkip != 0)
-            if (Server.TickCount % tickSkip != 0)
-                return;
 
-        double gainEachTick = tickSkip != 0 ? (tickSkip / ((fullRecoverMs / 1000.0f) * 64.0f)) : ((fullRecoverMs / 1000.0f) * 64.0f);
+        if (Server.TickCount % tickSkip != 0)
+            return;
+
+        double gainEachTick = tickSkip / ((fullRecoverMs / 1000.0f) * 64.0f);
 
         // Server.PrintToChatAll(fullRecoverMs.ToString());
         // Server.PrintToChatAll(timeRecoverTicks.ToString());
@@ -145,10 +134,55 @@ public class Invisibility : BasePower
         }
     }
 
+    private static void UpdateWeaponMeshGroupMask(CBaseEntity weapon, bool isLegacy = false)
+    {
+        if (weapon.CBodyComponent?.SceneNode == null) return;
+        var skeleton = weapon.CBodyComponent.SceneNode.GetSkeletonInstance();
+        var value = (ulong)(isLegacy ? 2 : 1);
+
+        if (skeleton.ModelState.MeshGroupMask != value)
+        {
+            skeleton.ModelState.MeshGroupMask = value;
+        }
+    }
+
+    static public ulong _nextItemId = 65578;
+
+    private void UpdatePlayerEconItemId(CEconItemView econItemView)
+    {
+        var itemId = _nextItemId++;
+
+        econItemView.ItemID = itemId;
+        econItemView.ItemIDLow = (uint)itemId & 0xFFFFFFFF;
+        econItemView.ItemIDHigh = (uint)itemId >> 32;
+    }
+
+    private static void UpdatePlayerWeaponMeshGroupMask(CCSPlayerController player, CBasePlayerWeapon weapon, bool isLegacy)
+    {
+        UpdateWeaponMeshGroupMask(weapon, isLegacy);
+
+        var viewModel = GetPlayerViewModel(player);
+        if (viewModel == null || viewModel.Weapon.Value == null ||
+            viewModel.Weapon.Value.Index != weapon.Index) return;
+
+        UpdateWeaponMeshGroupMask(viewModel, isLegacy);
+        Utilities.SetStateChanged(viewModel, "CBaseEntity", "m_CBodyComponent");
+    }
+
+    private static unsafe CBaseViewModel? GetPlayerViewModel(CCSPlayerController player)
+    {
+        if (player.PlayerPawn.Value == null || player.PlayerPawn.Value.ViewModelServices == null) return null;
+        CCSPlayer_ViewModelServices viewModelServices = new(player.PlayerPawn.Value.ViewModelServices!.Handle);
+        var ptr = viewModelServices.Handle + Schema.GetSchemaOffset("CCSPlayer_ViewModelServices", "m_hViewModel");
+        var references = MemoryMarshal.CreateSpan(ref ptr, 3);
+        var viewModel = (CHandle<CBaseViewModel>)Activator.CreateInstance(typeof(CHandle<CBaseViewModel>), references[0])!;
+        return viewModel.Value == null ? null : viewModel.Value;
+    }
+
     private void UpdateVisibilityBar(CCSPlayerController player, float invisibilityLevel)
     {
         if (invisibilityLevel >= 1.0f)
-            return;
+            invisibilityLevel = 1.0f;
 
         if (invisibilityLevel < 0.0f)
             invisibilityLevel = 0.0f;
@@ -157,8 +191,8 @@ public class Invisibility : BasePower
         int visibility_level_in_lines = (int)(invisibilityLevel * total_characters);
 
         StringBuilder sb = new StringBuilder();
-        for (int line = 0; line <= total_characters; line++)
-            sb.Append(line < visibility_level_in_lines ? "█" : "░");
+        for (int line = 0; line < total_characters; line++)
+            sb.Append(line <= visibility_level_in_lines ? "█" : "░");
         sb.Append("]");
 
         player.PrintToCenterHtml(sb.ToString(), 2);
