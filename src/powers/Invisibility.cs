@@ -16,7 +16,8 @@ public class Invisibility : BasePower
             typeof(EventWeaponFire),
             typeof(EventItemEquip),
             typeof(EventWeaponReload),
-            typeof(EventRoundStart)
+            typeof(EventRoundStart),
+            typeof(EventHostageFollows)
         ];
 
         Price = 8000;
@@ -43,6 +44,10 @@ public class Invisibility : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
+        if (gameEvent is EventHostageFollows realEventFollows)
+        {
+            Server.PrintToChatAll($"{realEventFollows.Userid!.PlayerName} picked up the {realEventFollows.Hostage}");
+        }
         if (gameEvent is EventRoundStart realEventStart)
         {
             bombFoundForTheRound = false;
@@ -82,7 +87,7 @@ public class Invisibility : BasePower
             HandleEvent(realEventSound.Userid, realEventSound.Radius / soundDivider);
         if (gameEvent is EventWeaponFire realEventFire)
             HandleEvent(realEventFire.Userid, (float)(realEventFire.Silenced ? weaponRevealFactorSilenced : weaponRevealFactor));
-        if(gameEvent is EventWeaponReload realEventReload)
+        if (gameEvent is EventWeaponReload realEventReload)
             HandleEvent(realEventReload.Userid, weaponReloadRevealFactor);
 
         return HookResult.Continue;

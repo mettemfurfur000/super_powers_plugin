@@ -1,3 +1,4 @@
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 
@@ -14,8 +15,9 @@ public class EternalNade : BasePower
             typeof(EventFlashbangDetonate),
             typeof(EventDecoyDetonate),
             typeof(EventGrenadeThrown),
+            // typeof(EventRoundStart),
         ];
-        
+
         Price = 6000;
         Rarity = "Rare";
     }
@@ -23,35 +25,47 @@ public class EternalNade : BasePower
     public override HookResult Execute(GameEvent gameEvent)
     {
         CCSPlayerController? player = null;
-        Tuple<CCSPlayerController, string>? nadeRecord = null;
+        string weaponName = "";
 
         switch (gameEvent)
         {
+            case EventRoundStart start:
+                incGrenades.Clear();
+                break;
             case EventGrenadeThrown thrown:
-                nadeRecord = new Tuple<CCSPlayerController, string>(thrown.Userid!, thrown.Weapon);
+                if (thrown.Weapon == "incgrenade")
+                {
+                    incGrenades.Add(thrown.Userid!);
+                    // Server.PrintToChatAll($"handing the edge case");
+                }
                 // Server.PrintToChatAll($"thrown {thrown.Userid!}, {thrown.Weapon}");
                 break;
             case EventHegrenadeDetonate he:
                 player = he.Userid;
+                weaponName = "weapon_hegrenade";
                 break;
             case EventMolotovDetonate molly:
-                player = molly.Userid;
+                player = molly.Userid!;
+                weaponName = "weapon_molotov";
+                if (incGrenades.Contains(player))
+                {
+                    weaponName = "weapon_incgrenade";
+                    incGrenades.Remove(player);
+                    // Server.PrintToChatAll($"inc grenade instead");
+                }
                 break;
             case EventSmokegrenadeDetonate smoke:
                 player = smoke.Userid;
+                weaponName = "weapon_smokegrenade";
                 break;
             case EventFlashbangDetonate flash:
                 player = flash.Userid;
+                weaponName = "weapon_flashbang";
                 break;
             case EventDecoyDetonate decoy:
                 player = decoy.Userid;
+                weaponName = "weapon_decoy";
                 break;
-        }
-
-        if (nadeRecord != null)
-        {
-            nadesThrown.Add(nadeRecord);
-            return HookResult.Continue;
         }
 
         if (player == null || !player.IsValid)
@@ -60,28 +74,12 @@ public class EternalNade : BasePower
         if (!Users.Contains(player))
             return HookResult.Continue;
 
-        string weaponName = "";
-
-        foreach (var nade in nadesThrown)
-            if (nade.Item1 == player)
-            {
-                nadeRecord = nade;
-                weaponName = "weapon_" + nade.Item2;
-                break;
-            }
-
-        if (nadeRecord == null)
-            return HookResult.Continue;
-
-        // Server.PrintToChatAll($"removing {nadeRecord}, giving {weaponName}");
-
-        nadesThrown.Remove(nadeRecord);
+        // Server.PrintToChatAll($"giving {weaponName}");
         player.GiveNamedItem(weaponName);
-
         return HookResult.Continue;
     }
 
-    public List<Tuple<CCSPlayerController, string>> nadesThrown = [];
+    public List<CCSPlayerController> incGrenades = [];
 
     public override string GetDescription() => $"When your grenade detonates, you get it back";
     public override string GetDescriptionColored() => $"When your grenade " + NiceText.Red("detonates") + ", you get it back";
