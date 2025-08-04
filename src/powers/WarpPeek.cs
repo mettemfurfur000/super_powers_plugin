@@ -17,7 +17,7 @@ public class WarpPeek : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
-        if (gameEvent is null)
+        if (gameEvent.GetType() != Triggers[0])
             return HookResult.Continue;
 
         EventPlayerHurt realEvent = (EventPlayerHurt)gameEvent;

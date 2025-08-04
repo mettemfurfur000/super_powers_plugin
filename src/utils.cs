@@ -330,7 +330,7 @@ public class TemUtils
 
         pawn.Render = fadeColor;
         Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_clrRender");
-        Utilities.SetStateChanged(pawn, "CCSPlayer_ViewModelServices", "m_hViewModel");
+        // Utilities.SetStateChanged(pawn, "CCSPlayer_ViewModelServices", "m_hViewModel");
 
         // pawn.RenderMode = RenderMode_t.kRenderTransAlpha;
         // Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_nRenderMode");

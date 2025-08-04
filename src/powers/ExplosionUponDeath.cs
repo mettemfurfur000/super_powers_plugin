@@ -16,7 +16,7 @@ public class ExplosionUponDeath : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
-        if (gameEvent is null)
+        if (gameEvent.GetType() != Triggers[0])
             return HookResult.Continue;
 
         EventPlayerDeath realEvent = (EventPlayerDeath)gameEvent;

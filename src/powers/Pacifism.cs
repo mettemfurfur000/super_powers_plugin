@@ -24,7 +24,7 @@ public class Pacifism : BasePower
             if (victim == null || !victim.IsValid || attacker == null || !attacker.IsValid)
                 return HookResult.Continue;
 
-            if (Users.Contains(attacker)) // if attacker is a user, reset its capabilities
+            if (status.Contains(attacker)) // if attacker is a user, reset its capabilities
             {
                 // Server.PrintToChatAll("pacifism removed");
                 status.Remove(attacker);

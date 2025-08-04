@@ -16,6 +16,9 @@ public class ChargeJump : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
+        if (gameEvent.GetType() != Triggers[0])
+            return HookResult.Continue;
+
         EventPlayerJump realEvent = (EventPlayerJump)gameEvent;
         var player = realEvent.Userid;
         if (player == null)

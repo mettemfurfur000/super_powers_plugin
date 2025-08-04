@@ -29,7 +29,7 @@ public class TheShopper : BasePower
 {
     public TheShopper()
     {
-        Triggers = [typeof(EventRoundStart)];
+        // Triggers = [typeof(EventRoundStart)];
         NoShop = true;
     }
 
@@ -37,86 +37,89 @@ public class TheShopper : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
-        shopStartedTick = Server.TickCount;
+        // if (gameEvent.GetType() != Triggers[0])
+        //     return HookResult.Continue;
 
-        // Server.PrintToConsole($"Shopper power executed at tick {shopStartedTick}");
+        // shopStartedTick = Server.TickCount;
 
-        foreach (var user in Users)
-            if (!activeShops.ContainsKey(user))
-            {
-                activeShops[user] = ShopGenerate(user);
-                PrintShopToChat(user, activeShops[user]);
-            }
+        // // Server.PrintToConsole($"Shopper power executed at tick {shopStartedTick}");
+
+        // foreach (var user in Users)
+        //     if (!activeShops.ContainsKey(user))
+        //     {
+        //         activeShops[user] = ShopGenerate(user);
+        //         PrintShopToChat(user, activeShops[user]);
+        //     }
 
         return HookResult.Continue;
     }
 
     public override void Update()
     {
-        if (Server.TickCount % 32 != 0)
-            return;
+        // if (Server.TickCount % 32 != 0)
+        //     return;
 
-        if (Server.TickCount - shopStartedTick > shopAvailableSeconds * 64)
-            foreach (var user in Users)
-            {
-                if (activeShops.TryGetValue(user, out List<ShopOption>? shop))
-                {
-                    user.PrintToChat(NiceText.Paint("Shop closed", ChatColors.Gold));
-                    activeShops.Remove(user);
-                }
-            }
+        // if (Server.TickCount - shopStartedTick > shopAvailableSeconds * 64)
+        //     foreach (var user in Users)
+        //     {
+        //         if (activeShops.TryGetValue(user, out List<ShopOption>? shop))
+        //         {
+        //             user.PrintToChat(NiceText.Paint("Shop closed", ChatColors.Gold));
+        //             activeShops.Remove(user);
+        //         }
+        //     }
     }
 
     public override Tuple<SIGNAL_STATUS, string> OnSignal(CCSPlayerController? player, List<string> args)
     {
-        if (player == null)
-            return SuperPowerController.ignored_signal;
+        // if (player == null)
+        //     return SuperPowerController.ignored_signal;
 
-        if (!Users.Contains(player))
-            return SuperPowerController.ignored_signal;
+        // if (!Users.Contains(player))
+        //     return SuperPowerController.ignored_signal;
 
-        string command = args[0];
+        // string command = args[0];
 
-        if (command == "b")
-        {
-            string? choice = null;
-            if (args.Count > 1)
-                choice = args[1];
+        // if (command == "b")
+        // {
+        //     string? choice = null;
+        //     if (args.Count > 1)
+        //         choice = args[1];
 
-            // Server.PrintToChatAll("Shopper signal received: " + command + (choice != null ? $", {choice}" : ""));
+        //     // Server.PrintToChatAll("Shopper signal received: " + command + (choice != null ? $", {choice}" : ""));
 
-            if (activeShops.TryGetValue(player, out List<ShopOption>? shop))
-            {
-                if (choice != null && int.TryParse(choice, out int index) && index > 0 && index <= shop.Count)
-                {
-                    var option = shop[index - 1];
-                    if (!option.bought)
-                    {
-                        TemUtils.AttemptPaidAction(player, paidChoice ? option.Price : 0, NiceText.GetPowerColoredName(option.Power!), () =>
-                        {
-                            option.bought = true;
-                            option.Power!.OnAdd(player);
+        //     if (activeShops.TryGetValue(player, out List<ShopOption>? shop))
+        //     {
+        //         if (choice != null && int.TryParse(choice, out int index) && index > 0 && index <= shop.Count)
+        //         {
+        //             var option = shop[index - 1];
+        //             if (!option.bought)
+        //             {
+        //                 TemUtils.AttemptPaidAction(player, paidChoice ? option.Price : 0, NiceText.GetPowerColoredName(option.Power!), () =>
+        //                 {
+        //                     option.bought = true;
+        //                     option.Power!.OnAdd(player);
 
-                            if (!paidChoice)
-                                activeShops.Remove(player);
-                            // some powers will only activate on the next round start, dont know how to deal with it yet
-                            // option.Power!.Execute(null); // if multiple players get the same power they get the effect twice, instead of +250 health it will be +500
-                        });
-                    }
-                    else
-                        player.PrintToChat($"You already bought {NiceText.GetPowerColoredName(option.Power!)}");
-                }
-                else
-                    player.PrintToChat("Invalid choice!");
-            }
-            else
-            {
-                if (!paidChoice)
-                    player.PrintToChat("Only 1 power can be chosen!");
-                else
-                    player.PrintToChat("Invalid shop!");
-            }
-        }
+        //                     if (!paidChoice)
+        //                         activeShops.Remove(player);
+        //                     // some powers will only activate on the next round start, dont know how to deal with it yet
+        //                     // option.Power!.Execute(null); // if multiple players get the same power they get the effect twice, instead of +250 health it will be +500
+        //                 });
+        //             }
+        //             else
+        //                 player.PrintToChat($"You already bought {NiceText.GetPowerColoredName(option.Power!)}");
+        //         }
+        //         else
+        //             player.PrintToChat("Invalid choice!");
+        //     }
+        //     else
+        //     {
+        //         if (!paidChoice)
+        //             player.PrintToChat("Only 1 power can be chosen!");
+        //         else
+        //             player.PrintToChat("Invalid shop!");
+        //     }
+        // }
 
         return signalAccepted;
     }

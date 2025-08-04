@@ -230,23 +230,23 @@ public class Invisibility : BasePower
     {
         UpdateWeaponMeshGroupMask(weapon, isLegacy);
 
-        var viewModel = GetPlayerViewModel(player);
-        if (viewModel == null || viewModel.Weapon.Value == null ||
-            viewModel.Weapon.Value.Index != weapon.Index) return;
+        // var viewModel = GetPlayerViewModel(player);
+        // if (viewModel == null || viewModel.Weapon.Value == null ||
+        //     viewModel.Weapon.Value.Index != weapon.Index) return;
 
-        UpdateWeaponMeshGroupMask(viewModel, isLegacy);
-        Utilities.SetStateChanged(viewModel, "CBaseEntity", "m_CBodyComponent");
+        // UpdateWeaponMeshGroupMask(viewModel, isLegacy);
+        // Utilities.SetStateChanged(viewModel, "CBaseEntity", "m_CBodyComponent");
     }
 
-    private static unsafe CBaseViewModel? GetPlayerViewModel(CCSPlayerController player)
-    {
-        if (player.PlayerPawn.Value == null || player.PlayerPawn.Value.ViewModelServices == null) return null;
-        CCSPlayer_ViewModelServices viewModelServices = new(player.PlayerPawn.Value.ViewModelServices!.Handle);
-        var ptr = viewModelServices.Handle + Schema.GetSchemaOffset("CCSPlayer_ViewModelServices", "m_hViewModel");
-        var references = MemoryMarshal.CreateSpan(ref ptr, 3);
-        var viewModel = (CHandle<CBaseViewModel>)Activator.CreateInstance(typeof(CHandle<CBaseViewModel>), references[0])!;
-        return viewModel.Value == null ? null : viewModel.Value;
-    }
+    // private static unsafe CBaseViewModel? GetPlayerViewModel(CCSPlayerController player)
+    // {
+    //     if (player.PlayerPawn.Value == null || player.PlayerPawn.Value.ViewModelServices == null) return null;
+    //     CCSPlayer_ViewModelServices viewModelServices = new(player.PlayerPawn.Value.ViewModelServices!.Handle);
+    //     var ptr = viewModelServices.Handle + Schema.GetSchemaOffset("CCSPlayer_ViewModelServices", "m_hViewModel");
+    //     var references = MemoryMarshal.CreateSpan(ref ptr, 3);
+    //     var viewModel = (CHandle<CBaseViewModel>)Activator.CreateInstance(typeof(CHandle<CBaseViewModel>), references[0])!;
+    //     return viewModel.Value == null ? null : viewModel.Value;
+    // }
 
     private void UpdateVisibilityBar(CCSPlayerController player, float invisibilityLevel)
     {

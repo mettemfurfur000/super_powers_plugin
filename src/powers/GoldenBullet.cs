@@ -15,6 +15,9 @@ public class GoldenBullet : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
+        if (gameEvent.GetType() != Triggers[0])
+            return HookResult.Continue;
+
         EventPlayerDeath realEvent = (EventPlayerDeath)gameEvent;
 
         var shooter = realEvent.Attacker!;

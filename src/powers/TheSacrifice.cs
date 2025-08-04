@@ -15,6 +15,9 @@ public class TheSacrifice : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
+        if (gameEvent.GetType() != Triggers[0])
+            return HookResult.Continue;
+
         EventPlayerDeath realEvent = (EventPlayerDeath)gameEvent;
 
         var player = realEvent.Userid!;

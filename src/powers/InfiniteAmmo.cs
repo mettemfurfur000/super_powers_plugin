@@ -14,6 +14,9 @@ public class InfiniteAmmo : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
+        if (gameEvent.GetType() != Triggers[0])
+            return HookResult.Continue;
+
         var realEvent = (EventWeaponFire)gameEvent;
         var player = realEvent.Userid;
 

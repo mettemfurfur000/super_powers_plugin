@@ -14,6 +14,9 @@ public class FlashOfDisability : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
+        if (gameEvent.GetType() != Triggers[0])
+            return HookResult.Continue;
+
         var realEvent = (EventPlayerBlind)gameEvent;
 
         // Server.PrintToChatAll("blind detected");

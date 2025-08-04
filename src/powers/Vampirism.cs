@@ -15,6 +15,9 @@ public class Vampirism : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
+        if (gameEvent.GetType() != Triggers[0])
+            return HookResult.Continue;
+
         var realEvent = (EventPlayerHurt)gameEvent;
         var attacker = realEvent.Attacker;
         var victim = realEvent.Userid;

@@ -13,9 +13,12 @@ public class DamageLoss : BasePower
         Rarity = "Uncommon";
         priority = 1; // this power should be executed after others to cancel their effects
     }
-    
+
     public override HookResult Execute(GameEvent gameEvent)
     {
+        if (gameEvent.GetType() != Triggers[0])
+            return HookResult.Continue;
+
         var realEvent = (EventPlayerHurt)gameEvent;
         var victim = realEvent.Userid;
 

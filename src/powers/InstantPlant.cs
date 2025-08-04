@@ -18,6 +18,9 @@ public class InstantPlant : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
+        if (gameEvent.GetType() != Triggers[0])
+            return HookResult.Continue;
+
         var realEvent = (EventBombBeginplant)gameEvent;
         var player = realEvent.Userid;
         if (player != null && player.IsValid && player.PawnIsAlive)

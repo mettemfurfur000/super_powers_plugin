@@ -429,6 +429,7 @@ public static class SuperPowerController
                     if (now)
                         try
                         {
+                            // Server.PrintToConsole($"debug: adding {powerName} now");
                             power.Execute(new GameEvent(0));
                             status_message += $"Added {powerName} to {player.PlayerName}{now_tip}\n";
                             added_powers_feedback += $"{ChatColors.Green}(NOW)";
