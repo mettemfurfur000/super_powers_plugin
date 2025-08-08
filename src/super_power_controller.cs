@@ -74,9 +74,10 @@ public static class SuperPowerController
 
         Powers.Add(new TheShopper());
 
+        Powers.Add(new SmallSize()); // hull size vector is stored as a static variable and all players share the same size
+        
         // cant implement rn
         // Powers.Add(new ConcreteSmoke()); // voxel data is so mystical...
-        //Powers.Add(new SmallSize()); // hull size vector is stored as a static variable and all players share the same size
         // should look for da pattern in le memory or somethin idk
         // Powers.Add(new WallHack()); // hav to wrtite check transmit "subsystem" so evry other power coud use it without much headache
         // Powers.Add(new WeaponMaster()); // no recoil?
