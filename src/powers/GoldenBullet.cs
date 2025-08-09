@@ -30,11 +30,11 @@ public class GoldenBullet : BasePower
         if (weapon.Value!.Clip1 == 1)
         {
             float timesMult = 1.0f;
-            Server.PrintToChatAll("last");
+            // Server.PrintToChatAll("last");
 
             if (headshotMultEnabled && realEvent.Headshot)
             {
-                Server.PrintToChatAll("headshot");
+                // Server.PrintToChatAll("headshot");
                 timesMult = multOnHeadshot;
             }
 

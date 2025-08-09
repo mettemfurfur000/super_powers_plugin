@@ -71,7 +71,7 @@ public static class NiceText
 
     public static string GetPowerColoredName(BasePower power)
     {
-        return $" {GetPowerRarityColor(power)}{NiceText.GetPowerNameReadable(power)}";
+        return $" {GetPowerRarityColor(power)}{NiceText.GetPowerNameReadable(power)} {ChatColors.Default}";
     }
 
     public static string GetPowerRarityColor(BasePower power)
