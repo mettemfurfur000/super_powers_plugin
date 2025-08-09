@@ -4,6 +4,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Memory;
+using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using super_powers_plugin.src;
 
@@ -29,11 +30,11 @@ public class Invisibility : BasePower
     private int soundDivider = 1000;
     private int fullRecoverMs = 800;
     private bool sendBar = true;
-    private int tickSkip = 3;
+    private int tickSkip = 2;
     private float visibilityFloor = 0.5f;
-    private float weaponReloadRevealFactor = 0.35f;
-    private float weaponRevealFactor = 0.5f;
-    private float weaponRevealFactorSilenced = 0.2f;
+    private float weaponReloadRevealFactor = 0.55f;
+    private float weaponRevealFactor = 0.75f;
+    private float weaponRevealFactorSilenced = 0.35f;
 
     public bool bombFoundForTheRound = false;
     public CBasePlayerWeapon? bomb = null;
@@ -84,7 +85,11 @@ public class Invisibility : BasePower
             UpdatePlayerWeaponMeshGroupMask(user, weapon, false);
         }
         if (gameEvent is EventPlayerSound realEventSound)
-            HandleEvent(realEventSound.Userid, realEventSound.Radius / soundDivider);
+        {
+            float impact = realEventSound.Radius / (float)soundDivider;
+            // Server.PrintToChatAll($"{impact}");
+            HandleEvent(realEventSound.Userid, impact < 0.1 ? 0 : impact);
+        }
         if (gameEvent is EventWeaponFire realEventFire)
             HandleEvent(realEventFire.Userid, (float)(realEventFire.Silenced ? weaponRevealFactorSilenced : weaponRevealFactor));
         if (gameEvent is EventWeaponReload realEventReload)
@@ -229,24 +234,7 @@ public class Invisibility : BasePower
     private static void UpdatePlayerWeaponMeshGroupMask(CCSPlayerController player, CBasePlayerWeapon weapon, bool isLegacy)
     {
         UpdateWeaponMeshGroupMask(weapon, isLegacy);
-
-        // var viewModel = GetPlayerViewModel(player);
-        // if (viewModel == null || viewModel.Weapon.Value == null ||
-        //     viewModel.Weapon.Value.Index != weapon.Index) return;
-
-        // UpdateWeaponMeshGroupMask(viewModel, isLegacy);
-        // Utilities.SetStateChanged(viewModel, "CBaseEntity", "m_CBodyComponent");
     }
-
-    // private static unsafe CBaseViewModel? GetPlayerViewModel(CCSPlayerController player)
-    // {
-    //     if (player.PlayerPawn.Value == null || player.PlayerPawn.Value.ViewModelServices == null) return null;
-    //     CCSPlayer_ViewModelServices viewModelServices = new(player.PlayerPawn.Value.ViewModelServices!.Handle);
-    //     var ptr = viewModelServices.Handle + Schema.GetSchemaOffset("CCSPlayer_ViewModelServices", "m_hViewModel");
-    //     var references = MemoryMarshal.CreateSpan(ref ptr, 3);
-    //     var viewModel = (CHandle<CBaseViewModel>)Activator.CreateInstance(typeof(CHandle<CBaseViewModel>), references[0])!;
-    //     return viewModel.Value == null ? null : viewModel.Value;
-    // }
 
     private void UpdateVisibilityBar(CCSPlayerController player, float invisibilityLevel)
     {

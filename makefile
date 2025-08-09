@@ -12,7 +12,7 @@ all:
 
 .PHONY: release
 release:
-	echo "super_powers_plugin_${version}.zip"
+# 	echo "super_powers_plugin_${version}.zip"
 	mkdir -p addons/counterstrikesharp/plugins/super_powers_plugin
 	cp ${cur_folder_name}.* addons/counterstrikesharp/plugins/super_powers_plugin/
 	zip -r "super_powers_plugin_${version}.zip" addons/*

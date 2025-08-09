@@ -60,6 +60,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         // RegisterEventHandler<EventPlayerSpawned>((@event, info) => SuperPowerController.ExecutePower(@event));
         // RegisterEventHandler<EventBulletDamage>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventWeaponReload>((@event, info) => SuperPowerController.ExecutePower(@event));
 
         RegisterEventHandler<EventRoundStart>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventRoundEnd>((@event, info) => SuperPowerController.ExecutePower(@event));
@@ -147,7 +148,13 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     [RequiresPermissions("@css/root")]
     public void OnHelp(CCSPlayerController? caller, CommandInfo commandInfo)
     {
-        const string pl_format = "<player>";
+        /* this is kinda silly but iduno what ConsoleCommand's description argument even does */
+
+        /* mayber i need a helper function dat woud collect all the command details and assemple this help command automaticaly... yeah very likely
+        
+        TODO */
+
+        const string pl_format = "<player>/@<steamid64>";
         const string pw_format = "<power>";
         const string team_format = "[t,ct]";
         commandInfo.ReplyToCommand($"Availiable commands:");

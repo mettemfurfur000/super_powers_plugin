@@ -97,6 +97,20 @@ public class TemUtils
 
     public static IEnumerable<CCSPlayerController> SelectPlayers(string name_pattern)
     {
+        if (name_pattern.StartsWith("@"))
+        {
+            ulong steamid64 = ulong.Parse(name_pattern.Replace("@", ""));
+
+            var gamer = Utilities.GetPlayerFromSteamId(steamid64);
+            IEnumerable<CCSPlayerController> ret = [];
+
+            if (gamer == null)
+                return ret;
+
+            ret = ret.Append(gamer);
+            return ret;
+        }
+
         string r_pattern = WildCardToRegular(name_pattern);
 
         return Utilities.GetPlayers()
