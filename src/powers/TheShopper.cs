@@ -196,7 +196,7 @@ public class TheShopper : BasePower
 
     private int powersAvailable = 4;
     private float priceMultiplier = 1;
-    private int shopAvailableSeconds = 35;
+    // private int shopAvailableSeconds = 35;
     private int priceRoundFactor = 500;
 
     private bool paidChoice = false;

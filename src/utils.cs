@@ -571,6 +571,50 @@ public class TemUtils
         modelGlow.AcceptInput("FollowEntity", modelRelay, modelGlow, "!activator");
     }
 
+    public static Tuple<CBaseModelEntity, CBaseModelEntity>? MakePawnGlow(CCSPlayerPawn pawn, byte teamNum, string ColorT = "#ffc800ff", string ColorCT = "#4c00ffff")
+    {
+        if (pawn.Controller?.Value == null)
+            return null;
+
+        CBaseModelEntity? modelGlow = Utilities.CreateEntityByName<CBaseModelEntity>("prop_dynamic");
+        CBaseModelEntity? modelRelay = Utilities.CreateEntityByName<CBaseModelEntity>("prop_dynamic");
+
+        if (modelGlow == null || modelRelay == null)
+            return null;
+
+        if (pawn.CBodyComponent?.SceneNode == null)
+            return null;
+
+        string modelName = pawn.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName;
+
+        modelRelay.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(modelRelay.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
+        modelRelay.SetModel(modelName);
+        modelRelay.Spawnflags = 256u;
+        modelRelay.RenderMode = RenderMode_t.kRenderNone;
+        modelRelay.DispatchSpawn();
+
+        modelGlow.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(modelGlow.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
+        modelGlow.SetModel(modelName);
+        modelGlow.Spawnflags = 256u;
+        modelGlow.DispatchSpawn();
+
+        // 1 = spectator?
+        // 2 = t
+        // 3 = ct
+
+        modelGlow.Glow.GlowColorOverride = ColorTranslator.FromHtml(teamNum == 2 ? ColorCT : ColorT);
+        modelGlow.Glow.GlowRange = 4096;
+        modelGlow.Glow.GlowTeam = teamNum;
+        modelGlow.Glow.GlowType = 3;
+        modelGlow.Glow.GlowRangeMin = 64;
+
+        modelRelay.AcceptInput("FollowEntity", pawn, modelRelay, "!activator");
+        modelGlow.AcceptInput("FollowEntity", modelRelay, modelGlow, "!activator");
+
+        // pairModels[pawn.OriginalController.Value!.Slot] = new Tuple<CBaseModelEntity, CBaseModelEntity>(modelGlow, modelRelay);
+        return new Tuple<CBaseModelEntity, CBaseModelEntity>(modelGlow, modelRelay);
+    }
+
     public const int default_velocity_max = 250;
 
     public static void PowerApplySpeed(List<CCSPlayerController> Users, float value)
