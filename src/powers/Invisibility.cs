@@ -36,10 +36,12 @@ public class Invisibility : BasePower
     private float weaponRevealFactor = 0.75f;
     private float weaponRevealFactorSilenced = 0.35f;
 
-    public bool bombFoundForTheRound = false;
-    public CBasePlayerWeapon? bomb = null;
-    public List<CBaseModelEntity> hiddenEntitiesBombIncluded = [];
-    public List<CBaseModelEntity> hiddenEntities = [];
+    // public bool bombFoundForTheRound = false;
+    // public CBasePlayerWeapon? bomb = null;
+    // public List<CBaseModelEntity> hiddenEntities = [];
+    // public List<CBaseModelEntity> hiddenEntitiesBombExcluded = [];
+
+    public Dictionary<CCSPlayerController, HashSet<CBaseModelEntity>> playerHiddenEntities = [];
 
     public List<CBasePlayerWeapon> washedWeapons = [];
 
@@ -51,9 +53,7 @@ public class Invisibility : BasePower
         }
         if (gameEvent is EventRoundStart realEventStart)
         {
-            bombFoundForTheRound = false;
-            hiddenEntitiesBombIncluded.Clear();
-            hiddenEntities.Clear();
+            Utilities.GetPlayers().ForEach(player => playerHiddenEntities[player] = []);
         }
         if (gameEvent is EventItemEquip realEventEquip)
         {
@@ -136,7 +136,6 @@ public class Invisibility : BasePower
                 Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_entitySpottedState", Schema.GetSchemaOffset("EntitySpottedState_t", "m_bSpotted"));
                 Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_entitySpottedState", Schema.GetSchemaOffset("EntitySpottedState_t", "m_bSpottedByMask"));
             }
-
         }
 
         if (Server.TickCount % tickSkip != 0)
@@ -152,60 +151,68 @@ public class Invisibility : BasePower
         {
             var newValue = Levels[i] < 1.0f ? Levels[i] + gainEachTick : 1.0f;
             var player = Users[i];
-            TemUtils.SetPlayerInvisibilityLevel(player, (float)newValue);
 
             if (sendBar)
                 if (newValue != Levels[i])
-                    UpdateVisibilityBar(player, (float)newValue);
+                    SetVisibilityLevel(player, (float)newValue);
 
             Levels[i] = newValue;
         }
 
-        // find and hide the bomb if the invisible user carries it
-
+        // find and hide the bomb
         if (Server.TickCount % 16 != 0) // 4 times per second
             return;
 
-        if (!bombFoundForTheRound)
-            Users.ForEach(user =>
+        FindAndHideBomb();
+    }
+
+    public void FindAndHideBomb()
+    {
+        Users.ForEach(user =>
+        {
+            if (!Users.Contains(user))
+                return;
+
+            var pawn = user.PlayerPawn.Value!;
+
+            var weaponServices = pawn.WeaponServices;
+            if (weaponServices == null)
+                return;
+
+            var myWeapons = weaponServices.MyWeapons;
+            if (myWeapons == null)
+                return;
+
+            foreach (var gun in myWeapons)
             {
-                var pawn = user.PlayerPawn.Value!;
+                if (gun.Value == null)
+                    continue;
 
-                var weaponServices = pawn.WeaponServices;
-                if (weaponServices != null)
+                if (gun.Value.DesignerName == "weapon_c4")
                 {
-                    var myWeapons = weaponServices.MyWeapons;
-                    if (myWeapons != null)
-                        foreach (var gun in myWeapons)
-                        {
-                            var realWeapon = gun.Value;
+                    // bombFoundForTheRound = true;
 
-                            if (realWeapon == null)
-                                continue;
+                    foreach (var iter_user in playerHiddenEntities)
+                        if (iter_user.Key.TeamNum == 3) // if a guy is CT (team num 3)
+                            iter_user.Value.Add(gun.Value); // hide ze bomba from that user
 
-                            if (realWeapon!.DesignerName == "weapon_c4")
-                            {
-                                // Server.PrintToChatAll("bomba detectod");
-                                bomb = realWeapon;
-                                bombFoundForTheRound = true;
 
-                                hiddenEntitiesBombIncluded.Add(bomb);
-                                hiddenEntities.Add(bomb);
-
-                                // Server.PrintToChatAll("bomb found and hidden");
-                            }
-                        }
+                    // Server.PrintToChatAll("bomb found and hidden");
                 }
-            });
+            }
+
+        });
     }
 
     public override List<CBaseModelEntity>? GetHiddenEntities(CCSPlayerController player)
     {
-        // if (Users.Contains(player)) // invisibility users see everything
-        //     return null;
-        if (player.TeamNum == (byte)CsTeam.Terrorist)               // terrorists see the bomb
-            return hiddenEntities.Count == 0 ? null : hiddenEntities;
-        return hiddenEntitiesBombIncluded.Count == 0 ? null : hiddenEntitiesBombIncluded;
+        return playerHiddenEntities.TryGetValue(player, out HashSet<CBaseModelEntity>? value) ? [.. value] : null;
+
+        // // if (Users.Contains(player)) // invisibility users see everything
+        // //     return null;
+        // if (player.TeamNum == (byte)CsTeam.Terrorist)               // terrorists see the bomb
+        //     return hiddenEntitiesBombExcluded.Count == 0 ? null : hiddenEntitiesBombExcluded;
+        // return (List<CBaseModelEntity>?)(hiddenEntities.Count == 0 ? null : hiddenEntities);
     }
 
     private static void UpdateWeaponMeshGroupMask(CBaseEntity weapon, bool isLegacy = false)
@@ -236,13 +243,17 @@ public class Invisibility : BasePower
         UpdateWeaponMeshGroupMask(weapon, isLegacy);
     }
 
-    private void UpdateVisibilityBar(CCSPlayerController player, float invisibilityLevel)
+    private void SetVisibilityLevel(CCSPlayerController player, float invisibilityLevel)
     {
         if (invisibilityLevel >= 1.0f)
             invisibilityLevel = 1.0f;
 
         if (invisibilityLevel < 0.0f)
             invisibilityLevel = 0.0f;
+        // go thru all wepons and mak dem hiden
+        WeaponsMakeHidden(player, invisibilityLevel == 1.0f);
+
+        TemUtils.SetPlayerInvisibilityLevel(player, invisibilityLevel);
 
         const int total_characters = 24;
         int visibility_level_in_lines = (int)(invisibilityLevel * total_characters);
@@ -253,6 +264,50 @@ public class Invisibility : BasePower
         sb.Append("]");
 
         player.PrintToCenterHtml(sb.ToString(), 2);
+    }
+
+    private void WeaponsMakeHidden(CCSPlayerController player, bool do_hide)
+    {
+        var pawn = player.PlayerPawn.Value!;
+
+        var weaponServices = pawn.WeaponServices;
+        if (weaponServices == null)
+            return;
+
+        var myWeapons = weaponServices.MyWeapons;
+        if (myWeapons == null)
+            return;
+
+        foreach (var gun in myWeapons)
+        {
+            if (gun.Value == null)
+                continue;
+
+            if (do_hide)
+            {
+                foreach (var iter_user in playerHiddenEntities)
+                    if (iter_user.Key != player)
+                        iter_user.Value.Add(gun.Value); // hid from everyone else
+            }
+            else
+            {
+                foreach (var iter_user in playerHiddenEntities)
+                    if (iter_user.Key != player)
+                        iter_user.Value.Remove(gun.Value); // UNhid from everyone else
+            }
+        }
+    }
+
+    public override void OnRemovePower(CCSPlayerController? player)
+    {
+        if (player != null)
+        {
+            SetVisibilityLevel(player, 0);
+            return;
+        }
+
+        foreach (var user in Users)
+            SetVisibilityLevel(user, 0);
     }
 
     public override string GetDescription() => $"Gain invisibility, when not making sounds (Custom items will still be seen)";
