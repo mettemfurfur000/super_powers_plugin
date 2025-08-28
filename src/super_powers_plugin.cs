@@ -9,7 +9,7 @@ namespace super_powers_plugin.src;
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 {
     public override string ModuleName => "super_powers_plugin";
-    public override string ModuleVersion => "0.2.5";
+    public override string ModuleVersion => "0.2.8";
     public override string ModuleAuthor => "tem";
 
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
@@ -22,17 +22,28 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         RegisterListener<Listeners.OnServerPrecacheResources>(OnServerPrecacheResources);
 
-        RegisterEventHandler<EventRoundEnd>((@event, info) =>
+        RegisterEventHandler<EventRoundStart>((@event, info) =>
         {
-            var shopper = SuperPowerController.GetPowersByName("the_shopper");
             if (SuperPowerController.GetMode() == "random")
-                SuperPowerController.AddPowerRandomlyToEveryone(Config);
-            if (SuperPowerController.GetMode() == "shop")
-                SuperPowerController.EnsureEveryoneHasPower(shopper);
-            Server.PrintToConsole($"Round ended, mode: {SuperPowerController.GetMode()}");
+                Server.PrintToConsole(SuperPowerController.AddPowerRandomlyToEveryone(Config));
+            // if (SuperPowerController.GetMode() == "shop")
+            //     SuperPowerController.EnsureEveryoneHasPower(shopper);
+            Server.PrintToConsole($"Round started, mode: {SuperPowerController.GetMode()}");
 
             return SuperPowerController.ExecutePower(@event);
         });
+
+        // RegisterEventHandler<EventRoundEnd>((@event, info) =>
+        // {
+        //     var shopper = SuperPowerController.GetPowersByName("the_shopper");
+        //     if (SuperPowerController.GetMode() == "random")
+        //         Server.PrintToConsole(SuperPowerController.AddPowerRandomlyToEveryone(Config));
+        //     // if (SuperPowerController.GetMode() == "shop")
+        //     //     SuperPowerController.EnsureEveryoneHasPower(shopper);
+        //     Server.PrintToConsole($"Round ended, mode: {SuperPowerController.GetMode()}");
+
+        //     return SuperPowerController.ExecutePower(@event);
+        // });
 
         // converting these keys into my special commands
         // requires some work on the client side though

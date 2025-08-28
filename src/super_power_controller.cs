@@ -76,7 +76,7 @@ public static class SuperPowerController
 
         Powers.Add(new SmallSize()); // hull size vector is stored as a static variable and all players share the same size
         Powers.Add(new Wallhacks());
-        
+
         // cant implement rn
         // Powers.Add(new ConcreteSmoke()); // voxel data is so mystical...
         // should look for da pattern in le memory or somethin idk
@@ -358,14 +358,20 @@ public static class SuperPowerController
 
         foreach (var player in players)
         {
-        again:
-            BasePower power = Powers.ElementAt(new Random().Next(Powers.Count));
+            BasePower? power;
 
-            if (power.OnAdd(player) == false)
-                goto again;
-            string alert = $"Your power for this round:\n{ChatColors.Blue}{NiceText.GetPowerNameReadable(power)}";
+            do
+            {
+                power = Powers.ElementAt(new Random().Next(Powers.Count));
+            } while (power.IsDisabled() || power.OnAdd(player) == false);
+
+            // BasePower power = Powers.ElementAt(new Random().Next(Powers.Count));
+
+            // if (power.OnAdd(player) == false)
+            //     goto again;
+            string alert = $"Your power for this round: {ChatColors.Blue}{NiceText.GetPowerNameReadable(power)}";
             player.PrintToChat(alert);
-            string description = $"Power description:\n{ChatColors.Blue}{power.GetDescription()}";
+            string description = $"Power description: {ChatColors.Blue}{power.GetDescription()}";
             player.PrintToChat(description);
             if (!silent)
                 player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
