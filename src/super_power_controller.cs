@@ -385,6 +385,27 @@ public static class SuperPowerController
         return "Successfully added random powers to everyone";
     }
 
+    public static string AddPowerOffline(string steam_id_string, string power_name_pattern)
+    {
+        if (!steam_id_string.StartsWith("@"))
+            return "Invalid steamid string";
+
+        ulong steamid64 = ulong.Parse(steam_id_string.Replace("@", ""));
+
+        var powers = SelectPowers(power_name_pattern);
+        if (powers == null)
+            return "Error: Power(s) not found";
+
+        UInt32 count = 0;
+        foreach (var power in powers)
+        {
+            power.UsersSteamIDs.Add(steamid64);
+            count++;
+        }
+
+        return "Added to " + count + " powers";
+    }
+
     public static string AddPowers(string player_name_pattern, string power_name_pattern, bool now = false, CsTeam team = CsTeam.None, bool silent = true, bool forced = false)
     {
         var status_message = "";

@@ -108,6 +108,8 @@ public class RandomLoadout : BasePower
 
             TemUtils.__plugin?.AddTimer(denyBuyTime, () =>
             {
+                if (!pawn.IsValid)
+                    return;
                 pawn.InBuyZone = false;
                 pawn.WasInBuyZone = false;
                 buyspamactive.Remove(user);
@@ -122,7 +124,8 @@ public class RandomLoadout : BasePower
     {
         buyspamactive.ForEach(user =>
         {
-            user.PlayerPawn.Value!.InBuyZone = false;
+            if (user.IsValid)
+                user.PlayerPawn.Value!.InBuyZone = false;
         });
     }
 

@@ -9,7 +9,7 @@ namespace super_powers_plugin.src;
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 {
     public override string ModuleName => "super_powers_plugin";
-    public override string ModuleVersion => "0.2.8";
+    public override string ModuleVersion => "0.2.9";
     public override string ModuleAuthor => "tem";
 
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
@@ -165,12 +165,15 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         
         TODO */
 
-        const string pl_format = "<player>/@<steamid64>";
+        const string player_format = "<player>";
+        const string steamid_format = "@<steamid64>";
+        const string pl_format = player_format + "/" + steamid_format;
         const string pw_format = "<power>";
         const string team_format = "[t,ct]";
         commandInfo.ReplyToCommand($"Availiable commands:");
         commandInfo.ReplyToCommand($"  sp_help \t\t\t\t\t\t - should help in most cases");
         commandInfo.ReplyToCommand($"  sp_add {pl_format} {pw_format} (now) \t\t\t - adds power to player");
+        commandInfo.ReplyToCommand($"  sp_add_offline {steamid_format} {pw_format} \t\t\t - adds power to an offline player");
         commandInfo.ReplyToCommand($"  sp_add_team {team_format} {pw_format} (now)  \t\t\t - adds power to all players of team");
         commandInfo.ReplyToCommand($"  sp_remove {pl_format} {pw_format} \t\t\t - removes power from player");
         commandInfo.ReplyToCommand($"  sp_remove_team {team_format}  {pw_format} \t\t - removes power from all players of team");
@@ -203,6 +206,17 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         }
 
         commandInfo.ReplyToCommand(SuperPowerController.AddPowers(playerNamePattern, powerNamePattern, now_flag, CsTeam.None, true, force_flag));
+    }
+
+    [ConsoleCommand("sp_add_offline", "Adds a superpower to offline player, SteamID only")]
+    [CommandHelper(minArgs: 2, usage: "[steamId] [power]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnPowerAddOffline(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var steamIdString = commandInfo.GetArg(1);
+        var powerNamePattern = commandInfo.GetArg(2);
+
+        commandInfo.ReplyToCommand(SuperPowerController.AddPowerOffline(steamIdString, powerNamePattern));
     }
 
     [ConsoleCommand("sp_add_team", "Adds a superpower to specified team, supports wildcards")]

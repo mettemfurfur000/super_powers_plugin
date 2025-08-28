@@ -160,7 +160,7 @@ public class Invisibility : BasePower
         }
 
         // find and hide the bomb
-        if (Server.TickCount % 16 != 0) // 4 times per second
+        if (Server.TickCount % 32 != 0) // 2 times per second
             return;
 
         FindAndHideBomb();
@@ -193,8 +193,11 @@ public class Invisibility : BasePower
                     // bombFoundForTheRound = true;
 
                     foreach (var iter_user in playerHiddenEntities)
-                        if (iter_user.Key.TeamNum == 3) // if a guy is CT (team num 3)
-                            iter_user.Value.Add(gun.Value); // hide ze bomba from that user
+                    {
+                        if (iter_user.Key.IsValid)
+                            if (iter_user.Key.TeamNum == 3) // if a guy is CT (team num 3)
+                                iter_user.Value.Add(gun.Value); // hide ze bomba from that user
+                    }
 
 
                     // Server.PrintToChatAll("bomb found and hidden");
@@ -252,6 +255,7 @@ public class Invisibility : BasePower
             invisibilityLevel = 0.0f;
         // go thru all wepons and mak dem hiden
         WeaponsMakeHidden(player, invisibilityLevel == 1.0f);
+        HideWearables(player, invisibilityLevel == 1.0f);
 
         TemUtils.SetPlayerInvisibilityLevel(player, invisibilityLevel);
 
@@ -264,6 +268,31 @@ public class Invisibility : BasePower
         sb.Append("]");
 
         player.PrintToCenterHtml(sb.ToString(), 2);
+    }
+
+    private void HideWearables(CCSPlayerController player, bool do_hide)
+    {
+        var pawn = player.PlayerPawn.Value!;
+
+        var wearables = pawn.MyWearables.ToList();
+        wearables.ForEach(w =>
+        {
+            if (w.Value == null)
+                return;
+
+            if (do_hide)
+            {
+                foreach (var iter_user in playerHiddenEntities)
+                    if (iter_user.Key != player)
+                        iter_user.Value.Add(w.Value); // hid from everyone else
+            }
+            else
+            {
+                foreach (var iter_user in playerHiddenEntities)
+                    if (iter_user.Key != player)
+                        iter_user.Value.Remove(w.Value); // UNhid from everyone else
+            }
+        });
     }
 
     private void WeaponsMakeHidden(CCSPlayerController player, bool do_hide)
