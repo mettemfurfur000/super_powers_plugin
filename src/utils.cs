@@ -97,23 +97,6 @@ public class TemUtils
     }
 
     unsafe static float* g_DefaultViewVectors = null;
-    /*
-        static CViewVectors g_DefaultViewVectors(
-	        Vector( 0, 0, 64 ),			//VEC_VIEW (m_vView)
-	        Vector( 0, 0, 28 ),			//VEC_DUCK_VIEW		(m_vDuckView)
-        
-	        Vector(-16, -16, 0 ),		//VEC_HULL_MIN (m_vHullMin)
-	        Vector( 16,  16,  72 ),		//VEC_HULL_MAX (m_vHullMax)
-        
-	        Vector(-16, -16, 0 ),		//VEC_DUCK_HULL_MIN (m_vDuckHullMin)
-	        Vector( 16,  16,  36 ),		//VEC_DUCK_HULL_MAX	(m_vDuckHullMax)
-        
-	        Vector(-10, -10, -10 ),		//VEC_OBS_HULL_MIN	(m_vObsHullMin)
-	        Vector( 10,  10,  10 ),		//VEC_OBS_HULL_MAX	(m_vObsHullMax)
-        
-	        Vector( 0, 0, 14 )			//VEC_DEAD_VIEWHEIGHT (m_vDeadViewHeight)
-        );				
-    */
 
     const float d_hull_width = 32;
     const float d_hull_height = 72;
@@ -192,7 +175,7 @@ public class TemUtils
 
             }
 
-            Server.PrintToChatAll("Set hull max to " + m_vHullMax->ToString());
+            // Server.PrintToChatAll("Set hull max to " + m_vHullMax->ToString());
         }
     }
 
