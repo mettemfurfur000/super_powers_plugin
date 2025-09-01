@@ -125,7 +125,8 @@ public class TemUtils
             {
                 float* ptr = (float*)NativeAPI.FindSignature(Addresses.ServerPath,
                     // "00 00 00 00 00 00 00 00 00 00 80 42 00 00 80 C1 00 00 80 C1 00 00 00 00 00 00 80 41 00 00 80 41 00 00 90 42 00 00 80 C1 00 00 80 C1 00 00 00 00 00 00 80 41 00 00 80 41 00 00 58 42 00 00 00 00 00 00 00 00 00 00 38 42 00 00 20 C1 00 00 20 C1 00 00 20 C1 00 00 20 41 00 00 20 41 00 00 20 41 00 00 00 00 00 00 00 00 00 00 60 41"
-                    "10 08 00 00 40 08 00 00 50 6D 50 C9 5F 02 00 00"
+                    // "10 08 00 00 40 08 00 00 50 6D 50 C9 5F 02 00 00"
+                    "00 00 00 00 00 00 00 00 00 00 80 42 00 00 80 C1 00 00 80 C1 00 00 00 00 00 00 80 41 00 00 80 41 00 00 90 42 00 00 80 C1 00 00 80 C1 00 00 00 00 00 00 80 41 00 00 80 41 00 00 58 42 00 00 00 00 00 00 00 00 00 00 38 42 00 00 20 C1 00 00 20 C1 00 00 20 C1 00 00 20 41 00 00 20 41 00 00 20 41 00 00 00 00 00 00 00 00 00 00 60 41"
                     );
 
                 if (ptr == null)
@@ -134,7 +135,7 @@ public class TemUtils
                     return;
                 }
 
-                ptr += 4; // skip 4 floats we wer aiming for to get our juicy oily barbarians to start digging in em
+                // ptr += 4; // skip 4 floats we wer aiming for to get our juicy oily barbarians to start digging in em
 
                 g_DefaultViewVectors = ptr;
 
