@@ -9,7 +9,7 @@ namespace super_powers_plugin.src;
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 {
     public override string ModuleName => "super_powers_plugin";
-    public override string ModuleVersion => "0.2.9";
+    public override string ModuleVersion => "0.2.10";
     public override string ModuleAuthor => "tem";
 
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
