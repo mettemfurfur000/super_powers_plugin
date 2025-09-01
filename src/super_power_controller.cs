@@ -35,7 +35,6 @@ public static class SuperPowerController
         Powers.Add(new BotDisguise());
         Powers.Add(new BotGuesser());
         Powers.Add(new Banana());
-
         Powers.Add(new BonusHealth()); // powers
         Powers.Add(new BonusArmor());
         Powers.Add(new InstantDefuse());
@@ -68,12 +67,9 @@ public static class SuperPowerController
         Powers.Add(new BiocodedWeapons());
         Powers.Add(new EternalNade());
         Powers.Add(new GoldenBullet());
-
         Powers.Add(new RandomLoadout());
         Powers.Add(new FakePassport());
-
         Powers.Add(new TheShopper());
-
         Powers.Add(new SmallSize()); // hull size vector is stored as a static variable and all players share the same size
         Powers.Add(new Wallhacks());
 

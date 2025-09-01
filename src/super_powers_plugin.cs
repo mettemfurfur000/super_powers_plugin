@@ -149,6 +149,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
     public override void Unload(bool hotReload)
     {
+        TemUtils.SetGlobalPlayerHull(1.0f); // reset scaling!
+
         SuperPowerController.UnRegisterHooks();
 
         checkTransmitTargets.Clear();

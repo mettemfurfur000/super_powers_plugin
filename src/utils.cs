@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using Microsoft.VisualBasic;
@@ -93,6 +94,106 @@ public class TemUtils
     public static String WildCardToRegular(String value)
     {
         return "^" + Regex.Escape(value).Replace("\\*", ".*") + "$";
+    }
+
+    unsafe static float* g_DefaultViewVectors = null;
+    /*
+        static CViewVectors g_DefaultViewVectors(
+	        Vector( 0, 0, 64 ),			//VEC_VIEW (m_vView)
+	        Vector( 0, 0, 28 ),			//VEC_DUCK_VIEW		(m_vDuckView)
+        
+	        Vector(-16, -16, 0 ),		//VEC_HULL_MIN (m_vHullMin)
+	        Vector( 16,  16,  72 ),		//VEC_HULL_MAX (m_vHullMax)
+        
+	        Vector(-16, -16, 0 ),		//VEC_DUCK_HULL_MIN (m_vDuckHullMin)
+	        Vector( 16,  16,  36 ),		//VEC_DUCK_HULL_MAX	(m_vDuckHullMax)
+        
+	        Vector(-10, -10, -10 ),		//VEC_OBS_HULL_MIN	(m_vObsHullMin)
+	        Vector( 10,  10,  10 ),		//VEC_OBS_HULL_MAX	(m_vObsHullMax)
+        
+	        Vector( 0, 0, 14 )			//VEC_DEAD_VIEWHEIGHT (m_vDeadViewHeight)
+        );				
+    */
+
+    const float d_hull_width = 32;
+    const float d_hull_height = 72;
+
+    unsafe static System.Numerics.Vector3* m_vView = null;
+    unsafe static System.Numerics.Vector3* m_vDuckView = null;
+
+    unsafe static System.Numerics.Vector3* m_vHullMin = null; // normal player hull
+    unsafe static System.Numerics.Vector3* m_vHullMax = null;
+
+    unsafe static System.Numerics.Vector3* m_vDuckHullMin = null; // ducking hull
+    unsafe static System.Numerics.Vector3* m_vDuckHullMax = null;
+
+    unsafe static System.Numerics.Vector3* m_vObsHullMin = null; // observer hull
+    unsafe static System.Numerics.Vector3* m_vObsHullMax = null;
+
+    unsafe static System.Numerics.Vector3* m_vDeadViewHeight = null;
+
+    public static byte[] default_values = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x42, 0x00, 0x00, 0x80, 0xC1, 0x00, 0x00, 0x80, 0xC1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x41, 0x00, 0x00, 0x80, 0x41, 0x00, 0x00, 0x90, 0x42, 0x00, 0x00, 0x80, 0xC1, 0x00, 0x00, 0x80, 0xC1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x41, 0x00, 0x00, 0x80, 0x41, 0x00, 0x00, 0x58, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x38, 0x42, 0x00, 0x00, 0x20, 0xC1, 0x00, 0x00, 0x20, 0xC1, 0x00, 0x00, 0x20, 0xC1, 0x00, 0x00, 0x20, 0x41, 0x00, 0x00, 0x20, 0x41, 0x00, 0x00, 0x20, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x41];
+
+    public static void SetGlobalPlayerHull(float scale)
+    {
+        unsafe
+        {
+            if (g_DefaultViewVectors == null)
+            {
+                float* ptr = (float*)NativeAPI.FindSignature(Addresses.ServerPath,
+                    // "00 00 00 00 00 00 00 00 00 00 80 42 00 00 80 C1 00 00 80 C1 00 00 00 00 00 00 80 41 00 00 80 41 00 00 90 42 00 00 80 C1 00 00 80 C1 00 00 00 00 00 00 80 41 00 00 80 41 00 00 58 42 00 00 00 00 00 00 00 00 00 00 38 42 00 00 20 C1 00 00 20 C1 00 00 20 C1 00 00 20 41 00 00 20 41 00 00 20 41 00 00 00 00 00 00 00 00 00 00 60 41"
+                    "10 08 00 00 40 08 00 00 50 6D 50 C9 5F 02 00 00"
+                    );
+
+                if (ptr == null)
+                {
+                    Server.PrintToChatAll("not found");
+                    return;
+                }
+
+                ptr += 4; // skip 4 floats we wer aiming for to get our juicy oily barbarians to start digging in em
+
+                g_DefaultViewVectors = ptr;
+
+                m_vView = (System.Numerics.Vector3*)(ptr + 0);
+                m_vHullMin = (System.Numerics.Vector3*)(ptr + 3);
+                m_vHullMax = (System.Numerics.Vector3*)(ptr + 6);
+                m_vDuckHullMin = (System.Numerics.Vector3*)(ptr + 9);
+                m_vDuckHullMax = (System.Numerics.Vector3*)(ptr + 12);
+                m_vDuckView = (System.Numerics.Vector3*)(ptr + 15);
+                m_vObsHullMin = (System.Numerics.Vector3*)(ptr + 18);
+                m_vObsHullMax = (System.Numerics.Vector3*)(ptr + 21);
+                m_vDeadViewHeight = (System.Numerics.Vector3*)(ptr + 24);
+            }
+
+            if (scale == 1.0f)
+            {
+                byte* bptr = (byte*)g_DefaultViewVectors;
+                for (int i = 0; i < default_values.Length; i++)
+                    bptr[i] = default_values[i];
+            }
+            else
+            {
+                m_vHullMin->X = -d_hull_width / 2 * scale;
+                m_vHullMin->Y = -d_hull_width / 2 * scale;
+                // m_vHullMin->Z = 0;
+
+                m_vHullMax->X = d_hull_width / 2 * scale;
+                m_vHullMax->Y = d_hull_width / 2 * scale;
+                m_vHullMax->Z = d_hull_height * scale;
+
+                m_vDuckHullMin->X = -d_hull_width / 2 * scale;
+                m_vDuckHullMin->Y = -d_hull_width / 2 * scale;
+                // m_vDuckHullMin->Z = 0;
+
+                m_vDuckHullMax->X = d_hull_width / 2 * scale;
+                m_vDuckHullMax->Y = d_hull_width / 2 * scale;
+                m_vDuckHullMax->Z = d_hull_height / 2 * scale;
+
+            }
+
+            Server.PrintToChatAll("Set hull max to " + m_vHullMax->ToString());
+        }
     }
 
     public static IEnumerable<CCSPlayerController> SelectPlayers(string name_pattern)

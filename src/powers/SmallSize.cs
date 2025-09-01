@@ -16,12 +16,16 @@ public class SmallSize : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
+        if (affectHullSizeAll)
+            TemUtils.SetGlobalPlayerHull(scale);
         Users.ForEach(user => SetScale(user, scale));
         return HookResult.Continue;
     }
 
     public override void OnRemovePower(CCSPlayerController? player)
     {
+        if (affectHullSizeAll)
+            TemUtils.SetGlobalPlayerHull(1.0f);
         if (player != null)
             SetScale(player, 1);
         else
@@ -38,23 +42,20 @@ public class SmallSize : BasePower
         if (pawn == null)
             return;
 
-        // var skeletonInstance = pawn.CBodyComponent?.SceneNode?.GetSkeletonInstance();
-        // if (skeletonInstance != null)
-        //     skeletonInstance.Scale = value;
-
         pawn.AcceptInput("SetScale", null, null, value.ToString());
-
-        // Server.NextFrame(() =>
-        // {
-        // });
     }
 
     public override void Update()
     {
-        if (Server.TickCount % 64 == 0)
-            Users.ForEach(user => SetScale(user, scale));
+        if (Server.TickCount % 64 != 0)
+            return;
+
+        // if (affectHullSizeAll)
+        //     TemUtils.SetGlobalPlayerHull(scale);
+        Users.ForEach(user => SetScale(user, scale));
     }
 
     private float scale = 0.5f;
+    private bool affectHullSizeAll = false;
 }
 
