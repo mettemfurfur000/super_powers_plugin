@@ -33,7 +33,6 @@ public class FlashOfDisability : BasePower
         if (ignore_self_flash && attacker == victim)
             return HookResult.Continue;
 
-        // SuperPowerController.DisablePlayer(victim, (int)(victim.PlayerPawn.Value!.BlindStartTime - victim.PlayerPawn.Value!.BlindUntilTime));
         SuperPowerController.DisablePlayer(victim, (int)victim.PlayerPawn.Value!.FlashDuration * 64);
 
         return HookResult.Continue;

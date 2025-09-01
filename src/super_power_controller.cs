@@ -249,7 +249,7 @@ public static class SuperPowerController
         foreach (var power in Powers)
         {
             foreach (var u_tuple in power.UsersDisabled)
-                if (u_tuple.Item2 >= cur_tick)
+                if (u_tuple.Item2 <= cur_tick)
                 {
                     forRemoval.Add(u_tuple.Item1);
                     power.OnAdd(u_tuple.Item1); // ignore return code
