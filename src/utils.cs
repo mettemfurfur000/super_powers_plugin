@@ -131,7 +131,7 @@ public class TemUtils
 
                 if (ptr == null)
                 {
-                    Server.PrintToChatAll("not found");
+                    Server.PrintToChatAll("view vectors not found");
                     return;
                 }
 
@@ -179,6 +179,8 @@ public class TemUtils
             // Server.PrintToChatAll("Set hull max to " + m_vHullMax->ToString());
         }
     }
+
+
 
     public static IEnumerable<CCSPlayerController> SelectPlayers(string name_pattern)
     {

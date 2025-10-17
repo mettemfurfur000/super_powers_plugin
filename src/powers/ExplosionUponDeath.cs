@@ -31,22 +31,18 @@ public class ExplosionUponDeath : BasePower
         if (pawn == null)
             return HookResult.Continue;
 
-        var heProjectile = Utilities.CreateEntityByName<CHEGrenadeProjectile>("hegrenade_projectile");
-
-        if (heProjectile == null || !heProjectile.IsValid) return HookResult.Continue;
+        var explosion_fx = Utilities.CreateEntityByName<CEnvExplosion>("env_explosion");
 
         var node = pawn.CBodyComponent!.SceneNode;
-        Vector pos = node!.AbsOrigin;
-        pos.Z += 10;
-        heProjectile.Thrower.Raw = pawn.EntityHandle.Raw;
-        heProjectile.TicksAtZeroVelocity = 100;
-        heProjectile.TeamNum = pawn.TeamNum;
-        heProjectile.Damage = damage;
-        heProjectile.DmgRadius = radius;
-        heProjectile.Teleport(pos, node!.AbsRotation, new Vector(0, 0, -10));
-        heProjectile.DispatchSpawn();
-        heProjectile.AcceptInput("InitializeSpawnFromWorld", player.PlayerPawn.Value!, player.PlayerPawn.Value!, "");
-        heProjectile.DetonateTime = 0;
+
+        explosion_fx!.Teleport(node!.AbsOrigin, node!.AbsRotation, new Vector(0, 0, 0));
+        explosion_fx!.DispatchSpawn();
+        explosion_fx!.PlayerDamage = damage;
+        explosion_fx!.RadiusOverride = radius;
+        explosion_fx!.Magnitude = (int)magnitute;
+        // explosion_fx!.CustomDamageType = DamageTypes_t.DMG_BLAST;
+        // explosion_fx!.CreateDebris = true;
+        explosion_fx.AcceptInput("Explode");
 
         return HookResult.Continue;
     }
@@ -55,6 +51,7 @@ public class ExplosionUponDeath : BasePower
     public override string GetDescriptionColored() => "Explode on death, dealing " + NiceText.Red(damage.ToString() + " dmg") + " in a " + NiceText.Blue(radius) + " Hu radius";
 
     private int radius = 500;
-    private float damage = 125f;
+    private float damage = 150f;
+    private float magnitute = 75f;
 }
 
