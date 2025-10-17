@@ -122,11 +122,8 @@ public class RandomLoadout : BasePower
 
     public override void Update()
     {
-        buyspamactive.ForEach(user =>
-        {
-            if (user.IsValid)
-                user.PlayerPawn.Value!.InBuyZone = false;
-        });
+        buyspamactive.RemoveAll(s => s == null || !s.IsValid || s.Connected != PlayerConnectedState.PlayerConnected);
+        buyspamactive.ForEach(user => user.PlayerPawn.Value!.InBuyZone = false);
     }
 
     public List<CCSPlayerController> buyspamactive = [];
