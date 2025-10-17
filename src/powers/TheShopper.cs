@@ -29,7 +29,7 @@ public class TheShopper : BasePower
 {
     public TheShopper()
     {
-        Triggers = [typeof(EventRoundStart)];
+        Triggers = [typeof(EventRoundStart), typeof(EventGameStart)];
         NoShop = true;
     }
 
@@ -37,19 +37,17 @@ public class TheShopper : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
-        if (gameEvent.GetType() != Triggers[0])
-            return HookResult.Continue;
+        if (gameEvent.GetType() == typeof(EventRoundStart))
+        {
+            shopStartedTick = Server.TickCount;
 
-        shopStartedTick = Server.TickCount;
-
-        // Server.PrintToConsole($"Shopper power executed at tick {shopStartedTick}");
-
-        foreach (var user in Users)
-            if (!activeShops.ContainsKey(user))
-            {
-                activeShops[user] = ShopGenerate(user);
-                PrintShopToChat(user, activeShops[user]);
-            }
+            foreach (var user in Users)
+                if (!activeShops.ContainsKey(user))
+                {
+                    activeShops[user] = ShopGenerate(user);
+                    PrintShopToChat(user, activeShops[user]);
+                }
+        }
 
         return HookResult.Continue;
     }
@@ -62,11 +60,12 @@ public class TheShopper : BasePower
         if (Server.TickCount - shopStartedTick > shopAvailableSeconds * 64)
             foreach (var user in Users)
             {
-                if (activeShops.TryGetValue(user, out List<ShopOption>? shop))
-                {
-                    user.PrintToChat(NiceText.Paint("Shop closed", ChatColors.Gold));
-                    activeShops.Remove(user);
-                }
+                if (user.IsValid)
+                    if (activeShops.TryGetValue(user, out List<ShopOption>? shop))
+                    {
+                        user.PrintToChat(NiceText.Paint("Shop closed", ChatColors.Gold));
+                        activeShops.Remove(user);
+                    }
             }
     }
 

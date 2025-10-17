@@ -194,6 +194,12 @@ public static class SuperPowerController
             power.ParseCfg(configuration);
     }
 
+    public static void CleanInvalidUsers()
+    {
+        foreach (var power in Powers)
+            power.CleanInvalidUsers();
+    }
+
     public static HookResult ExecutePower(GameEvent gameEvent)
     {
         int cur_tick = Server.TickCount;

@@ -24,8 +24,10 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         RegisterEventHandler<EventRoundStart>((@event, info) =>
         {
+            SuperPowerController.CleanInvalidUsers();
+
             var theshopper = SuperPowerController.GetPowersByName("the_shopper");
-        
+
             if (SuperPowerController.GetMode() == "random")
                 Server.PrintToConsole(SuperPowerController.AddPowerRandomlyToEveryone(Config));
             if (SuperPowerController.GetMode() == "shop")

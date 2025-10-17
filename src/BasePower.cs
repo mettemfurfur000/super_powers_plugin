@@ -85,6 +85,11 @@ public class BasePower : ShopPower
             Users.Add(player);
     }
 
+    public virtual void CleanInvalidUsers()
+    {
+        Users.RemoveAll(s => (s == null || !s.IsValid || s.Connected != PlayerConnectedState.PlayerConnected));
+    }
+
     public virtual void RegisterHooks() { }     // Custom hooks go here, but i dont use them much
     public virtual void UnRegisterHooks() { }   //
 }
