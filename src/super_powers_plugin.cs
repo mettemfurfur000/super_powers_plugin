@@ -24,8 +24,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         RegisterEventHandler<EventRoundStart>((@event, info) =>
         {
-            SuperPowerController.CleanInvalidUsers();
-
             var theshopper = SuperPowerController.GetPowersByName("the_shopper");
 
             if (SuperPowerController.GetMode() == "random")
@@ -101,6 +99,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         RegisterListener<Listeners.OnTick>(() =>
         {
+            SuperPowerController.CleanInvalidUsers();
             SuperPowerController.Update();
         });
 

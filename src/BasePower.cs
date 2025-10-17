@@ -87,7 +87,14 @@ public class BasePower : ShopPower
 
     public virtual void CleanInvalidUsers()
     {
-        Users.RemoveAll(s => (s == null || !s.IsValid || s.Connected != PlayerConnectedState.PlayerConnected));
+        Users.ForEach(s =>
+        {
+            if (s == null || !s.IsValid || s.Connected != PlayerConnectedState.PlayerConnected)
+            {
+                OnRemovePower(s);
+                OnRemoveUser(s, false);
+            }
+        });
     }
 
     public virtual void RegisterHooks() { }     // Custom hooks go here, but i dont use them much
