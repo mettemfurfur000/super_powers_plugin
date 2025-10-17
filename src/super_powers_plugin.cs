@@ -24,27 +24,16 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         RegisterEventHandler<EventRoundStart>((@event, info) =>
         {
+            var theshopper = SuperPowerController.GetPowersByName("the_shopper");
+        
             if (SuperPowerController.GetMode() == "random")
                 Server.PrintToConsole(SuperPowerController.AddPowerRandomlyToEveryone(Config));
-            // if (SuperPowerController.GetMode() == "shop")
-            //     SuperPowerController.EnsureEveryoneHasPower(shopper);
+            if (SuperPowerController.GetMode() == "shop")
+                SuperPowerController.EnsureEveryoneHasPower(theshopper);
             Server.PrintToConsole($"Round started, mode: {SuperPowerController.GetMode()}");
 
             return SuperPowerController.ExecutePower(@event);
         });
-
-        // RegisterEventHandler<EventRoundEnd>((@event, info) =>
-        // {
-        //     var shopper = SuperPowerController.GetPowersByName("the_shopper");
-        //     if (SuperPowerController.GetMode() == "random")
-        //         Server.PrintToConsole(SuperPowerController.AddPowerRandomlyToEveryone(Config));
-        //     // if (SuperPowerController.GetMode() == "shop")
-        //     //     SuperPowerController.EnsureEveryoneHasPower(shopper);
-        //     Server.PrintToConsole($"Round ended, mode: {SuperPowerController.GetMode()}");
-
-        //     return SuperPowerController.ExecutePower(@event);
-        // });
-
         // converting these keys into my special commands
         // requires some work on the client side though
 
