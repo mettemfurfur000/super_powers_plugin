@@ -559,18 +559,18 @@ public class TemUtils
         if (player.Clan != tag)
         {
             player.Clan = tag;
-            player.ClanName = tag;
+            // player.ClanName = tag;
 
             CounterStrikeSharp.API.Utilities.SetStateChanged(
                 player,
                 "CCSPlayerController",
                 "m_szClan"
             );
-            CounterStrikeSharp.API.Utilities.SetStateChanged(
-                player,
-                "CCSPlayerController",
-                "m_szClanName"
-            );
+            // CounterStrikeSharp.API.Utilities.SetStateChanged(
+            //     player,
+            //     "CCSPlayerController",
+            //     "m_szClanName"
+            // );
 
             var gameRules = GetGameRulesProxy();
 
