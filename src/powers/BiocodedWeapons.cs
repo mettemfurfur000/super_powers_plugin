@@ -66,6 +66,6 @@ public class BiocodedWeapons : BasePower
     }
 
     public override string GetDescription() => $"Only you can use weapons you bought";
-    public override string GetDescriptionColored() => "Only you can use your " + NiceText.Red("weapons");
+    public override string GetDescriptionColored() => "Only you can use your " + StringHelpers.Red("weapons");
 }
 

@@ -49,7 +49,7 @@ public class Vampirism : BasePower
     }
 
     public override string GetDescription() => $"Gain {(int)(100 / divisor)}% of dealt damage as extra health" + (playSounds ? ", annoying sounds included" : "");
-    public override string GetDescriptionColored() => "Gain " + NiceText.Green((int)(100 / divisor)) + "% of dealt damage as extra health" + (playSounds ? ", annoying sounds included" : "");
+    public override string GetDescriptionColored() => "Gain " + StringHelpers.Green((int)(100 / divisor)) + "% of dealt damage as extra health" + (playSounds ? ", annoying sounds included" : "");
 
     private int divisor = 5;
     private bool playSounds = false;

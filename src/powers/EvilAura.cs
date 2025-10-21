@@ -57,6 +57,6 @@ public class EvilAura : BasePower
     private int period = 16;
 
     public override string GetDescription() => $"Slowly harm enemies close to you. Can't kill";
-    public override string GetDescriptionColored() => $"Slowly " + NiceText.Red("harm") + " enemies close to you. Can't kill";
+    public override string GetDescriptionColored() => $"Slowly " + StringHelpers.Red("harm") + " enemies close to you. Can't kill";
 }
 

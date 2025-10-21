@@ -43,7 +43,7 @@ public class InstantNades : BasePower
     }
 
     public override string GetDescription() => $"Reduce nade and flash fuse time by {divider} times";
-    public override string GetDescriptionColored() => "Reduce nade and flash fuse time by " + NiceText.Red(divider) + " times";
+    public override string GetDescriptionColored() => "Reduce nade and flash fuse time by " + StringHelpers.Red(divider) + " times";
 
     private int divider = 4;
 }

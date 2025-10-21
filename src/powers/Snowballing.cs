@@ -65,7 +65,7 @@ public class Snowballing : BasePower
     }
 
     public override string GetDescription() => $"Each kill will give you {heal} more HP and {dmg_inc * 100}% more damage";
-    public override string GetDescriptionColored() => "Each kill will give you " + NiceText.Green(heal) + " more HP and " + NiceText.Red((dmg_inc * 100) + "%") + " more damage";
+    public override string GetDescriptionColored() => "Each kill will give you " + StringHelpers.Green(heal) + " more HP and " + StringHelpers.Red((dmg_inc * 100) + "%") + " more damage";
 
     private int heal = 25;
     private float dmg_inc = 0.1f;

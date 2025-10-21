@@ -45,7 +45,7 @@ public class TheSacrifice : BasePower
     }
 
     public override string GetDescription() => $"+{value} HP to all teammates on your death";
-    public override string GetDescriptionColored() => NiceText.Green("+" + value) + " HP to all teammates on your death";
+    public override string GetDescriptionColored() => StringHelpers.Green("+" + value) + " HP to all teammates on your death";
     private int value = 50;
 }
 

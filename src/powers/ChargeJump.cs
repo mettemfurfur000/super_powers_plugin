@@ -50,7 +50,7 @@ public class ChargeJump : BasePower
     }
 
     public override string GetDescription() => $"Jump while crouching to make a leap forward";
-    public override string GetDescriptionColored() => NiceText.Blue("Jump while crouching") + " to make a " + NiceText.Blue("leap forward");
+    public override string GetDescriptionColored() => StringHelpers.Blue("Jump while crouching") + " to make a " + StringHelpers.Blue("leap forward");
 
     private float jump_force = 600f;
 }

@@ -31,7 +31,7 @@ public class Regeneration : BasePower
     }
 
     public override string GetDescription() => $"Regenerate {increment} Health if less than {limit} every {(float)(period / 64)} seconds";
-    public override string GetDescriptionColored() => "Regenerate " + NiceText.Green(increment) + " Health if less than " + NiceText.Blue(limit) + " every " + NiceText.Blue(period / 64) + " seconds";
+    public override string GetDescriptionColored() => "Regenerate " + StringHelpers.Green(increment) + " Health if less than " + StringHelpers.Blue(limit) + " every " + StringHelpers.Blue(period / 64) + " seconds";
 
     private int increment = 10;
     private int limit = 75;

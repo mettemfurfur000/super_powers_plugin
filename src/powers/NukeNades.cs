@@ -43,7 +43,7 @@ public class NukeNades : BasePower
     }
 
     public override string GetDescription() => $"HE grenades are {multiplier} times more explosive";
-    public override string GetDescriptionColored() => "HE grenades are " + NiceText.Red(multiplier) + " times more explosive";
+    public override string GetDescriptionColored() => "HE grenades are " + StringHelpers.Red(multiplier) + " times more explosive";
 
     private float multiplier = 10;
 }

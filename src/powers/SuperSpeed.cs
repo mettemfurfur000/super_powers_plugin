@@ -31,7 +31,7 @@ public class SuperSpeed : BasePower
     }
 
     public override string GetDescription() => $"Increased walking speed ({(float)value / default_velocity_max}X faster)";
-    public override string GetDescriptionColored() => "Increased walking speed (" + NiceText.Blue((float)value / default_velocity_max) + "X faster)";
+    public override string GetDescriptionColored() => "Increased walking speed (" + StringHelpers.Blue((float)value / default_velocity_max) + "X faster)";
 
     private int value = 700;
     private int period = 4;

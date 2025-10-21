@@ -38,7 +38,7 @@ public class GoldenBullet : BasePower
                 timesMult = multOnHeadshot;
             }
 
-            TemUtils.GiveMoney(shooter, (int)(killReward * timesMult), $"for killing an enemy with a last bullet ({NiceText.GetPowerColoredName(this)})");
+            TemUtils.GiveMoney(shooter, (int)(killReward * timesMult), $"for killing an enemy with a last bullet ({StringHelpers.GetPowerColoredName(this)})");
         }
 
         return HookResult.Continue;
@@ -46,7 +46,7 @@ public class GoldenBullet : BasePower
 
     // public override string GetDescription() => $"Last bullet in your chamber always hits x{mult} damage";
     public override string GetDescription() => $"Kill with a last bullet gives you ${killReward}{(headshotMultEnabled ? $", X{multOnHeadshot} for headshots" : "")}";
-    public override string GetDescriptionColored() => "Kill with a last bullet gives you $" + NiceText.Green(killReward) + (headshotMultEnabled ? $", X{multOnHeadshot} for headshots" : "");
+    public override string GetDescriptionColored() => "Kill with a last bullet gives you $" + StringHelpers.Green(killReward) + (headshotMultEnabled ? $", X{multOnHeadshot} for headshots" : "");
 
     private int killReward = 3000;
     private float multOnHeadshot = 1.5f;

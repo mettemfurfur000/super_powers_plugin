@@ -340,7 +340,7 @@ public class Invisibility : BasePower
     }
 
     public override string GetDescription() => $"Gain invisibility, when not making sounds (Custom items will still be seen)";
-    public override string GetDescriptionColored() => $"Gain " + NiceText.Blue("invisibility") + ", when not making sounds (Custom items will still be seen)";
+    public override string GetDescriptionColored() => $"Gain " + StringHelpers.Blue("invisibility") + ", when not making sounds (Custom items will still be seen)";
 
     public double[] Levels = new double[65];
 }

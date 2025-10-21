@@ -22,14 +22,14 @@ public class SocialSecurity : BasePower
             float kd = user.ActionTrackingServices!.MatchStats!.Kills / user.ActionTrackingServices!.MatchStats!.Deaths;
             if (kd < gate)
             {
-                TemUtils.GiveMoney(user,value, $"for having k/d {kd:n2} ({NiceText.GetPowerColoredName(this)})");
+                TemUtils.GiveMoney(user,value, $"for having k/d {kd:n2} ({StringHelpers.GetPowerColoredName(this)})");
             }
         }
         return HookResult.Continue;
     }
 
     public override string GetDescription() => $"At round start, if your k/d is below {gate}, gain {value}$";
-    public override string GetDescriptionColored() => $"At round start, If your k/d is below " + NiceText.Blue(gate) + ", gain " + NiceText.Green(value) + "$";
+    public override string GetDescriptionColored() => $"At round start, If your k/d is below " + StringHelpers.Blue(gate) + ", gain " + StringHelpers.Green(value) + "$";
 
     private int value = 2500;
     private float gate = 0.9f;

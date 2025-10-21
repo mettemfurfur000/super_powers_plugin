@@ -71,7 +71,7 @@ public class FakePassport : BasePower
     }
 
     public override string GetDescription() => $"Gain {health_mult}X health on the round start for each consecutive death {(requireHeadshotDealth ? "from a headshot" : "")}";
-    public override string GetDescriptionColored() => "Gain " + NiceText.Green($"{health_mult}X health") + " on the round start for each " + NiceText.Red("consecutive death" + (requireHeadshotDealth ? " from a headshot" : ""));
+    public override string GetDescriptionColored() => "Gain " + StringHelpers.Green($"{health_mult}X health") + " on the round start for each " + StringHelpers.Red("consecutive death" + (requireHeadshotDealth ? " from a headshot" : ""));
 
     private float health_mult = 2f;
     private bool requireHeadshotDealth = true;

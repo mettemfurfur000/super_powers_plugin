@@ -82,6 +82,6 @@ public class EternalNade : BasePower
     public List<CCSPlayerController> incGrenades = [];
 
     public override string GetDescription() => $"When your grenade detonates, you get it back";
-    public override string GetDescriptionColored() => $"When your grenade " + NiceText.Red("detonates") + ", you get it back";
+    public override string GetDescriptionColored() => $"When your grenade " + StringHelpers.Red("detonates") + ", you get it back";
 }
 

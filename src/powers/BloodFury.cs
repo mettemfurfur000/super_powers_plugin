@@ -139,7 +139,7 @@ public class BloodFury : BasePower
     private double InvincibilitySeconds = 1.5d;
 
     public override string GetDescription() => $"After getting {KillsToRage} {(CountOnlyHeadshots ? "Headshots" : "Kills")}, gain speed, +%damage, and temporary invincibility";
-    public override string GetDescriptionColored() => "After " + NiceText.Red(KillsToRage) + (CountOnlyHeadshots ? " Headshots" : " Kills") + ", gain speed, extra damage, and " + NiceText.Blue("temporary invincibility");
+    public override string GetDescriptionColored() => "After " + StringHelpers.Red(KillsToRage) + (CountOnlyHeadshots ? " Headshots" : " Kills") + ", gain speed, extra damage, and " + StringHelpers.Blue("temporary invincibility");
 
     public List<CCSPlayerController> ActivatedUsers = [];
     public List<Tuple<CCSPlayerController, int>> InvicibilityTicks = [];

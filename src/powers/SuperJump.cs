@@ -44,7 +44,7 @@ public class SuperJump : BasePower
     }
 
     public override string GetDescription() => $"Look up and jump to get {multiplier} times higher";
-    public override string GetDescriptionColored() => "Look up and jump to get " + NiceText.Blue(multiplier) + " times higher";
+    public override string GetDescriptionColored() => "Look up and jump to get " + StringHelpers.Blue(multiplier) + " times higher";
 
     private float multiplier = 2;
 }

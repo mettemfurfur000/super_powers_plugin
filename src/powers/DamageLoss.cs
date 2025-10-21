@@ -45,7 +45,7 @@ public class DamageLoss : BasePower
     }
 
     public override string GetDescription() => $"{probabilityPercentage}% chance to ignore incoming damage event";
-    public override string GetDescriptionColored() => NiceText.Green(probabilityPercentage) + "% chance to ignore incoming damage event";
+    public override string GetDescriptionColored() => StringHelpers.Green(probabilityPercentage) + "% chance to ignore incoming damage event";
 
     private int probabilityPercentage = 50;
 }

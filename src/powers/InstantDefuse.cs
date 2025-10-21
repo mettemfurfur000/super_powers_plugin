@@ -45,6 +45,6 @@ public class InstantDefuse : BasePower
     }
 
     public override string GetDescription() => $"Defuse bombs instantly";
-    public override string GetDescriptionColored() => NiceText.Blue("Defuse") + " bombs instantly";
+    public override string GetDescriptionColored() => StringHelpers.Blue("Defuse") + " bombs instantly";
 }
 

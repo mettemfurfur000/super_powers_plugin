@@ -42,6 +42,6 @@ public class HeadshotImmunity : BasePower
     }
 
     public override string GetDescription() => $"Calcels all headshots, landed on your head";
-    public override string GetDescriptionColored() => NiceText.Green("Calcels all headshots") + ", landed on your head";
+    public override string GetDescriptionColored() => StringHelpers.Green("Calcels all headshots") + ", landed on your head";
 }
 

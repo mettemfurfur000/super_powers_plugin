@@ -44,6 +44,6 @@ public class InfiniteAmmo : BasePower
     }
 
     public override string GetDescription() => $"Free ammo, yay!";
-    public override string GetDescriptionColored() => NiceText.Blue("Free ammo, yay!");
+    public override string GetDescriptionColored() => StringHelpers.Blue("Free ammo, yay!");
 }
 

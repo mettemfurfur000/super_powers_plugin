@@ -63,7 +63,7 @@ public class TheShopper : BasePower
                 if (user.IsValid)
                     if (activeShops.TryGetValue(user, out List<ShopOption>? shop))
                     {
-                        user.PrintToChat(NiceText.Paint("Shop closed", ChatColors.Gold));
+                        user.PrintToChat(StringHelpers.Paint("Shop closed", ChatColors.Gold));
                         activeShops.Remove(user);
                     }
             }
@@ -94,7 +94,7 @@ public class TheShopper : BasePower
                     var option = shop[index - 1];
                     if (!option.bought)
                     {
-                        TemUtils.AttemptPaidAction(player, paidChoice ? option.Price : 0, NiceText.GetPowerColoredName(option.Power!), () =>
+                        TemUtils.AttemptPaidAction(player, paidChoice ? option.Price : 0, StringHelpers.GetPowerColoredName(option.Power!), () =>
                         {
                             option.bought = true;
                             option.Power!.OnAdd(player);
@@ -106,7 +106,7 @@ public class TheShopper : BasePower
                         });
                     }
                     else
-                        player.PrintToChat($"You already bought {NiceText.GetPowerColoredName(option.Power!)}");
+                        player.PrintToChat($"You already bought {StringHelpers.GetPowerColoredName(option.Power!)}");
                 }
                 else
                     player.PrintToChat("Invalid choice!");
@@ -191,7 +191,7 @@ public class TheShopper : BasePower
         for (int i = 0; i < options.Count; i++)
         {
             var option = options[i];
-            user.PrintToChat($" {i + 1} - {ChatColors.Green} {(paidChoice ? "${option.Price}" : "")} {NiceText.GetPowerColoredName(option.Power!)}");
+            user.PrintToChat($" {i + 1} - {ChatColors.Green} {(paidChoice ? "${option.Price}" : "")} {StringHelpers.GetPowerColoredName(option.Power!)}");
             user.PrintToChat($" {option.Power!.GetDescriptionColored()}");
         }
     }

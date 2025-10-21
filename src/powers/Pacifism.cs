@@ -84,6 +84,6 @@ public class Pacifism : BasePower
     public List<CCSPlayerController> status = [];
 
     public override string GetDescription() => $"Gain invincibility until you deal damage first";
-    public override string GetDescriptionColored() => "Gain " + NiceText.Blue("invincibility") + " until you deal damage first";
+    public override string GetDescriptionColored() => "Gain " + StringHelpers.Blue("invincibility") + " until you deal damage first";
 }
 

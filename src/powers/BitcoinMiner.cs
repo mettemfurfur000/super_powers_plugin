@@ -34,7 +34,7 @@ public class BitcoinMiner : BasePower
     private int periodSeconds = 5;
 
     public override string GetDescription() => $"Every ${periodSeconds} second(s), gain ${moneyBonusAmount} with a chance of {probabilityPercentage}%";
-    public override string GetDescriptionColored() => "Every" + NiceText.Green(periodSeconds) + ", gain $" + NiceText.Green(moneyBonusAmount) + " with a chance of " + NiceText.Blue(probabilityPercentage.ToString() + "%");
+    public override string GetDescriptionColored() => "Every" + StringHelpers.Green(periodSeconds) + ", gain $" + StringHelpers.Green(moneyBonusAmount) + " with a chance of " + StringHelpers.Blue(probabilityPercentage.ToString() + "%");
 }
 
 

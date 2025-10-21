@@ -41,21 +41,21 @@ public class RandomLoadout : BasePower
             // give it
             user.GiveNamedItem(main_weapon!.Value.Item2);
             if (chatFeedback)
-                user.PrintToChat($"Main weapon type: {WeaponHelpers.GetRarityString(main_type.Value.Item1, WeaponHelpers.types.Sum(x => x.Item1), NiceText.FirstUpper(main_type.Value.Item2))}");
+                user.PrintToChat($"Main weapon type: {WeaponHelpers.GetRarityString(main_type.Value.Item1, WeaponHelpers.types.Sum(x => x.Item1), StringHelpers.FirstUpper(main_type.Value.Item2))}");
 
             if (chatFeedback)
             {
-                if (main_type.Value.Item2 == "rifle") user.PrintToChat($"Rifle: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.rifles.Sum(x => x.Item1), NiceText.FirstUpper(main_weapon.Value.Item2))}");
-                if (main_type.Value.Item2 == "smg") user.PrintToChat($"SMG: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.smgs.Sum(x => x.Item1), NiceText.FirstUpper(main_weapon.Value.Item2))}");
-                if (main_type.Value.Item2 == "heavy") user.PrintToChat($"Heavy: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.heavies.Sum(x => x.Item1), NiceText.FirstUpper(main_weapon.Value.Item2))}");
-                if (main_type.Value.Item2 == "sniper") user.PrintToChat($"Sniper: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.snipers.Sum(x => x.Item1), NiceText.FirstUpper(main_weapon.Value.Item2))}");
+                if (main_type.Value.Item2 == "rifle") user.PrintToChat($"Rifle: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.rifles.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
+                if (main_type.Value.Item2 == "smg") user.PrintToChat($"SMG: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.smgs.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
+                if (main_type.Value.Item2 == "heavy") user.PrintToChat($"Heavy: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.heavies.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
+                if (main_type.Value.Item2 == "sniper") user.PrintToChat($"Sniper: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.snipers.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
             }
             // select a pistol
             var pistol_selected = weightedSelection ? WeaponHelpers.GetWeighted(WeaponHelpers.pistols) : WeaponHelpers.pistols[Random.Shared.Next(WeaponHelpers.pistols.Count)]; ;
 
             user.GiveNamedItem(pistol_selected!.Value.Item2);
             if (chatFeedback)
-                user.PrintToChat($"Pistol: {WeaponHelpers.GetRarityString(pistol_selected!.Value.Item1, WeaponHelpers.pistols.Sum(x => x.Item1), NiceText.FirstUpper(pistol_selected.Value.Item2))}");
+                user.PrintToChat($"Pistol: {WeaponHelpers.GetRarityString(pistol_selected!.Value.Item1, WeaponHelpers.pistols.Sum(x => x.Item1), StringHelpers.FirstUpper(pistol_selected.Value.Item2))}");
 
             // roll utils and stuff
             WeaponHelpers.SingleItemRoll(user, "weapon_decoy", "Decoy", chance_decoy);

@@ -1,6 +1,6 @@
 cur_folder_name = ${shell pwd | awk -F'/' '{print $$NF}'}
 files = bin/Debug/net8.0/${cur_folder_name}.*
-version = ${shell grep Version src/super_powers_plugin.cs | awk -F'=>' '{print $$2}' | tr -d '\ \";'}
+version = ${shell grep Version src/main.cs | awk -F'=>' '{print $$2}' | tr -d '\ \";'}
 
 all:
 	rm -f *.zip

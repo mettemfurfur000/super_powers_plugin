@@ -42,7 +42,7 @@ public class HealingZeus : BasePower
     }
 
     public override string GetDescription() => $"Zap your teammates to set their health to {value}";
-    public override string GetDescriptionColored() => $"Zap your " + NiceText.Green("teammates") + " to set their health to " + NiceText.Green(value);
+    public override string GetDescriptionColored() => $"Zap your " + StringHelpers.Green("teammates") + " to set their health to " + StringHelpers.Green(value);
 
     private int value = 75;
 }

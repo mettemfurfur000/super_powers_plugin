@@ -48,7 +48,7 @@ public class ExplosionUponDeath : BasePower
     }
 
     public override string GetDescription() => $"Explode on death, dealing {damage} damage in a {radius}Hu radius";
-    public override string GetDescriptionColored() => "Explode on death, dealing " + NiceText.Red(damage.ToString() + " dmg") + " in a " + NiceText.Blue(radius) + " Hu radius";
+    public override string GetDescriptionColored() => "Explode on death, dealing " + StringHelpers.Red(damage.ToString() + " dmg") + " in a " + StringHelpers.Blue(radius) + " Hu radius";
 
     private int radius = 500;
     private float damage = 150f;

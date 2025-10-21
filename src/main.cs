@@ -9,13 +9,10 @@ namespace super_powers_plugin.src;
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 {
     public override string ModuleName => "super_powers_plugin";
-    public override string ModuleVersion => "0.2.10";
+    public override string ModuleVersion => "0.2.11";
     public override string ModuleAuthor => "tem";
-
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
-
     public List<BasePower> checkTransmitTargets = [];
-
     public override void Load(bool hotReload)
     {
         TemUtils.__plugin = this;
@@ -51,12 +48,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         );
 
         AddCommand("b", "Shopper command", (player, info) => OnSignalFull(player, info));
-
-
-        // surely theres a better way of doing this
-        // until then, i dont care
-
-        // there is, but i don care
 
         // RegisterEventHandler<EventPlayerSpawned>((@event, info) => SuperPowerController.ExecutePower(@event));
         // RegisterEventHandler<EventBulletDamage>((@event, info) => SuperPowerController.ExecutePower(@event));
@@ -280,7 +271,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         if (powers != null)
             foreach (var power in powers)
-                commandInfo.ReplyToCommand($"\t{NiceText.GetSnakeName(power.GetType())}\t{power.GetDescription()}"
+                commandInfo.ReplyToCommand($"\t{StringHelpers.GetSnakeName(power.GetType())}\t{power.GetDescription()}"
                 + (power.IsDisabled() ? "\t(Disabled)" : "")
                 + (power.teamReq != CsTeam.None ? (
                     power.teamReq == CsTeam.Terrorist ? "\t(T Only)" : "\t(CT Only)"
@@ -333,7 +324,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         {
             string? power_field_values = TemUtils.InspectPowerReflective(power, power.GetType());
             if (power_field_values != null)
-                commandInfo.ReplyToCommand(NiceText.GetPowerNameReadable(power) + ":\n" + power_field_values);
+                commandInfo.ReplyToCommand(StringHelpers.GetPowerNameReadable(power) + ":\n" + power_field_values);
         }
     }
 

@@ -40,7 +40,7 @@ public class BonusHealth : BasePower
     }
 
     public override string GetDescription() => $"+{value - 100} HP on the start of each round";
-    public override string GetDescriptionColored() => "+" + NiceText.Green((value - 100).ToString() + " Health ") + "on the start of the round";
+    public override string GetDescriptionColored() => "+" + StringHelpers.Green((value - 100).ToString() + " Health ") + "on the start of the round";
     private int value = 250;
 }
 
