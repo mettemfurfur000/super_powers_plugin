@@ -36,15 +36,15 @@ public class InstantNades : BasePower
 
         if (grenade != null && player.UserId == grenade.Thrower.Value!.OriginalController.Value!.UserId)
         {
-            grenade.DetonateTime = Server.CurrentTime + 1 / divider;
+            grenade.DetonateTime = Server.CurrentTime + 1 / cfg_divider;
         }
 
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Reduce nade and flash fuse time by {divider} times";
-    public override string GetDescriptionColored() => "Reduce nade and flash fuse time by " + StringHelpers.Red(divider) + " times";
+    public override string GetDescription() => $"Reduce nade and flash fuse time by {cfg_divider} times";
+    public override string GetDescriptionColored() => "Reduce nade and flash fuse time by " + StringHelpers.Red(cfg_divider) + " times";
 
-    private int divider = 4;
+    public int cfg_divider = 4;
 }
 

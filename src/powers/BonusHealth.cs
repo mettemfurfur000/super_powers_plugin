@@ -33,14 +33,14 @@ public class BonusHealth : BasePower
             if (pawn == null)
                 continue;
 
-            pawn.Health = value;
+            pawn.Health = cfg_bonus;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"+{value - 100} HP on the start of each round";
-    public override string GetDescriptionColored() => "+" + StringHelpers.Green((value - 100).ToString() + " Health ") + "on the start of the round";
-    private int value = 250;
+    public override string GetDescription() => $"+{cfg_bonus - 100} HP on the start of each round";
+    public override string GetDescriptionColored() => "+" + StringHelpers.Green((cfg_bonus - 100).ToString() + " Health ") + "on the start of the round";
+    public int cfg_bonus = 250;
 }
 

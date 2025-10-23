@@ -40,10 +40,10 @@ public class RandomLoadout : BasePower
 
             // give it
             user.GiveNamedItem(main_weapon!.Value.Item2);
-            if (chatFeedback)
+            if (cfg_chatFeedback)
                 user.PrintToChat($"Main weapon type: {WeaponHelpers.GetRarityString(main_type.Value.Item1, WeaponHelpers.types.Sum(x => x.Item1), StringHelpers.FirstUpper(main_type.Value.Item2))}");
 
-            if (chatFeedback)
+            if (cfg_chatFeedback)
             {
                 if (main_type.Value.Item2 == "rifle") user.PrintToChat($"Rifle: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.rifles.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
                 if (main_type.Value.Item2 == "smg") user.PrintToChat($"SMG: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.smgs.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
@@ -51,42 +51,42 @@ public class RandomLoadout : BasePower
                 if (main_type.Value.Item2 == "sniper") user.PrintToChat($"Sniper: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.snipers.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
             }
             // select a pistol
-            var pistol_selected = weightedSelection ? WeaponHelpers.GetWeighted(WeaponHelpers.pistols) : WeaponHelpers.pistols[Random.Shared.Next(WeaponHelpers.pistols.Count)]; ;
+            var pistol_selected = cfg_weightedSelection ? WeaponHelpers.GetWeighted(WeaponHelpers.pistols) : WeaponHelpers.pistols[Random.Shared.Next(WeaponHelpers.pistols.Count)]; ;
 
             user.GiveNamedItem(pistol_selected!.Value.Item2);
-            if (chatFeedback)
+            if (cfg_chatFeedback)
                 user.PrintToChat($"Pistol: {WeaponHelpers.GetRarityString(pistol_selected!.Value.Item1, WeaponHelpers.pistols.Sum(x => x.Item1), StringHelpers.FirstUpper(pistol_selected.Value.Item2))}");
 
             // roll utils and stuff
-            WeaponHelpers.SingleItemRoll(user, "weapon_decoy", "Decoy", chance_decoy);
-            WeaponHelpers.SingleItemRoll(user, "weapon_hegrenade", "HE", chance_hegrenade);
-            WeaponHelpers.SingleItemRoll(user, "weapon_incgrenade", "Molly but for betas", chance_incgrenade);
-            WeaponHelpers.SingleItemRoll(user, "weapon_molotov", "Molly", chance_molly);
-            WeaponHelpers.SingleItemRoll(user, "weapon_flashbang", "Flash", chance_flash);
-            WeaponHelpers.SingleItemRoll(user, "weapon_flashbang", "Flash", chance_flash);
-            WeaponHelpers.SingleItemRoll(user, "weapon_smokegrenade", "Smoke", chance_smoke);
+            WeaponHelpers.SingleItemRoll(user, "weapon_decoy", "Decoy", cfg_chance_decoy);
+            WeaponHelpers.SingleItemRoll(user, "weapon_hegrenade", "HE", cfg_chance_hegrenade);
+            WeaponHelpers.SingleItemRoll(user, "weapon_incgrenade", "Molly but for betas", cfg_chance_incgrenade);
+            WeaponHelpers.SingleItemRoll(user, "weapon_molotov", "Molly", cfg_chance_molly);
+            WeaponHelpers.SingleItemRoll(user, "weapon_flashbang", "Flash", cfg_chance_flash);
+            WeaponHelpers.SingleItemRoll(user, "weapon_flashbang", "Flash", cfg_chance_flash);
+            WeaponHelpers.SingleItemRoll(user, "weapon_smokegrenade", "Smoke", cfg_chance_smoke);
 
-            WeaponHelpers.SingleItemRoll(user, "weapon_healthshot", "Health shot", chance_health);
-            WeaponHelpers.SingleItemRoll(user, "weapon_taser", "Taser", chance_taser);
+            WeaponHelpers.SingleItemRoll(user, "weapon_healthshot", "Health shot", cfg_chance_health);
+            WeaponHelpers.SingleItemRoll(user, "weapon_taser", "Taser", cfg_chance_taser);
 
             // dont forget the armor
             WeaponHelpers.RollAction(user, () =>
             {
-                if (chatFeedback)
-                    user.PrintToChat($"+{WeaponHelpers.GetRarityString((int)(100 * kevlarChance), 100, "Armor")}");
+                if (cfg_chatFeedback)
+                    user.PrintToChat($"+{WeaponHelpers.GetRarityString((int)(100 * cfg_kevlarChance), 100, "Armor")}");
 
-                user.PlayerPawn.Value!.ArmorValue = kevlarIsAlsoRandom ? 1 + Random.Shared.Next(100) : 100;
+                user.PlayerPawn.Value!.ArmorValue = cfg_kevlarIsAlsoRandom ? 1 + Random.Shared.Next(100) : 100;
                 Utilities.SetStateChanged(user.PlayerPawn.Value!, "CCSPlayerPawn", "m_ArmorValue");
 
                 WeaponHelpers.RollAction(user, () =>
                  {
-                     if (chatFeedback)
-                         user.PrintToChat($"+{WeaponHelpers.GetRarityString((int)(100 * helmetChance), 100, "Helmet")}");
+                     if (cfg_chatFeedback)
+                         user.PrintToChat($"+{WeaponHelpers.GetRarityString((int)(100 * cfg_helmetChance), 100, "Helmet")}");
                      new CCSPlayer_ItemServices(user.PlayerPawn.Value!.ItemServices!.Handle).HasHelmet = true;
                      Utilities.SetStateChanged(user.PlayerPawn.Value, "CCSPlayer_ItemServices", "m_bHasHelmet");
-                 }, helmetChance);
+                 }, cfg_helmetChance);
 
-            }, kevlarChance);
+            }, cfg_kevlarChance);
 
             if (user.TeamNum == (byte)CsTeam.Terrorist)
                 user.GiveNamedItem("weapon_c4");
@@ -95,18 +95,18 @@ public class RandomLoadout : BasePower
             {
                 WeaponHelpers.RollAction(user, () =>
                 {
-                    if (chatFeedback)
-                        user.PrintToChat($"+{WeaponHelpers.GetRarityString((int)(100 * helmetChance), 100, "Helmet")}");
+                    if (cfg_chatFeedback)
+                        user.PrintToChat($"+{WeaponHelpers.GetRarityString((int)(100 * cfg_helmetChance), 100, "Helmet")}");
                     new CCSPlayer_ItemServices(user.PlayerPawn.Value!.ItemServices!.Handle).HasDefuser = true;
                     Utilities.SetStateChanged(user.PlayerPawn.Value, "CCSPlayer_ItemServices", "m_bHasDefuser");
-                }, defuserChance);
+                }, cfg_defuserChance);
             }
 
             // block their buying capabilities
             pawn.InBuyZone = false;
             buyspamactive.Add(user);
 
-            TemUtils.__plugin?.AddTimer(denyBuyTime, () =>
+            TemUtils.__plugin?.AddTimer(cfg_denyBuyTime, () =>
             {
                 if (!pawn.IsValid)
                     return;
@@ -128,24 +128,24 @@ public class RandomLoadout : BasePower
 
     public List<CCSPlayerController> buyspamactive = [];
 
-    private bool weightedSelection = true;
-    private float denyBuyTime = 21f;
+    public bool cfg_weightedSelection = true;
+    public float cfg_denyBuyTime = 21f;
 
-    private float kevlarChance = 0.75f;
-    private float helmetChance = 0.75f;
-    private float defuserChance = 0.75f;
+    public float cfg_kevlarChance = 0.75f;
+    public float cfg_helmetChance = 0.75f;
+    public float cfg_defuserChance = 0.75f;
 
-    private bool kevlarIsAlsoRandom = false;
-    private bool chatFeedback = false;
+    public bool cfg_kevlarIsAlsoRandom = false;
+    public bool cfg_chatFeedback = false;
 
-    private float chance_decoy = 0.25f;
-    private float chance_hegrenade = 0.5f;
-    private float chance_incgrenade = 0.25f;
-    private float chance_molly = 0.25f;
-    private float chance_flash = 0.5f;
-    private float chance_health = 0.25f;
-    private float chance_taser = 0.5f;
-    private float chance_smoke = 0.5f;
+    public float cfg_chance_decoy = 0.25f;
+    public float cfg_chance_hegrenade = 0.5f;
+    public float cfg_chance_incgrenade = 0.25f;
+    public float cfg_chance_molly = 0.25f;
+    public float cfg_chance_flash = 0.5f;
+    public float cfg_chance_health = 0.25f;
+    public float cfg_chance_taser = 0.5f;
+    public float cfg_chance_smoke = 0.5f;
 
     public override string GetDescription() => $"todo";
 }

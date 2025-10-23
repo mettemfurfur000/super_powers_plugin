@@ -180,7 +180,35 @@ public class TemUtils
         }
     }
 
+    // flag thingies
 
+    public static bool FlagIsValid(uint position)
+    {
+        return position >= 0 && position < sizeof(uint);
+    }
+
+    public static bool FlagGet(uint f, uint mask)
+    {
+        return !!!!((f &= mask) == 1);
+    }
+
+    public static void FlagFlip(uint f, uint mask)
+    {
+        f ^= mask;
+    }
+    public static void FlagSetOn(uint f, uint mask)
+    {
+        f |= mask;
+    }
+    public static void FlagSetOff(uint f, uint mask)
+    {
+        f &= mask;
+    }
+    public static void FlagSet(uint f, uint mask, bool value)
+    {
+        if (FlagGet(f, mask) != value)
+            FlagFlip(f, mask);
+    }
 
     public static IEnumerable<CCSPlayerController> SelectPlayers(string name_pattern)
     {
@@ -321,56 +349,6 @@ public class TemUtils
                 // aah whatever
             }
         }
-    }
-
-    public static void ParseConfigReflectiveRecursive(BasePower power, Type iter_type, Dictionary<string, string> cfg_unresolved)
-    {
-        if (cfg_unresolved.Count == 0)
-            return;
-        Dictionary<string, string> next_unresolved = [];
-
-        // Log($"reading {iter_type}");
-
-        foreach (var field in cfg_unresolved)
-        {
-            var fieldInfo = iter_type.GetField(field.Key, BindingFlags.Instance | BindingFlags.NonPublic);
-
-            if (fieldInfo == null)
-            {
-                next_unresolved.Add(field.Key, field.Value);
-                continue;
-            }
-
-            try
-            {
-                try
-                {
-                    fieldInfo.SetValue(power, Convert.ChangeType(field.Value, fieldInfo.FieldType));
-                }
-                catch (InvalidCastException ex) { TemUtils.AlertError($"Error occured while processing {iter_type} : Failed to convert value for {fieldInfo.Name}: {ex.Message}"); }
-                catch (FormatException ex) { TemUtils.AlertError($"Error occured while processing {iter_type} : Invalid format for {fieldInfo.Name}: {ex.Message}"); }
-                // Log($"resloved {field.Key}");
-            }
-            catch
-            {
-                // aah whatever
-            }
-        }
-
-        if (iter_type.BaseType != null)
-            ParseConfigReflectiveRecursive(power, iter_type.BaseType, next_unresolved);
-        else if (next_unresolved.SequenceEqual(cfg_unresolved))
-        {
-            TemUtils.AlertError("Failed to resolve some fields for '" + iter_type + "', list of them:");
-            foreach (var field in next_unresolved)
-                TemUtils.AlertError(field.Key + " : " + field.Value);
-            AlertError("All fields for current type:");
-            foreach (var field in iter_type.GetRuntimeFields())
-                AlertError(field.ToString()!);
-
-            return;
-        }
-        // Log($"null base class for {iter_type}");
     }
 
     public static string ReflectPrintClass(object thing)
@@ -716,7 +694,7 @@ public class TemUtils
         return new Tuple<CBaseModelEntity, CBaseModelEntity>(modelGlow, modelRelay);
     }
 
-    public const int default_velocity_max = 250;
+    public const int default_velocity_max = 320;
 
     public static void PowerApplySpeed(List<CCSPlayerController> Users, float value)
     {
@@ -728,6 +706,8 @@ public class TemUtils
 
             pawn.MovementServices!.Maxspeed = value;
             pawn.VelocityModifier = (float)value / default_velocity_max;
+            Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_flVelocityModifier");
+            Utilities.SetStateChanged(pawn, "CPlayer_MovementServices", "m_flMaxspeed");
         }
     }
 

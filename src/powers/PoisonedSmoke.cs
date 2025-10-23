@@ -64,7 +64,7 @@ public class PoisonedSmoke : BasePower
 
         foreach (var pos in SmokesActivePos)
         {
-            var playersInRadius = players.Where(p => p.PlayerPawn.Value != null && TemUtils.CalcDistance(p.PlayerPawn.Value.AbsOrigin!, pos.Item2) <= smoke_radius);
+            var playersInRadius = players.Where(p => p.PlayerPawn.Value != null && TemUtils.CalcDistance(p.PlayerPawn.Value.AbsOrigin!, pos.Item2) <= cfg_smoke_radius);
 
             foreach (var player_to_harm in playersInRadius)
             {
@@ -73,13 +73,13 @@ public class PoisonedSmoke : BasePower
                 var harm_pawn = player_to_harm.PlayerPawn.Value!;
                 if (harm_pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) // only harm alive specimens
                     continue;
-                if (harm_pawn.Health <= value) // dont ever touch players with low health
+                if (harm_pawn.Health <= cfg_value) // dont ever touch players with low health
                 {
                     harm_pawn.CommitSuicide(false, true);
                     continue;
                 }
 
-                harm_pawn.Health = harm_pawn.Health - value;
+                harm_pawn.Health = harm_pawn.Health - cfg_value;
                 Utilities.SetStateChanged(harm_pawn, "CBaseEntity", "m_iHealth");
             }
         }
@@ -88,10 +88,10 @@ public class PoisonedSmoke : BasePower
 
     public List<Tuple<int, Vector>> SmokesActivePos = [];
 
-    public override string GetDescription() => $"Your smoke is poisoned, deals {value} damage, but cant kill on its own";
-    public override string GetDescriptionColored() => "Your smoke is poisoned, deals " + StringHelpers.Red(value) + " damage, but cant kill on its own";
+    public override string GetDescription() => $"Your smoke is poisoned, deals {cfg_value} damage, but cant kill on its own";
+    public override string GetDescriptionColored() => "Your smoke is poisoned, deals " + StringHelpers.Red(cfg_value) + " damage, but cant kill on its own";
 
-    private int value = 2;
-    private int smoke_radius = 144;
+    public int cfg_value = 2;
+    public int cfg_smoke_radius = 144;
 }
 

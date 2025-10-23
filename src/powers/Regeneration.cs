@@ -14,7 +14,7 @@ public class Regeneration : BasePower
 
     public override void Update()
     {
-        if (Server.TickCount % period != 0) return;
+        if (Server.TickCount % cfg_period != 0) return;
 
         foreach (var user in Users)
         {
@@ -22,19 +22,19 @@ public class Regeneration : BasePower
             if (pawn == null)
                 continue;
 
-            if (pawn.Health >= limit)
+            if (pawn.Health >= cfg_limit)
                 continue;
 
-            pawn.Health += increment;
+            pawn.Health += cfg_increment;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
     }
 
-    public override string GetDescription() => $"Regenerate {increment} Health if less than {limit} every {(float)(period / 64)} seconds";
-    public override string GetDescriptionColored() => "Regenerate " + StringHelpers.Green(increment) + " Health if less than " + StringHelpers.Blue(limit) + " every " + StringHelpers.Blue(period / 64) + " seconds";
+    public override string GetDescription() => $"Regenerate {cfg_increment} Health if less than {cfg_limit} every {(float)(cfg_period / 64)} seconds";
+    public override string GetDescriptionColored() => "Regenerate " + StringHelpers.Green(cfg_increment) + " Health if less than " + StringHelpers.Blue(cfg_limit) + " every " + StringHelpers.Blue(cfg_period / 64) + " seconds";
 
-    private int increment = 10;
-    private int limit = 75;
-    private int period = 128;
+    public int cfg_increment = 10;
+    public int cfg_limit = 75;
+    public int cfg_period = 128;
 }
 

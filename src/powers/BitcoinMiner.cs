@@ -20,21 +20,21 @@ public class BitcoinMiner : BasePower
 
     public override void Update()
     {
-        if (Server.TickCount % (periodSeconds * 64) != 0)
+        if (Server.TickCount % (cfg_periodSeconds * 64) != 0)
             return;
         foreach (var user in Users)
         {
-            if (Random.Shared.NextSingle() < (probabilityPercentage / 100)) // guh
-                TemUtils.GiveMoney(user, moneyBonusAmount, "from the BitcoinMiner");
+            if (Random.Shared.NextSingle() < (cfg_probabilityPercentage / 100)) // guh
+                TemUtils.GiveMoney(user, cfg_moneyBonusAmount, "from the BitcoinMiner");
         }
     }
 
-    private int moneyBonusAmount = 5555;
-    private int probabilityPercentage = 5;
-    private int periodSeconds = 5;
+    public int cfg_moneyBonusAmount = 5555;
+    public int cfg_probabilityPercentage = 5;
+    public int cfg_periodSeconds = 5;
 
-    public override string GetDescription() => $"Every ${periodSeconds} second(s), gain ${moneyBonusAmount} with a chance of {probabilityPercentage}%";
-    public override string GetDescriptionColored() => "Every" + StringHelpers.Green(periodSeconds) + ", gain $" + StringHelpers.Green(moneyBonusAmount) + " with a chance of " + StringHelpers.Blue(probabilityPercentage.ToString() + "%");
+    public override string GetDescription() => $"Every ${cfg_periodSeconds} second(s), gain ${cfg_moneyBonusAmount} with a chance of {cfg_probabilityPercentage}%";
+    public override string GetDescriptionColored() => "Every" + StringHelpers.Green(cfg_periodSeconds) + ", gain $" + StringHelpers.Green(cfg_moneyBonusAmount) + " with a chance of " + StringHelpers.Blue(cfg_probabilityPercentage.ToString() + "%");
 }
 
 

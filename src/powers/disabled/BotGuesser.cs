@@ -17,7 +17,7 @@ public class BotGuesser : BasePower
         var gameRules = TemUtils.GetGameRules();
 
         if (gameRules.TotalRoundsPlayed == 0 ||
-         gameRules.TotalRoundsPlayed % guess_each_x_rounds != 0)
+         gameRules.TotalRoundsPlayed % cfg_guess_each_x_rounds != 0)
             return HookResult.Continue;
 
         foreach (var user in Users)
@@ -71,7 +71,7 @@ public class BotGuesser : BasePower
             {
                 allow_vote = false;
 
-                if (sel_player.IsBot == do_kick_bots)
+                if (sel_player.IsBot == cfg_do_kick_bots)
                 {
                     Server.PrintToChatAll($"Guessed right");
                     sel_player.Disconnect(CounterStrikeSharp.API.ValveConstants.Protobuf.NetworkDisconnectionReason.NETWORK_DISCONNECT_KICKED_VOTEDOFF);
@@ -93,8 +93,8 @@ public class BotGuesser : BasePower
         return Tuple.Create(SIGNAL_STATUS.ERROR, details);
     }
 
-    private bool do_kick_bots = false;
-    private int guess_each_x_rounds = 5;
+    public bool cfg_do_kick_bots = false;
+    public int cfg_guess_each_x_rounds = 5;
 
     public bool allow_vote = false;
     public int rounds_without_a_vote = 0;

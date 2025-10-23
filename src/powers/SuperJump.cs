@@ -32,20 +32,20 @@ public class SuperJump : BasePower
         if (pawn.V_angle.X < -55)
             Server.NextFrame(() =>
             {
-                pawn.AbsVelocity.Z *= multiplier;
-                if (pawn.AbsVelocity.Z < 290 * multiplier)
+                pawn.AbsVelocity.Z *= cfg_multiplier;
+                if (pawn.AbsVelocity.Z < 290 * cfg_multiplier)
                     Server.NextFrame(() =>
                     {
-                        pawn.AbsVelocity.Z *= multiplier;
+                        pawn.AbsVelocity.Z *= cfg_multiplier;
                     });
             });
 
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Look up and jump to get {multiplier} times higher";
-    public override string GetDescriptionColored() => "Look up and jump to get " + StringHelpers.Blue(multiplier) + " times higher";
+    public override string GetDescription() => $"Look up and jump to get {cfg_multiplier} times higher";
+    public override string GetDescriptionColored() => "Look up and jump to get " + StringHelpers.Blue(cfg_multiplier) + " times higher";
 
-    private float multiplier = 2;
+    public float cfg_multiplier = 2;
 }
 

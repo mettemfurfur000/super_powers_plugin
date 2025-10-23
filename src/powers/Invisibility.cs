@@ -27,14 +27,14 @@ public class Invisibility : BasePower
         checkTransmitListenerEnabled = true;
     }
 
-    private int soundDivider = 1000;
-    private int fullRecoverMs = 800;
-    private bool sendBar = true;
-    private int tickSkip = 2;
-    private float visibilityFloor = 0.5f;
-    private float weaponReloadRevealFactor = 0.55f;
-    private float weaponRevealFactor = 0.75f;
-    private float weaponRevealFactorSilenced = 0.35f;
+    public int cfg_soundDivider = 1000;
+    public int cfg_fullRecoverMs = 800;
+    public bool cfg_sendBar = true;
+    public int cfg_tickSkip = 2;
+    public float cfg_visibilityFloor = 0.5f;
+    public float cfg_weaponReloadRevealFactor = 0.55f;
+    public float cfg_weaponRevealFactor = 0.75f;
+    public float cfg_weaponRevealFactorSilenced = 0.35f;
 
     // public bool bombFoundForTheRound = false;
     // public CBasePlayerWeapon? bomb = null;
@@ -86,19 +86,19 @@ public class Invisibility : BasePower
         }
         if (gameEvent is EventPlayerSound realEventSound)
         {
-            float impact = realEventSound.Radius / (float)soundDivider;
+            float impact = realEventSound.Radius / (float)cfg_soundDivider;
             // Server.PrintToChatAll($"{impact}");
             HandleEvent(realEventSound.Userid, impact < 0.1 ? 0 : impact);
         }
         if (gameEvent is EventWeaponFire realEventFire)
-            HandleEvent(realEventFire.Userid, (float)(realEventFire.Silenced ? weaponRevealFactorSilenced : weaponRevealFactor));
+            HandleEvent(realEventFire.Userid, (float)(realEventFire.Silenced ? cfg_weaponRevealFactorSilenced : cfg_weaponRevealFactor));
         if (gameEvent is EventWeaponReload realEventReload)
-            HandleEvent(realEventReload.Userid, weaponReloadRevealFactor);
+            HandleEvent(realEventReload.Userid, cfg_weaponReloadRevealFactor);
 
         return HookResult.Continue;
     }
 
-    private void HandleEvent(CCSPlayerController? player, float duration = 1.0f)
+    public void HandleEvent(CCSPlayerController? player, float duration = 1.0f)
     {
         if (player == null)
             return;
@@ -112,8 +112,8 @@ public class Invisibility : BasePower
 
         Levels[idx] -= duration;
 
-        if (Levels[idx] < -visibilityFloor)
-            Levels[idx] = -visibilityFloor;
+        if (Levels[idx] < -cfg_visibilityFloor)
+            Levels[idx] = -cfg_visibilityFloor;
     }
 
     public override void Update()
@@ -138,10 +138,10 @@ public class Invisibility : BasePower
             }
         }
 
-        if (Server.TickCount % tickSkip != 0)
+        if (Server.TickCount % cfg_tickSkip != 0)
             return;
 
-        double gainEachTick = tickSkip / ((fullRecoverMs / 1000.0f) * 64.0f);
+        double gainEachTick = cfg_tickSkip / ((cfg_fullRecoverMs / 1000.0f) * 64.0f);
 
         // Server.PrintToChatAll(fullRecoverMs.ToString());
         // Server.PrintToChatAll(timeRecoverTicks.ToString());
@@ -152,7 +152,7 @@ public class Invisibility : BasePower
             var newValue = Levels[i] < 1.0f ? Levels[i] + gainEachTick : 1.0f;
             var player = Users[i];
 
-            if (sendBar)
+            if (cfg_sendBar)
                 if (newValue != Levels[i])
                     SetVisibilityLevel(player, (float)newValue);
 
@@ -218,7 +218,7 @@ public class Invisibility : BasePower
         // return (List<CBaseModelEntity>?)(hiddenEntities.Count == 0 ? null : hiddenEntities);
     }
 
-    private static void UpdateWeaponMeshGroupMask(CBaseEntity weapon, bool isLegacy = false)
+    public static void UpdateWeaponMeshGroupMask(CBaseEntity weapon, bool isLegacy = false)
     {
         if (weapon.CBodyComponent?.SceneNode == null) return;
         var skeleton = weapon.CBodyComponent.SceneNode.GetSkeletonInstance();
@@ -232,7 +232,7 @@ public class Invisibility : BasePower
 
     static public ulong _nextItemId = 65578;
 
-    private void UpdatePlayerEconItemId(CEconItemView econItemView)
+    public void UpdatePlayerEconItemId(CEconItemView econItemView)
     {
         var itemId = _nextItemId++;
 
@@ -241,12 +241,12 @@ public class Invisibility : BasePower
         econItemView.ItemIDHigh = (uint)itemId >> 32;
     }
 
-    private static void UpdatePlayerWeaponMeshGroupMask(CCSPlayerController player, CBasePlayerWeapon weapon, bool isLegacy)
+    public static void UpdatePlayerWeaponMeshGroupMask(CCSPlayerController player, CBasePlayerWeapon weapon, bool isLegacy)
     {
         UpdateWeaponMeshGroupMask(weapon, isLegacy);
     }
 
-    private void SetVisibilityLevel(CCSPlayerController player, float invisibilityLevel)
+    public void SetVisibilityLevel(CCSPlayerController player, float invisibilityLevel)
     {
         if (invisibilityLevel >= 1.0f)
             invisibilityLevel = 1.0f;
@@ -270,7 +270,7 @@ public class Invisibility : BasePower
         player.PrintToCenterHtml(sb.ToString(), 2);
     }
 
-    private void HideWearables(CCSPlayerController player, bool do_hide)
+    public void HideWearables(CCSPlayerController player, bool do_hide)
     {
         var pawn = player.PlayerPawn.Value!;
 
@@ -295,7 +295,7 @@ public class Invisibility : BasePower
         });
     }
 
-    private void WeaponsMakeHidden(CCSPlayerController player, bool do_hide)
+    public void WeaponsMakeHidden(CCSPlayerController player, bool do_hide)
     {
         var pawn = player.PlayerPawn.Value!;
 

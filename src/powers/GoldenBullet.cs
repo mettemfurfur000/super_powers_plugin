@@ -32,24 +32,23 @@ public class GoldenBullet : BasePower
             float timesMult = 1.0f;
             // Server.PrintToChatAll("last");
 
-            if (headshotMultEnabled && realEvent.Headshot)
+            if (cfg_headshotMultEnabled && realEvent.Headshot)
             {
                 // Server.PrintToChatAll("headshot");
-                timesMult = multOnHeadshot;
+                timesMult = cfg_multOnHeadshot;
             }
 
-            TemUtils.GiveMoney(shooter, (int)(killReward * timesMult), $"for killing an enemy with a last bullet ({StringHelpers.GetPowerColoredName(this)})");
+            TemUtils.GiveMoney(shooter, (int)(cfg_killReward * timesMult), $"for killing an enemy with a last bullet ({StringHelpers.GetPowerColoredName(this)})");
         }
 
         return HookResult.Continue;
     }
 
     // public override string GetDescription() => $"Last bullet in your chamber always hits x{mult} damage";
-    public override string GetDescription() => $"Kill with a last bullet gives you ${killReward}{(headshotMultEnabled ? $", X{multOnHeadshot} for headshots" : "")}";
-    public override string GetDescriptionColored() => "Kill with a last bullet gives you $" + StringHelpers.Green(killReward) + (headshotMultEnabled ? $", X{multOnHeadshot} for headshots" : "");
-
-    private int killReward = 3000;
-    private float multOnHeadshot = 1.5f;
-    private bool headshotMultEnabled = false;
+    public override string GetDescription() => $"Kill with a last bullet gives you ${cfg_killReward}{(cfg_headshotMultEnabled ? $", X{cfg_multOnHeadshot} for headshots" : "")}";
+    public override string GetDescriptionColored() => "Kill with a last bullet gives you $" + StringHelpers.Green(cfg_killReward) + (cfg_headshotMultEnabled ? $", X{cfg_multOnHeadshot} for headshots" : "");
+    public int cfg_killReward = 3000;
+    public float cfg_multOnHeadshot = 1.5f;
+    public bool cfg_headshotMultEnabled = false;
 }
 

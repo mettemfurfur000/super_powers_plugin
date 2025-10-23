@@ -57,7 +57,7 @@ public class TheShopper : BasePower
         if (Server.TickCount % 32 != 0)
             return;
 
-        if (Server.TickCount - shopStartedTick > shopAvailableSeconds * 64)
+        if (Server.TickCount - shopStartedTick > cfg_shop_open_seconds * 64)
             foreach (var user in Users)
             {
                 if (user.IsValid)
@@ -94,12 +94,12 @@ public class TheShopper : BasePower
                     var option = shop[index - 1];
                     if (!option.bought)
                     {
-                        TemUtils.AttemptPaidAction(player, paidChoice ? option.Price : 0, StringHelpers.GetPowerColoredName(option.Power!), () =>
+                        TemUtils.AttemptPaidAction(player, cfg_is_paid ? option.Price : 0, StringHelpers.GetPowerColoredName(option.Power!), () =>
                         {
                             option.bought = true;
                             option.Power!.OnAdd(player);
 
-                            if (!paidChoice)
+                            if (!cfg_is_paid)
                                 activeShops.Remove(player);
                             // some powers will only activate on the next round start, dont know how to deal with it yet
                             // option.Power!.Execute(null); // if multiple players get the same power they get the effect twice, instead of +250 health it will be +500
@@ -113,7 +113,7 @@ public class TheShopper : BasePower
             }
             else
             {
-                if (!paidChoice)
+                if (!cfg_is_paid)
                     player.PrintToChat("Only 1 power can be chosen!");
                 else
                     player.PrintToChat("Invalid shop!");
@@ -126,19 +126,19 @@ public class TheShopper : BasePower
     static Tuple<SIGNAL_STATUS, string> signalAccepted = new Tuple<SIGNAL_STATUS, string>(SIGNAL_STATUS.ACCEPTED, $"");
 
     // generates a list of unique powers for the shop
-    private List<ShopOption> ShopGenerate(CCSPlayerController player)
+    public List<ShopOption> ShopGenerate(CCSPlayerController player)
     {
         List<ShopOption> retList = [];
 
         List<(int, string)> rollWeights =
         [
-            (CommonWeight, "Common"),
-            (UncommonWeight, "Uncommon"),
-            (RareWeight, "Rare"),
-            (LegendaryWeight, "Legendary"),
+            (cfg_common_weight, "Common"),
+            (cfg_uncommon_weight, "Uncommon"),
+            (cfg_rare_weight, "Rare"),
+            (cfg_legendary_weight, "Legendary"),
         ];
 
-        for (int i = 0; i < powersAvailable; i++)
+        for (int i = 0; i < cfg_shop_amount; i++)
         {
             var chosen = WeaponHelpers.GetWeighted(rollWeights)!;
 
@@ -154,10 +154,10 @@ public class TheShopper : BasePower
                 if (power == null)
                     continue;
 
-                if (priceRoundFactor == 0)
-                    priceRoundFactor = 1; // avoid division by zero
+                if (cfg_price_round_to == 0)
+                    cfg_price_round_to = 1; // avoid division by zero
 
-                var price = Math.Round((power.Price * priceMultiplier) / priceRoundFactor) * priceRoundFactor;
+                var price = Math.Round((power.Price * cfg_price_mult) / cfg_price_round_to) * cfg_price_round_to;
 
                 if (!retList.Any(p => p.Power!.Name == power.Name)          // only unique and playable powers pass
                     && SuperPowerController.IsPowerPlayable(player, power)
@@ -184,31 +184,31 @@ public class TheShopper : BasePower
     public void PrintShopToChat(CCSPlayerController user, List<ShopOption> options)
     {
         user.PrintToChat($" {ChatColors.Gold}Super Power Shop");
-        user.PrintToChat($" {ChatColors.Grey}Use command {ChatColors.Gold}/b <number> {ChatColors.Grey} pick a power" + (!paidChoice ? "(Only 1 pick)" : ""));
+        user.PrintToChat($" {ChatColors.Grey}Use command {ChatColors.Gold}/b <number> {ChatColors.Grey} pick a power" + (!cfg_is_paid ? "(Only 1 pick)" : ""));
 
         // options.Sort((a, b) => a.Power!.priority.CompareTo(b.Power!.priority));
         // options.Reverse();
         for (int i = 0; i < options.Count; i++)
         {
             var option = options[i];
-            user.PrintToChat($" {i + 1} - {ChatColors.Green} {(paidChoice ? "${option.Price}" : "")} {StringHelpers.GetPowerColoredName(option.Power!)}");
+            user.PrintToChat($" {i + 1} - {ChatColors.Green} {(cfg_is_paid ? "${option.Price}" : "")} {StringHelpers.GetPowerColoredName(option.Power!)}");
             user.PrintToChat($" {option.Power!.GetDescriptionColored()}");
         }
     }
 
     public override string GetDescription() => $"Allows to buy powers on the start of each round";
 
-    private int powersAvailable = 4;
-    private float priceMultiplier = 1;
-    private int shopAvailableSeconds = 35;
-    private int priceRoundFactor = 500;
+    public int cfg_shop_amount = 4;
+    public float cfg_price_mult = 1;
+    public int cfg_shop_open_seconds = 35;
+    public int cfg_price_round_to = 500;
 
-    private bool paidChoice = false;
+    public bool cfg_is_paid = false;
 
-    private int CommonWeight = 10;
-    private int UncommonWeight = 6;
-    private int RareWeight = 3;
-    private int LegendaryWeight = 1;
+    public int cfg_common_weight = 10;
+    public int cfg_uncommon_weight = 6;
+    public int cfg_rare_weight = 3;
+    public int cfg_legendary_weight = 1;
 
     public Dictionary<CCSPlayerController, List<ShopOption>> activeShops = [];
 }

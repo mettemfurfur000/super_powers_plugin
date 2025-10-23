@@ -37,9 +37,9 @@ public class ExplosionUponDeath : BasePower
 
         explosion_fx!.Teleport(node!.AbsOrigin, node!.AbsRotation, new Vector(0, 0, 0));
         explosion_fx!.DispatchSpawn();
-        explosion_fx!.PlayerDamage = damage;
-        explosion_fx!.RadiusOverride = radius;
-        explosion_fx!.Magnitude = (int)magnitute;
+        explosion_fx!.PlayerDamage = cfg_damage;
+        explosion_fx!.RadiusOverride = cfg_radius;
+        explosion_fx!.Magnitude = (int)cfg_magnitute;
         // explosion_fx!.CustomDamageType = DamageTypes_t.DMG_BLAST;
         // explosion_fx!.CreateDebris = true;
         explosion_fx.AcceptInput("Explode");
@@ -47,11 +47,11 @@ public class ExplosionUponDeath : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Explode on death, dealing {damage} damage in a {radius}Hu radius";
-    public override string GetDescriptionColored() => "Explode on death, dealing " + StringHelpers.Red(damage.ToString() + " dmg") + " in a " + StringHelpers.Blue(radius) + " Hu radius";
+    public override string GetDescription() => $"Explode on death, dealing {cfg_damage} damage in a {cfg_radius}Hu radius";
+    public override string GetDescriptionColored() => "Explode on death, dealing " + StringHelpers.Red(cfg_damage.ToString() + " dmg") + " in a " + StringHelpers.Blue(cfg_radius) + " Hu radius";
 
-    private int radius = 500;
-    private float damage = 150f;
-    private float magnitute = 75f;
+    public int cfg_radius = 500;
+    public float cfg_damage = 150f;
+    public float cfg_magnitute = 75f;
 }
 

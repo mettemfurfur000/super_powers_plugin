@@ -20,15 +20,15 @@ public class BonusArmor : BasePower
             if (pawn == null)
                 continue;
 
-            pawn.ArmorValue = value;
+            pawn.ArmorValue = cfg_value;
             Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
 
         }
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Obtain {value} armor each round, head armor not included";
+    public override string GetDescription() => $"Obtain {cfg_value} armor each round, head armor not included";
 
-    private int value = 250;
+    public int cfg_value = 250;
 }
 

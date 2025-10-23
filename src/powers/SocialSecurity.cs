@@ -20,18 +20,18 @@ public class SocialSecurity : BasePower
             if (user.ActionTrackingServices!.MatchStats!.Deaths == 0)
                 continue;
             float kd = user.ActionTrackingServices!.MatchStats!.Kills / user.ActionTrackingServices!.MatchStats!.Deaths;
-            if (kd < gate)
+            if (kd < cfg_gate)
             {
-                TemUtils.GiveMoney(user,value, $"for having k/d {kd:n2} ({StringHelpers.GetPowerColoredName(this)})");
+                TemUtils.GiveMoney(user,cfg_value, $"for having k/d {kd:n2} ({StringHelpers.GetPowerColoredName(this)})");
             }
         }
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"At round start, if your k/d is below {gate}, gain {value}$";
-    public override string GetDescriptionColored() => $"At round start, If your k/d is below " + StringHelpers.Blue(gate) + ", gain " + StringHelpers.Green(value) + "$";
+    public override string GetDescription() => $"At round start, if your k/d is below {cfg_gate}, gain {cfg_value}$";
+    public override string GetDescriptionColored() => $"At round start, If your k/d is below " + StringHelpers.Blue(cfg_gate) + ", gain " + StringHelpers.Green(cfg_value) + "$";
 
-    private int value = 2500;
-    private float gate = 0.9f;
+    public int cfg_value = 2500;
+    public float cfg_gate = 0.9f;
 }
 

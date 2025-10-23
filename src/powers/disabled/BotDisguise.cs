@@ -44,7 +44,7 @@ public class BotDisguise : BasePower
             Users.ForEach(u => ChangeNameRevertable(u));
     }
 
-    private void ChangeNameRevertable(CCSPlayerController player)
+    public void ChangeNameRevertable(CCSPlayerController player)
     {
         if (player.IsBot)
             return;
@@ -70,7 +70,7 @@ public class BotDisguise : BasePower
         TemUtils.UpdatePlayerName(player, name, "BOT");
     }
 
-    private void RevertName(CCSPlayerController player)
+    public void RevertName(CCSPlayerController player)
     {
         if (player.IsBot)
             return;

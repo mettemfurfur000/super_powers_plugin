@@ -60,11 +60,11 @@ public class Rebirth : BasePower
 
                         Server.NextFrame(() => pawn.Teleport(value.Item1, value.Item2, new Vector(0, 0, 0)));
 
-                        if (allowBuy)
+                        if (cfg_allowBuy)
                         {
                             pawn.InBuyZone = true;
                             buyspamactive.Add(player);
-                            TemUtils.__plugin?.AddTimer(allowBuyTime, () =>
+                            TemUtils.__plugin?.AddTimer(cfg_allowBuyTime, () =>
                             {
                                 pawn.InBuyZone = false;
                                 pawn.WasInBuyZone = true;
@@ -95,7 +95,7 @@ public class Rebirth : BasePower
     public Dictionary<CCSPlayerController, Tuple<Vector, QAngle>> positions = [];
     public List<CCSPlayerController> buyspamactive = [];
 
-    private bool allowBuy = true;
-    private int allowBuyTime = 20;
+    public bool cfg_allowBuy = true;
+    public int cfg_allowBuyTime = 20;
 }
 

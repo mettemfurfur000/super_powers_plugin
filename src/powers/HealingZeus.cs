@@ -35,15 +35,15 @@ public class HealingZeus : BasePower
         if (victim_pawn.TeamNum != attacker.TeamNum)
             return HookResult.Continue;
 
-        victim_pawn.Health = value;
+        victim_pawn.Health = cfg_health_set;
 
         Utilities.SetStateChanged(victim_pawn, "CBaseEntity", "m_iHealth");
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Zap your teammates to set their health to {value}";
-    public override string GetDescriptionColored() => $"Zap your " + StringHelpers.Green("teammates") + " to set their health to " + StringHelpers.Green(value);
+    public override string GetDescription() => $"Zap your teammates to set their health to {cfg_health_set}";
+    public override string GetDescriptionColored() => $"Zap your " + StringHelpers.Green("teammates") + " to set their health to " + StringHelpers.Green(cfg_health_set);
 
-    private int value = 75;
+    public int cfg_health_set = 75;
 }
 

@@ -41,7 +41,7 @@ public class BiocodedWeapons : BasePower
     }
 
     // if owners does not match and owner has this power, make weapon unusable
-    private bool IsWeaponBiocoded(CCSPlayerController currentUser)
+    public bool IsWeaponBiocoded(CCSPlayerController currentUser)
     {
         ulong shooterId = currentUser.SteamID;
         // ulong weaponOwnerId = TemUtils.GetActiveWeaponUserSteamId64(currentUser);

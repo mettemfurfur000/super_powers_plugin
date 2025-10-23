@@ -1,7 +1,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
-
+using CounterStrikeSharp.API.Modules.Utils;
 using super_powers_plugin.src;
 
 public class Snowballing : BasePower
@@ -17,7 +17,7 @@ public class Snowballing : BasePower
     {
         Type type = gameEvent.GetType();
 
-        if (type == typeof(EventPlayerDeath) && giveHealImmediately) // each  time he kills someone, he gets a heal bonus
+        if (type == typeof(EventPlayerDeath) && cfg_giveHealImmediately) // each  time he kills someone, he gets a heal bonus
         {
             EventPlayerDeath realEvent = (EventPlayerDeath)gameEvent;
 
@@ -29,7 +29,7 @@ public class Snowballing : BasePower
                 return HookResult.Continue;
 
             var pawn = player.PlayerPawn.Value!;
-            pawn.Health = pawn.Health + heal;
+            pawn.Health = pawn.Health + cfg_heal;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
         else if (type == typeof(EventPlayerHurt))
@@ -42,7 +42,7 @@ public class Snowballing : BasePower
                 return HookResult.Continue;
 
             // match stats contain kills thru de whol game, killCount only contains kills for this round
-            float damage_uncapped_bonus = (resetOnRoundStart == false ? player.ActionTrackingServices!.MatchStats.Kills : player.KillCount) * dmg_inc;
+            float damage_uncapped_bonus = (cfg_resetOnRoundStart == false ? player.ActionTrackingServices!.MatchStats.Kills : player.KillCount) * cfg_dmg_inc;
 
             float damage_mult_bonus = damage_uncapped_bonus;
             int bonus_damage = (int)(realEvent.DmgHealth * damage_mult_bonus);
@@ -51,12 +51,12 @@ public class Snowballing : BasePower
             pawn.Health = pawn.Health - bonus_damage;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
-        else if (type == typeof(EventRoundStart) && giveHealOnSpawn && resetOnRoundStart == false)
+        else if (type == typeof(EventRoundStart) && cfg_giveHealOnSpawn && cfg_resetOnRoundStart == false)
         {
             Users.ForEach(user =>
             {
                 var pawn = user.PlayerPawn.Value!;
-                pawn.Health = pawn.Health + user.ActionTrackingServices!.MatchStats.Kills * heal;
+                pawn.Health = pawn.Health + user.ActionTrackingServices!.MatchStats.Kills * cfg_heal;
                 Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
             });
         }
@@ -64,14 +64,14 @@ public class Snowballing : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Each kill will give you {heal} more HP and {dmg_inc * 100}% more damage";
-    public override string GetDescriptionColored() => "Each kill will give you " + StringHelpers.Green(heal) + " more HP and " + StringHelpers.Red((dmg_inc * 100) + "%") + " more damage";
+    public override string GetDescription() => $"Each kill will give you {cfg_heal} more HP and {cfg_dmg_inc * 100}% more damage";
+    public override string GetDescriptionColored() => "Each kill will give you " + StringHelpers.Green(cfg_heal) + " more HP and " + StringHelpers.Red((cfg_dmg_inc * 100) + "%") + " more damage";
 
-    private int heal = 25;
-    private float dmg_inc = 0.1f;
+    public int cfg_heal = 25;
+    public float cfg_dmg_inc = 0.1f;
 
-    private bool resetOnRoundStart = true;
-    private bool giveHealImmediately = true;
-    private bool giveHealOnSpawn = false;
+    public bool cfg_resetOnRoundStart = true;
+    public bool cfg_giveHealImmediately = true;
+    public bool cfg_giveHealOnSpawn = false;
 }
 

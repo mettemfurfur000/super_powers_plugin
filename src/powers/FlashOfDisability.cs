@@ -30,7 +30,7 @@ public class FlashOfDisability : BasePower
         if (!Users.Contains(attacker))
             return HookResult.Continue;
 
-        if (ignore_self_flash && attacker == victim)
+        if (cfg_ignore_self_flash && attacker == victim)
             return HookResult.Continue;
 
         SuperPowerController.DisablePlayer(victim, (int)victim.PlayerPawn.Value!.FlashDuration * 64);
@@ -38,9 +38,8 @@ public class FlashOfDisability : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => "Disables powers of players, blinded by your flash" + (ignore_self_flash ? "(Self-flash ignored)" : "");
-    public override string GetDescriptionColored() => "Disables powers of players, blinded by your flash" + (ignore_self_flash ? StringHelpers.Blue("(Self-flash ignored)") : "");
-
-    private bool ignore_self_flash = true;
+    public override string GetDescription() => "Disables powers of players, blinded by your flash" + (cfg_ignore_self_flash ? "(Self-flash ignored)" : "");
+    public override string GetDescriptionColored() => "Disables powers of players, blinded by your flash" + (cfg_ignore_self_flash ? StringHelpers.Blue("(Self-flash ignored)") : "");
+    public bool cfg_ignore_self_flash = true;
 }
 

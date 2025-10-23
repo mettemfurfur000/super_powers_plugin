@@ -16,15 +16,15 @@ public class SmallSize : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
-        if (affectHullSizeAll)
-            TemUtils.SetGlobalPlayerHull(scale);
-        Users.ForEach(user => SetScale(user, scale));
+        if (cfg_affectHullSizeAll)
+            TemUtils.SetGlobalPlayerHull(cfg_scale);
+        Users.ForEach(user => SetScale(user, cfg_scale));
         return HookResult.Continue;
     }
 
     public override void OnRemovePower(CCSPlayerController? player)
     {
-        if (affectHullSizeAll)
+        if (cfg_affectHullSizeAll)
             TemUtils.SetGlobalPlayerHull(1.0f);
         if (player != null)
             SetScale(player, 1);
@@ -52,10 +52,10 @@ public class SmallSize : BasePower
 
         // if (affectHullSizeAll)
         //     TemUtils.SetGlobalPlayerHull(scale);
-        Users.ForEach(user => SetScale(user, scale));
+        Users.ForEach(user => SetScale(user, cfg_scale));
     }
 
-    private float scale = 0.5f;
-    private bool affectHullSizeAll = false;
+    public float cfg_scale = 0.5f;
+    public bool cfg_affectHullSizeAll = false;
 }
 

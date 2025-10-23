@@ -39,7 +39,7 @@ public class FakePassport : BasePower
                 return HookResult.Continue;
 
             var victim = realEvent.Userid;
-            var isHeadshot = !requireHeadshotDealth || realEvent.Headshot; // always true if headhots ar not required
+            var isHeadshot = !cfg_requireHeadshotDealth || realEvent.Headshot; // always true if headhots ar not required
 
             if (!consecutiveDeaths.ContainsKey(victim))
                 consecutiveDeaths.Add(victim, isHeadshot ? 1 : 0);
@@ -60,7 +60,7 @@ public class FakePassport : BasePower
 
                 var pawn = user.PlayerPawn.Value!;
 
-                pawn.Health = (int)(pawn.Health * Math.Pow(health_mult, cur_streak));
+                pawn.Health = (int)(pawn.Health * Math.Pow(cfg_health_mult, cur_streak));
                 Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
 
                 // Server.PrintToChatAll($"{user.PlayerName} respawn, streak {cur_streak}");
@@ -70,10 +70,10 @@ public class FakePassport : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Gain {health_mult}X health on the round start for each consecutive death {(requireHeadshotDealth ? "from a headshot" : "")}";
-    public override string GetDescriptionColored() => "Gain " + StringHelpers.Green($"{health_mult}X health") + " on the round start for each " + StringHelpers.Red("consecutive death" + (requireHeadshotDealth ? " from a headshot" : ""));
+    public override string GetDescription() => $"Gain {cfg_health_mult}X health on the round start for each consecutive death {(cfg_requireHeadshotDealth ? "from a headshot" : "")}";
+    public override string GetDescriptionColored() => "Gain " + StringHelpers.Green($"{cfg_health_mult}X health") + " on the round start for each " + StringHelpers.Red("consecutive death" + (cfg_requireHeadshotDealth ? " from a headshot" : ""));
 
-    private float health_mult = 2f;
-    private bool requireHeadshotDealth = true;
+    public float cfg_health_mult = 2f;
+    public bool cfg_requireHeadshotDealth = true;
     public Dictionary<CCSPlayerController, int> consecutiveDeaths = [];
 }

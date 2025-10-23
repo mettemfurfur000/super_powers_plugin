@@ -27,24 +27,30 @@ public class NukeNades : BasePower
             return HookResult.Continue;
 
         var all_grenades = Utilities.FindAllEntitiesByDesignerName<CHEGrenadeProjectile>("hegrenade_projectile");
-        if (all_grenades.Count() == 0)
+        if (!all_grenades.Any())
             return HookResult.Continue;
 
-        var grenade = all_grenades.First();
-        if (player.UserId == grenade.Thrower.Value!.OriginalController.Value!.UserId)
+        all_grenades.ToList().ForEach(grenade =>
         {
-            grenade.Damage *= multiplier;
-            grenade.DmgRadius *= multiplier;
+            double secondsToExplod = grenade.DetonateTime - Server.CurrentTime;
 
-            grenade.DetonateTime += 1;
-        }
+            if (
+                secondsToExplod == knownDelay &&
+                player.UserId == grenade.Thrower.Value!.OriginalController.Value!.UserId)
+            {
+                grenade.Damage *= cfg_multiplier;
+                grenade.DmgRadius *= cfg_multiplier;
+
+                grenade.DetonateTime += (float)(cfg_detonateTime - knownDelay);
+            }
+        });
 
         return HookResult.Continue;
     }
-
-    public override string GetDescription() => $"HE grenades are {multiplier} times more explosive";
-    public override string GetDescriptionColored() => "HE grenades are " + StringHelpers.Red(multiplier) + " times more explosive";
-
-    private float multiplier = 10;
+    public readonly double knownDelay = 1.5;
+    public override string GetDescription() => $"HE grenades are {cfg_multiplier} times more explosive and it takes {cfg_detonateTime} to explode";
+    public override string GetDescriptionColored() => "HE grenades are " + StringHelpers.Red(cfg_multiplier) + " times more explosive takes " + StringHelpers.Red(cfg_detonateTime) + " to explode";
+    public float cfg_multiplier = 10;
+    public float cfg_detonateTime = 5;
 }
 

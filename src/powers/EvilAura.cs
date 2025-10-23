@@ -20,7 +20,7 @@ public class EvilAura : BasePower
 
     public override void Update()
     {
-        if (Server.TickCount % period != 0)
+        if (Server.TickCount % cfg_period != 0)
             return;
         var players = Utilities.GetPlayers();
         foreach (var user in Users)
@@ -32,7 +32,7 @@ public class EvilAura : BasePower
             if (pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE)
                 continue;
 
-            var playersInRadius = players.Where(p => p.PlayerPawn.Value != null && TemUtils.CalcDistance(p.PlayerPawn.Value.AbsOrigin!, pawn.AbsOrigin!) <= distance);
+            var playersInRadius = players.Where(p => p.PlayerPawn.Value != null && TemUtils.CalcDistance(p.PlayerPawn.Value.AbsOrigin!, pawn.AbsOrigin!) <= cfg_distance);
 
             foreach (var player_to_harm in playersInRadius)
             {
@@ -46,15 +46,15 @@ public class EvilAura : BasePower
                 if (harm_pawn.Health <= 2)
                     continue;
 
-                harm_pawn.Health = harm_pawn.Health - damage;
+                harm_pawn.Health = harm_pawn.Health - cfg_damage;
                 Utilities.SetStateChanged(harm_pawn, "CBaseEntity", "m_iHealth");
             }
         }
     }
 
-    private float distance = 250;
-    private int damage = 1;
-    private int period = 16;
+    public float cfg_distance = 250;
+    public int cfg_damage = 1;
+    public int cfg_period = 16;
 
     public override string GetDescription() => $"Slowly harm enemies close to you. Can't kill";
     public override string GetDescriptionColored() => $"Slowly " + StringHelpers.Red("harm") + " enemies close to you. Can't kill";

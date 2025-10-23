@@ -31,7 +31,7 @@ public class WarpPeek : BasePower
         if (timeouts.ContainsKey(player))
             if (timeouts[player] > 0)
             {
-                timeouts[player] = timeout;
+                timeouts[player] = cfg_timeout;
                 return HookResult.Continue;
             }
 
@@ -39,18 +39,18 @@ public class WarpPeek : BasePower
         if (pawn == null)
             return HookResult.Continue;
 
-        int next_index = (current_index + 1) % max_index;
+        int next_index = (current_index + 1) % cfg_max_index;
 
         pawn.Teleport(positions[player][next_index].Item1, positions[player][next_index].Item2, new Vector(0, 0, 0));
 
-        timeouts[player] = timeout;
+        timeouts[player] = cfg_timeout;
 
         return HookResult.Continue;
     }
 
     public override void Update()
     {
-        if (Server.TickCount % period != 0)
+        if (Server.TickCount % cfg_period != 0)
             return;
 
         foreach (var user in Users)
@@ -77,7 +77,7 @@ public class WarpPeek : BasePower
         }
 
         current_index++;
-        if (current_index >= max_index)
+        if (current_index >= cfg_max_index)
             current_index = 0;
     }
 
@@ -89,8 +89,8 @@ public class WarpPeek : BasePower
     public Dictionary<CCSPlayerController, Dictionary<int, Tuple<Vector, QAngle>>> positions = [];
     public Dictionary<CCSPlayerController, int> timeouts = [];
     public int current_index = 0;
-    private int max_index = 10;
-    private int period = 16;
-    private int timeout = 30;
+    public int cfg_max_index = 10;
+    public int cfg_period = 16;
+    public int cfg_timeout = 30;
 }
 

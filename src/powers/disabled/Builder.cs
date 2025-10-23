@@ -20,7 +20,7 @@ public class Builder : BasePower
 
     // stolen https://github.com/Kandru/cs2-roll-the-dice/blob/main/src/RollTheDice%2BDiceNoExplosives.cs#L204
 
-    private uint CreatePhysicsModel(Vector origin, QAngle angles, Vector velocity)
+    public uint CreatePhysicsModel(Vector origin, QAngle angles, Vector velocity)
     {
         CDynamicProp prop = Utilities.CreateEntityByName<CDynamicProp>("prop_physics_override")!;
 

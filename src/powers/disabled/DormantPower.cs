@@ -67,25 +67,25 @@ public class DormantPower : BasePower
 
     public override string GetDescription() => $"Internal use only";
 
-    private string master_rule = "fill_me";
-    private string round_rule_separator = "|";
-    private string power_separator = ";";
+    public string cfg_master_rule = "fill_me";
+    public string cfg_round_rule_separator = "|";
+    public string cfg_power_separator = ";";
 
-    private void ParseMasterRule()
+    public void ParseMasterRule()
     {
-        if (master_rule == "fill_me")
+        if (cfg_master_rule == "fill_me")
         {
             TemUtils.AlertError("Master rule is not set");
             return;
         }
 
-        var round_rules = master_rule.Split(round_rule_separator).ToHashSet();
+        var round_rules = cfg_master_rule.Split(cfg_round_rule_separator).ToHashSet();
         if (round_rules.Count == 0)
             return;
 
         foreach (var rule in round_rules)
         {
-            var power_commands = rule.Split(power_separator);
+            var power_commands = rule.Split(cfg_power_separator);
 
             int round_number = int.Parse(power_commands[0]);
 

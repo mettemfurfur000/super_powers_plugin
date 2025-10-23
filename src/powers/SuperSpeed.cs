@@ -15,14 +15,14 @@ public class SuperSpeed : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
-        TemUtils.PowerApplySpeed(Users, value);
+        TemUtils.PowerApplySpeed(Users, cfg_value);
         return HookResult.Continue;
     }
 
     public override void Update()
     {
-        if (Server.TickCount % period != 0) return;
-        TemUtils.PowerApplySpeed(Users, value);
+        if (Server.TickCount % cfg_period != 0) return;
+        TemUtils.PowerApplySpeed(Users, cfg_value);
     }
 
     public override void OnRemovePower(CCSPlayerController? player)
@@ -30,11 +30,11 @@ public class SuperSpeed : BasePower
         TemUtils.PowerRemoveSpeedModifier(Users, player);
     }
 
-    public override string GetDescription() => $"Increased walking speed ({(float)value / default_velocity_max}X faster)";
-    public override string GetDescriptionColored() => "Increased walking speed (" + StringHelpers.Blue((float)value / default_velocity_max) + "X faster)";
+    public override string GetDescription() => $"Increased walking speed ({(float)cfg_value / default_velocity_max}X faster)";
+    public override string GetDescriptionColored() => "Increased walking speed (" + StringHelpers.Blue((float)cfg_value / default_velocity_max) + "X faster)";
 
-    private int value = 700;
-    private int period = 4;
+    public int cfg_value = 700;
+    public int cfg_period = 4;
     public const int default_velocity_max = 250;
 }
 

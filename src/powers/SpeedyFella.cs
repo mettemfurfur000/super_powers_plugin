@@ -41,7 +41,7 @@ public class SpeedyFella : BasePower
                 return;
             }
 
-            UpdateAcceleration(user, user.PlayerPawn.Value.AbsVelocity.Length() <= minimalSpeed);
+            UpdateAcceleration(user, user.PlayerPawn.Value.AbsVelocity.Length() <= cfg_minimalSpeed);
         });
     }
 
@@ -51,14 +51,14 @@ public class SpeedyFella : BasePower
             return;
 
         var pawn = user.PlayerPawn.Value;
-        pawn.VelocityModifier = (float)(stopAccelerating ? 1 : pawn.VelocityModifier * factor);
-        pawn.MovementServices!.Maxspeed = (float)(stopAccelerating ? 320 : pawn.MovementServices!.Maxspeed * factor);
+        pawn.VelocityModifier = (float)(stopAccelerating ? 1 : pawn.VelocityModifier * cfg_factor);
+        pawn.MovementServices!.Maxspeed = (float)(stopAccelerating ? 320 : pawn.MovementServices!.Maxspeed * cfg_factor);
         Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_flVelocityModifier");
         Utilities.SetStateChanged(pawn, "CPlayer_MovementServices", "m_flMaxspeed");
     }
 
     public override string GetDescription() => $"";
     public override string GetDescriptionColored() => $"";
-    private int minimalSpeed = 250;
-    private float factor = 1.01f;
+    public int cfg_minimalSpeed = 250;
+    public float cfg_factor = 1.01f;
 }

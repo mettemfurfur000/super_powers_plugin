@@ -542,7 +542,7 @@ public static class SuperPowerController
 
     public static Dictionary<string, Dictionary<string, string>> GenerateDefaultConfig()
     {
-        Dictionary<string, Dictionary<string, string>> args = new Dictionary<string, Dictionary<string, string>>();
+        Dictionary<string, Dictionary<string, string>> args = [];
 
         foreach (var power in Powers)
         {
@@ -554,24 +554,27 @@ public static class SuperPowerController
 
             args.Add(power_name, new Dictionary<string, string>());
 
-            AppendFieldsRecursive(args[power_name], power, power.GetType());
+            GenerateAddFields(args[power_name], power, power.GetType());
         }
         return args;
     }
-
-    private static void AppendFieldsRecursive(Dictionary<string, string> dest, object instance, Type type)
+    private static BindingFlags fieldFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+    private static readonly string prefix = "cfg_"; 
+    private static void GenerateAddFields(Dictionary<string, string> dest, object instance, Type type)
     {
         var iter = type;
 
         do
         {
-            var fields = iter.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+            var fields = iter.GetFields(fieldFlags);
 
             foreach (var property in fields)
             {
-                if (property.IsPublic) continue;
-
                 var property_name = property.Name;
+                if (!property_name.StartsWith(prefix))
+                    continue;
+                property_name = property_name.Replace(prefix, "");
+
                 var property_value = property.GetValue(instance);
 
                 if (property_value != null)
@@ -581,6 +584,59 @@ public static class SuperPowerController
             iter = iter.BaseType;
         } while (iter != null);
     }
+
+    public static void ParseConfig(BasePower power, Type iter_type, Dictionary<string, string> cfg_unresolved)
+    {
+        if (cfg_unresolved.Count == 0)
+            return;
+        Dictionary<string, string> next_unresolved = [];
+
+        // sets values based on cfg unresolved dict from de existing config
+        foreach (var field in cfg_unresolved)
+        {
+            string actualKey = prefix + field.Key;
+            var fieldInfo = iter_type.GetField(actualKey, fieldFlags);
+
+            if (fieldInfo == null)
+            {
+                next_unresolved.Add(field.Key, field.Value);
+                continue;
+            }
+
+            try
+            {
+                try
+                {
+                    fieldInfo.SetValue(power, Convert.ChangeType(field.Value, fieldInfo.FieldType));
+                }
+                catch (InvalidCastException ex) { TemUtils.AlertError($"Error occured while processing {iter_type} : Failed to convert value for {fieldInfo.Name}: {ex.Message}"); }
+                catch (FormatException ex) { TemUtils.AlertError($"Error occured while processing {iter_type} : Invalid format for {fieldInfo.Name}: {ex.Message}"); }
+                // Log($"resloved {field.Key}");
+            }
+            catch
+            {
+                // aah whatever
+            }
+        }
+
+        // parses all the fields of said power class
+
+        if (iter_type.BaseType != null)
+            ParseConfig(power, iter_type.BaseType, next_unresolved);
+        else if (next_unresolved.SequenceEqual(cfg_unresolved))
+        {
+            TemUtils.AlertError("Failed to resolve some fields for '" + iter_type + "', list of them:");
+            foreach (var field in next_unresolved)
+                TemUtils.AlertError(field.Key + " : " + field.Value);
+            TemUtils.AlertError("All fields for current type:");
+            foreach (var field in iter_type.GetRuntimeFields())
+                TemUtils.AlertError(field.ToString()!);
+
+            return;
+        }
+        // Log($"null base class for {iter_type}");
+    }
+
 
     public static void PrecachePowers(ResourceManifest manifest)
     {

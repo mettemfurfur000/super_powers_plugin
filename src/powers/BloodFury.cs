@@ -43,11 +43,11 @@ public class BloodFury : BasePower
 
             {
                 // main powerup section
-                TemUtils.PowerApplySpeed(Users, SpeedModifier);
+                TemUtils.PowerApplySpeed(Users, cfg_SpeedModifier);
 
                 TemUtils.CreateParticle(pawn.AbsOrigin!, NeededResources[0], 2, "Breakable.MatGlass", player: player);
 
-                InvicibilityTicks.Add(Tuple.Create(player, (int)(Server.TickCount + (InvincibilitySeconds * 64))));
+                InvicibilityTicks.Add(Tuple.Create(player, (int)(Server.TickCount + (cfg_InvincibilitySeconds * 64))));
             }
 
             ActivatedUsers.Add(player);
@@ -78,7 +78,7 @@ public class BloodFury : BasePower
 
             var pawn = realEvent2.Userid!.PlayerPawn.Value!;
 
-            int bonus_damage = (int)(realEvent2.DmgHealth * DamageBonusMult) + DamageBonusFlat;
+            int bonus_damage = (int)(realEvent2.DmgHealth * cfg_DamageBonusMult) + cfg_DamageBonusFlat;
 
             pawn.Health = pawn.Health - bonus_damage;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
@@ -102,7 +102,7 @@ public class BloodFury : BasePower
     {
         InvicibilityTicks.RemoveAll(t => t.Item2 <= Server.TickCount); // remove expired ticks
 
-        if (Server.TickCount % UpdatePeriod != 0)
+        if (Server.TickCount % cfg_UpdatePeriod != 0)
             return;
 
         Users.ForEach(user =>
@@ -116,31 +116,29 @@ public class BloodFury : BasePower
 
             if (pawn.Health < 100)
             {
-                pawn.Health += HealthRegenPerUpdate;
+                pawn.Health += cfg_HealthRegenPerUpdate;
                 Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
             }
         });
 
     }
 
-    private bool IsEnoughKills(CCSPlayerController player)
+    public bool IsEnoughKills(CCSPlayerController player)
     {
-        var curKills = CountOnlyHeadshots ? player.ActionTrackingServices!.NumRoundKillsHeadshots : player.ActionTrackingServices!.NumRoundKills;
-        return curKills >= KillsToRage;
+        var curKills = cfg_CountOnlyHeadshots ? player.ActionTrackingServices!.NumRoundKillsHeadshots : player.ActionTrackingServices!.NumRoundKills;
+        return curKills >= cfg_KillsToRage;
     }
 
-    private bool CountOnlyHeadshots = false;
-    private int KillsToRage = 3;
-    private int UpdatePeriod = 64;
-    private int SpeedModifier = 450;
-    private int DamageBonusFlat = 10;
-    private double DamageBonusMult = 0.25d;
-    private int HealthRegenPerUpdate = 1;
-    private double InvincibilitySeconds = 1.5d;
-
-    public override string GetDescription() => $"After getting {KillsToRage} {(CountOnlyHeadshots ? "Headshots" : "Kills")}, gain speed, +%damage, and temporary invincibility";
-    public override string GetDescriptionColored() => "After " + StringHelpers.Red(KillsToRage) + (CountOnlyHeadshots ? " Headshots" : " Kills") + ", gain speed, extra damage, and " + StringHelpers.Blue("temporary invincibility");
-
+    public bool cfg_CountOnlyHeadshots = false;
+    public int cfg_KillsToRage = 3;
+    public int cfg_UpdatePeriod = 64;
+    public int cfg_SpeedModifier = 450;
+    public int cfg_DamageBonusFlat = 10;
+    public double cfg_DamageBonusMult = 0.25d;
+    public int cfg_HealthRegenPerUpdate = 1;
+    public double cfg_InvincibilitySeconds = 1.5d;
+    public override string GetDescription() => $"After getting {cfg_KillsToRage} {(cfg_CountOnlyHeadshots ? "Headshots" : "Kills")}, gain speed, +%damage, and temporary invincibility";
+    public override string GetDescriptionColored() => "After " + StringHelpers.Red(cfg_KillsToRage) + (cfg_CountOnlyHeadshots ? " Headshots" : " Kills") + ", gain speed, extra damage, and " + StringHelpers.Blue("temporary invincibility");
     public List<CCSPlayerController> ActivatedUsers = [];
     public List<Tuple<CCSPlayerController, int>> InvicibilityTicks = [];
 }

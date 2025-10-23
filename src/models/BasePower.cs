@@ -9,7 +9,7 @@ using super_powers_plugin.src;
 
 // abscaraftlks
 
-// ! Private fields will be exposed to user in an automaticaly generated config, leave fields public if you dont want them to be configurable
+// ! Fields with cfg_ in front of it will be exposed to user in an automaticaly generated config, leave fields public if you dont want them to be configurable
 
 public class BasePower : ShopPower
 {
@@ -44,7 +44,7 @@ public class BasePower : ShopPower
         return HookResult.Continue;                                     // ! Put custom logic here
     }
     public virtual void Update() { }                                    // ! Update will be executed every tick, do not put heavy operations in here if possible
-    public virtual void ParseCfg(Dictionary<string, string> cfg) { TemUtils.ParseConfigReflectiveRecursive(this, this.GetType(), cfg); } // no touching
+    public virtual void ParseCfg(Dictionary<string, string> cfg) { SuperPowerController.ParseConfig(this, this.GetType(), cfg); } // no touching
     public virtual bool IsUser(CCSPlayerController player) { return Users.Contains(player); }
 
     public virtual void OnRemovePower(CCSPlayerController? player) { }  // ! Put custom logic that is needed to rever player to its original state

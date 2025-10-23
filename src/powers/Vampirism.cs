@@ -32,27 +32,27 @@ public class Vampirism : BasePower
         if (attackerPawn == null || !attackerPawn.IsValid)
             return HookResult.Continue;
 
-        attackerPawn.Health = attackerPawn.Health + realEvent.DmgHealth / divisor;
+        attackerPawn.Health = attackerPawn.Health + realEvent.DmgHealth / cfg_divisor;
 
         Utilities.SetStateChanged(attackerPawn, "CBaseEntity", "m_iHealth");
         //Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
 
-        var sounds = vampireSounds.Split(";");
-        if (playSounds)
+        var sounds = cfg_vampireSounds.Split(";");
+        if (cfg_playSounds)
             attacker.ExecuteClientCommand("play " + sounds.ElementAt(new Random().Next(sounds.Length)));
         // TemUtils.EmitSound(attacker,) // dosn work aparently, requires source2viewer to get exact sound thing name
-        if (playSounds)
+        if (cfg_playSounds)
             if (victim != null && victim.IsValid)
                 victim.ExecuteClientCommand("play " + sounds.ElementAt(new Random().Next(sounds.Length)));
 
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Gain {(int)(100 / divisor)}% of dealt damage as extra health" + (playSounds ? ", annoying sounds included" : "");
-    public override string GetDescriptionColored() => "Gain " + StringHelpers.Green((int)(100 / divisor)) + "% of dealt damage as extra health" + (playSounds ? ", annoying sounds included" : "");
+    public override string GetDescription() => $"Gain {(int)(100 / cfg_divisor)}% of dealt damage as extra health" + (cfg_playSounds ? ", annoying sounds included" : "");
+    public override string GetDescriptionColored() => "Gain " + StringHelpers.Green((int)(100 / cfg_divisor)) + "% of dealt damage as extra health" + (cfg_playSounds ? ", annoying sounds included" : "");
 
-    private int divisor = 5;
-    private bool playSounds = false;
-    private string vampireSounds = "sounds/physics/flesh/flesh_squishy_impact_hard4.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard3.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard2.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard1.vsnd";
+    public int cfg_divisor = 5;
+    public bool cfg_playSounds = false;
+    public string cfg_vampireSounds = "sounds/physics/flesh/flesh_squishy_impact_hard4.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard3.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard2.vsnd;sounds/physics/flesh/flesh_squishy_impact_hard1.vsnd";
 }
 

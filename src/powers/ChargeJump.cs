@@ -39,7 +39,7 @@ public class ChargeJump : BasePower
 
             NativeAPI.AngleVectors(look_angle.Handle, out_forward.Handle, 0, 0);
             // amplify the forward vector
-            out_forward *= jump_force;
+            out_forward *= cfg_jump_force;
             // add the forward vector to the player's velocity
             Server.NextFrame(() =>
                 pawn.AbsVelocity.Add(out_forward)
@@ -52,6 +52,6 @@ public class ChargeJump : BasePower
     public override string GetDescription() => $"Jump while crouching to make a leap forward";
     public override string GetDescriptionColored() => StringHelpers.Blue("Jump while crouching") + " to make a " + StringHelpers.Blue("leap forward");
 
-    private float jump_force = 600f;
+    public float cfg_jump_force = 600f;
 }
 

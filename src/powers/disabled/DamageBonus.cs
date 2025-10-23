@@ -31,14 +31,14 @@ public class DamageBonus : BasePower
         if (pawn == null || !pawn.IsValid)
             return HookResult.Continue;
 
-        pawn.Health = pawn.Health - realEvent.DmgHealth * damage_multiplier;
+        pawn.Health = pawn.Health - realEvent.DmgHealth * cfg_damage_multiplier;
         Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
 
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"All your damage is multiplied by {damage_multiplier}";
+    public override string GetDescription() => $"All your damage is multiplied by {cfg_damage_multiplier}";
 
-    private int damage_multiplier = 2;
+    public int cfg_damage_multiplier = 2;
 }
 

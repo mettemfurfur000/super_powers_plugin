@@ -36,7 +36,7 @@ public class Wallhacks : BasePower
         }
     }
 
-    private void StopGlowing()
+    public void StopGlowing()
     {
         foreach (KeyValuePair<CCSPlayerController, Tuple<CBaseModelEntity, CBaseModelEntity>> entry in models)
         {
@@ -57,7 +57,7 @@ public class Wallhacks : BasePower
         });
     }
 
-    private void GlowEveryone()
+    public void GlowEveryone()
     {
         foreach (CCSPlayerController ctrl in Utilities.GetPlayers().Where(IsPlayerConnected))
             if (!models.ContainsKey(ctrl))
