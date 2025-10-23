@@ -12,7 +12,15 @@ all:
 
 .PHONY: release
 release:
-# 	echo "super_powers_plugin_${version}.zip"
-	mkdir -p addons/counterstrikesharp/plugins/super_powers_plugin
-	cp ${cur_folder_name}.* addons/counterstrikesharp/plugins/super_powers_plugin/
-	zip -r "super_powers_plugin_${version}.zip" addons/*
+	mkdir -p addons/counterstrikesharp/plugins/${cur_folder_name}
+	cp ${cur_folder_name}.* addons/counterstrikesharp/plugins/${cur_folder_name}/
+	zip -r "${cur_folder_name}_${version}.zip" addons/*
+
+.PHONY: release_config
+release_config:
+	mkdir -p addons/counterstrikesharp/plugins/${cur_folder_name}
+	mkdir -p addons/counterstrikesharp/configs/plugins/${cur_folder_name}
+# copy the config if its here
+	cp ../../configs/plugins/${cur_folder_name}/${cur_folder_name}.json addons/counterstrikesharp/configs/plugins/${cur_folder_name}/
+	cp ${cur_folder_name}.* addons/counterstrikesharp/plugins/${cur_folder_name}/
+	zip -r "${cur_folder_name}_${version}.zip" addons/*
