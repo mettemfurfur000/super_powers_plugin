@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
+
 namespace super_powers_plugin.src;
 
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
@@ -60,6 +61,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         RegisterEventHandler<EventBombPlanted>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventWeaponFire>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventGrenadeThrown>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventItemPickup>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventPlayerHurt>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventPlayerSound>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventPlayerJump>((@event, info) => SuperPowerController.ExecutePower(@event));
@@ -103,7 +105,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
             foreach ((CCheckTransmitInfo info, CCSPlayerController? player) in infoList)
             {
-                if (player == null) // if player is not real he can see the models
+                if (player == null || !player.IsValid) // if player is not real he can see the models
                     continue;
 
                 foreach (BasePower power in checkTransmitTargets)
@@ -114,7 +116,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
                     foreach (var entity in hiddenEntites)
                     {
                         info.TransmitEntities.Remove(entity);
-                        // Server.PrintToChatAll("hidden " + entity.DesignerName);
+                        // if (power.Name != "wallhacks")
+                        //     Server.PrintToChatAll($"power {power.Name} requested to hide {entity.DesignerName}");
                     }
                 }
             }
@@ -328,9 +331,31 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         }
     }
 
+    [ConsoleCommand("sp_force_signal")]
+    [CommandHelper(minArgs: 1, usage: "player [power-specific input args]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnForceSignal(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var playerNamePattern = commandInfo.GetArg(1);
+        var players = TemUtils.SelectPlayers(playerNamePattern);
+
+        List<string> args = [];
+
+        const int arg_offset = 1;
+
+        for (int i = arg_offset; i < commandInfo.ArgCount; i++)
+            args.Add(commandInfo.GetArg(i));
+
+        foreach (var player in players)
+        {
+            string ret = SuperPowerController.Signal(player, args);
+            if (ret.Length != 0)
+                commandInfo.ReplyToCommand(ret);
+        }
+    }
 
     [ConsoleCommand("sp_signal")]
-    [CommandHelper(minArgs: 2, usage: "[power-specific input args]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [CommandHelper(minArgs: 1, usage: "[power-specific input args]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
     [RequiresPermissions("@css/root")]
     public void OnSignalFull(CCSPlayerController? caller, CommandInfo commandInfo)
     {
@@ -343,23 +368,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         if (ret.Length != 0)
             commandInfo.ReplyToCommand(ret);
     }
-
-    [ConsoleCommand("signal")]
-    [CommandHelper(minArgs: 2, usage: "[power-specific input args]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    [RequiresPermissions("@css/root")]
-    public void OnSignal(CCSPlayerController? caller, CommandInfo commandInfo)
-    {
-        OnSignalFull(caller, commandInfo);
-    }
-
-    [ConsoleCommand("s")]
-    [CommandHelper(minArgs: 2, usage: "[power-specific input args]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    [RequiresPermissions("@css/root")]
-    public void OnSignalShort(CCSPlayerController? caller, CommandInfo commandInfo)
-    {
-        OnSignalFull(caller, commandInfo);
-    }
-
 
     public void OnConfigParsed(SuperPowerConfig config)
     {

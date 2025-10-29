@@ -407,14 +407,20 @@ public class TemUtils
 
         // Server.PrintToChatAll("alpha for " + player.PlayerName + " is " + alpha);
 
+        string shadowInput = invisibilityLevel > 0.25 ? "DisableShadow" : "EnableShadow";
+
         pawn.Render = fadeColor;
         Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_clrRender");
+        pawn.AcceptInput(shadowInput);
+
+        // pawn.ShadowStrength = ShadowStrength;
+        // Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_flShadowStrength");
         // Utilities.SetStateChanged(pawn, "CCSPlayer_ViewModelServices", "m_hViewModel");
 
         // pawn.RenderMode = RenderMode_t.kRenderTransAlpha;
         // Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_nRenderMode");
 
-        // var viewModel = pawn.ViewModelServices!.Pawn.Value;
+        // var viewModel = pawn.;
         // viewModel.Render = fadeColor;
         // Utilities.SetStateChanged(viewModel, "CBaseModelEntity", "m_clrRender");
 
@@ -428,8 +434,9 @@ public class TemUtils
             if (activeWeapon != null && activeWeapon.IsValid)
             {
                 activeWeapon.Render = fadeColor;
-                // activeWeapon.ShadowStrength = invisibilityLevel;
                 Utilities.SetStateChanged(activeWeapon, "CBaseModelEntity", "m_clrRender");
+                activeWeapon.AcceptInput(shadowInput);
+                // activeWeapon.ShadowStrength = ShadowStrength;
                 // Utilities.SetStateChanged(activeWeapon, "CBaseModelEntity", "m_flShadowStrength");
             }
         }
@@ -442,8 +449,9 @@ public class TemUtils
                 if (weapon != null)
                 {
                     weapon.Render = fadeColor;
-                    // weapon.ShadowStrength = invisibilityLevel;
                     Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_clrRender");
+                    weapon.AcceptInput(shadowInput);
+                    // weapon.ShadowStrength = ShadowStrength;
                     // Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_flShadowStrength");
                 }
             }

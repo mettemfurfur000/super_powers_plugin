@@ -21,6 +21,7 @@ public static class SuperPowerController
     private static List<BasePower> Powers = new List<BasePower>();
     private static string mode = "normal";
     public static Tuple<SIGNAL_STATUS, string> ignored_signal = Tuple.Create(SIGNAL_STATUS.IGNORED, "");
+    public static Tuple<SIGNAL_STATUS, string> accepted_signal = Tuple.Create(SIGNAL_STATUS.ACCEPTED, "");
 
     public static IEnumerable<BasePower> SelectPowers(string pattern)
     {

@@ -120,10 +120,10 @@ public class TheShopper : BasePower
             }
         }
 
-        return signalAccepted;
+        return accepted_signal;
     }
 
-    static Tuple<SIGNAL_STATUS, string> signalAccepted = new Tuple<SIGNAL_STATUS, string>(SIGNAL_STATUS.ACCEPTED, $"");
+    static Tuple<SIGNAL_STATUS, string> accepted_signal = new Tuple<SIGNAL_STATUS, string>(SIGNAL_STATUS.ACCEPTED, $"");
 
     // generates a list of unique powers for the shop
     public List<ShopOption> ShopGenerate(CCSPlayerController player)

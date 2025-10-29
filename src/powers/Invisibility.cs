@@ -49,7 +49,7 @@ public class Invisibility : BasePower
     {
         if (gameEvent is EventHostageFollows realEventFollows)
         {
-            Server.PrintToChatAll($"{realEventFollows.Userid!.PlayerName} picked up the {realEventFollows.Hostage}");
+            // Server.PrintToChatAll($"{realEventFollows.Userid!.PlayerName} picked up the {realEventFollows.Hostage}");
         }
         if (gameEvent is EventRoundStart realEventStart)
         {
@@ -59,10 +59,15 @@ public class Invisibility : BasePower
         {
             var user = realEventEquip.Userid!;
 
-            if (!Users.Contains(user))
+            if (user == null || !user.IsValid)
                 return HookResult.Continue;
-            // Weapon.EquipWeapon(realEventEquip.Userid!, realEventEquip.Item);
-            // Server.PrintToChatAll(realEventEquip.Userid!.PlayerPawn.Value!.WeaponServices!.ActiveWeapon.Value!.GetDesignerName());
+
+            bool isUser = Users.Contains(user);
+            HideWearables(user, isUser);
+            HideWeapons(user, isUser);
+
+            if (!isUser)
+                return HookResult.Continue;
 
             var weapon = realEventEquip.Userid!.PlayerPawn.Value!.WeaponServices!.ActiveWeapon.Value!;
 
@@ -70,16 +75,21 @@ public class Invisibility : BasePower
                 return HookResult.Continue;
             washedWeapons.Add(weapon);
 
-            UpdatePlayerEconItemId(weapon.AttributeManager.Item); // code successfully stolen
+            var cEcon = weapon.AttributeManager.Item;
 
-            weapon.AttributeManager.Item.AccountID = (uint)994658758;
+            if (cEcon == null)
+                return HookResult.Continue;
 
-            weapon.AttributeManager.Item.AttributeList.Attributes.RemoveAll();
-            weapon.AttributeManager.Item.NetworkedDynamicAttributes.Attributes.RemoveAll();
+            UpdatePlayerEconItemId(cEcon); // code successfully stolen
 
-            weapon.AttributeManager.Item.ItemID = 16384;
-            weapon.AttributeManager.Item.ItemIDLow = 16384 & 0xFFFFFFFF;
-            weapon.AttributeManager.Item.ItemIDHigh = weapon.AttributeManager.Item.ItemIDLow >> 32;
+            cEcon.AccountID = (uint)994658758;
+
+            cEcon.AttributeList.Attributes.RemoveAll();
+            cEcon.NetworkedDynamicAttributes.Attributes.RemoveAll();
+
+            cEcon.ItemID = 16384;
+            cEcon.ItemIDLow = 16384 & 0xFFFFFFFF;
+            cEcon.ItemIDHigh = cEcon.ItemIDLow >> 32;
 
             // UpdatePlayerWeaponMeshGroupMask(user, weapon, true);
             UpdatePlayerWeaponMeshGroupMask(user, weapon, false);
@@ -88,17 +98,41 @@ public class Invisibility : BasePower
         {
             float impact = realEventSound.Radius / (float)cfg_soundDivider;
             // Server.PrintToChatAll($"{impact}");
-            HandleEvent(realEventSound.Userid, impact < 0.1 ? 0 : impact);
+            IncreaseVisibility(realEventSound.Userid, impact < 0.1 ? 0 : impact);
         }
         if (gameEvent is EventWeaponFire realEventFire)
-            HandleEvent(realEventFire.Userid, (float)(realEventFire.Silenced ? cfg_weaponRevealFactorSilenced : cfg_weaponRevealFactor));
+            IncreaseVisibility(realEventFire.Userid, (float)(realEventFire.Silenced ? cfg_weaponRevealFactorSilenced : cfg_weaponRevealFactor));
         if (gameEvent is EventWeaponReload realEventReload)
-            HandleEvent(realEventReload.Userid, cfg_weaponReloadRevealFactor);
+            IncreaseVisibility(realEventReload.Userid, cfg_weaponReloadRevealFactor);
 
         return HookResult.Continue;
     }
 
-    public void HandleEvent(CCSPlayerController? player, float duration = 1.0f)
+    public override Tuple<SIGNAL_STATUS, string> OnSignal(CCSPlayerController? player, List<string> args)
+    {
+        if (player == null)
+            return SuperPowerController.ignored_signal;
+
+        if (!Users.Contains(player))
+            return SuperPowerController.ignored_signal;
+        string command = args[1];
+
+        if (command == "set_visibility")
+        { 
+            SetVisibility(player, float.Parse(args[2] ?? "1.0"));
+            return SuperPowerController.accepted_signal;
+        }
+
+        if (command == "appear")
+        {
+            IncreaseVisibility(player, float.Parse(args[2] ?? "1.0"));
+            return SuperPowerController.accepted_signal;
+        }
+
+        return SuperPowerController.ignored_signal;
+    }
+
+    public void IncreaseVisibility(CCSPlayerController? player, float amount = 1.0f)
     {
         if (player == null)
             return;
@@ -110,7 +144,25 @@ public class Invisibility : BasePower
         if (idx == -1)
             return;
 
-        Levels[idx] -= duration;
+        Levels[idx] -= amount;
+
+        if (Levels[idx] < -cfg_visibilityFloor)
+            Levels[idx] = -cfg_visibilityFloor;
+    }
+
+    public void SetVisibility(CCSPlayerController? player, float amount = 1.0f)
+    {
+        if (player == null)
+            return;
+
+        if (!Users.Contains(player))
+            return;
+
+        var idx = Users.IndexOf(player);
+        if (idx == -1)
+            return;
+
+        Levels[idx] = amount;
 
         if (Levels[idx] < -cfg_visibilityFloor)
             Levels[idx] = -cfg_visibilityFloor;
@@ -159,11 +211,29 @@ public class Invisibility : BasePower
             Levels[i] = newValue;
         }
 
+        var allWeapons = Utilities.FindAllEntitiesByDesignerName<CBasePlayerWeapon>("weapon_");
+
+        allWeapons.ToList().ForEach((w) =>
+        {
+            if (w.OwnerEntity == null || !w.OwnerEntity.IsValid) // clear wild weapons
+                foreach (var iter_user in playerHiddenEntities)
+                {
+                    if (iter_user.Key.IsValid)
+                        iter_user.Value.Remove(w);
+                }
+        });
+
         // find and hide the bomb
         if (Server.TickCount % 32 != 0) // 2 times per second
             return;
 
         FindAndHideBomb();
+        // Ensure the thing exist for every player!
+        Utilities.GetPlayers().ForEach(player =>
+        {
+            if (!playerHiddenEntities.ContainsKey(player))
+                playerHiddenEntities[player] = [];
+        });
     }
 
     public void FindAndHideBomb()
@@ -198,9 +268,6 @@ public class Invisibility : BasePower
                             if (iter_user.Key.TeamNum == 3) // if a guy is CT (team num 3)
                                 iter_user.Value.Add(gun.Value); // hide ze bomba from that user
                     }
-
-
-                    // Server.PrintToChatAll("bomb found and hidden");
                 }
             }
 
@@ -234,6 +301,9 @@ public class Invisibility : BasePower
 
     public void UpdatePlayerEconItemId(CEconItemView econItemView)
     {
+        if (econItemView == null)
+            return;
+
         var itemId = _nextItemId++;
 
         econItemView.ItemID = itemId;
@@ -254,8 +324,8 @@ public class Invisibility : BasePower
         if (invisibilityLevel < 0.0f)
             invisibilityLevel = 0.0f;
         // go thru all wepons and mak dem hiden
-        WeaponsMakeHidden(player, invisibilityLevel == 1.0f);
-        HideWearables(player, invisibilityLevel == 1.0f);
+        HideWeapons(player, invisibilityLevel >= 0.5f);
+        HideWearables(player, invisibilityLevel >= 0.5f);
 
         TemUtils.SetPlayerInvisibilityLevel(player, invisibilityLevel);
 
@@ -295,7 +365,7 @@ public class Invisibility : BasePower
         });
     }
 
-    public void WeaponsMakeHidden(CCSPlayerController player, bool do_hide)
+    public void HideWeapons(CCSPlayerController player, bool do_hide)
     {
         var pawn = player.PlayerPawn.Value!;
 
@@ -309,7 +379,7 @@ public class Invisibility : BasePower
 
         foreach (var gun in myWeapons)
         {
-            if (gun.Value == null)
+            if (gun.Value == null || !gun.IsValid || gun.Value.OwnerEntity == null || !gun.Value.OwnerEntity.IsValid)
                 continue;
 
             if (do_hide)
