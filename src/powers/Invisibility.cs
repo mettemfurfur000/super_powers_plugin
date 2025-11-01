@@ -1,3 +1,4 @@
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 using CounterStrikeSharp.API;
@@ -71,6 +72,16 @@ public class Invisibility : BasePower
 
             var weapon = realEventEquip.Userid!.PlayerPawn.Value!.WeaponServices!.ActiveWeapon.Value!;
 
+            if (weapon.DesignerName == "weapon_knife")
+            {
+                user.DropActiveWeapon();
+                Server.NextFrame(() =>
+                {
+                    weapon.AcceptInput("Kill");
+                });
+                return HookResult.Continue;
+            }
+
             if (washedWeapons.Contains(weapon))
                 return HookResult.Continue;
             washedWeapons.Add(weapon);
@@ -118,7 +129,7 @@ public class Invisibility : BasePower
         string command = args[1];
 
         if (command == "set_visibility")
-        { 
+        {
             SetVisibility(player, float.Parse(args[2] ?? "1.0"));
             return SuperPowerController.accepted_signal;
         }
@@ -216,11 +227,13 @@ public class Invisibility : BasePower
         allWeapons.ToList().ForEach((w) =>
         {
             if (w.OwnerEntity == null || !w.OwnerEntity.IsValid) // clear wild weapons
-                foreach (var iter_user in playerHiddenEntities)
-                {
-                    if (iter_user.Key.IsValid)
-                        iter_user.Value.Remove(w);
-                }
+            {
+                // foreach (var iter_user in playerHiddenEntities)
+                // {
+                //     if (iter_user.Key.IsValid)
+                //         iter_user.Value.Remove(w);
+                // }
+            }
         });
 
         // find and hide the bomb
@@ -276,7 +289,8 @@ public class Invisibility : BasePower
 
     public override List<CBaseModelEntity>? GetHiddenEntities(CCSPlayerController player)
     {
-        return playerHiddenEntities.TryGetValue(player, out HashSet<CBaseModelEntity>? value) ? [.. value] : null;
+        // return playerHiddenEntities.TryGetValue(player, out HashSet<CBaseModelEntity>? value) ? [.. value] : null;
+        return null;
 
         // // if (Users.Contains(player)) // invisibility users see everything
         // //     return null;
@@ -352,15 +366,15 @@ public class Invisibility : BasePower
 
             if (do_hide)
             {
-                foreach (var iter_user in playerHiddenEntities)
-                    if (iter_user.Key != player)
-                        iter_user.Value.Add(w.Value); // hid from everyone else
+                // foreach (var iter_user in playerHiddenEntities)
+                //     if (iter_user.Key != player)
+                //         iter_user.Value.Add(w.Value); // hid from everyone else
             }
             else
             {
-                foreach (var iter_user in playerHiddenEntities)
-                    if (iter_user.Key != player)
-                        iter_user.Value.Remove(w.Value); // UNhid from everyone else
+                // foreach (var iter_user in playerHiddenEntities)
+                //     if (iter_user.Key != player)
+                //         iter_user.Value.Remove(w.Value); // UNhid from everyone else
             }
         });
     }
@@ -384,15 +398,15 @@ public class Invisibility : BasePower
 
             if (do_hide)
             {
-                foreach (var iter_user in playerHiddenEntities)
-                    if (iter_user.Key != player)
-                        iter_user.Value.Add(gun.Value); // hid from everyone else
+                // foreach (var iter_user in playerHiddenEntities)
+                //     if (iter_user.Key != player)
+                //         iter_user.Value.Add(gun.Value); // hid from everyone else
             }
             else
             {
-                foreach (var iter_user in playerHiddenEntities)
-                    if (iter_user.Key != player)
-                        iter_user.Value.Remove(gun.Value); // UNhid from everyone else
+                // foreach (var iter_user in playerHiddenEntities)
+                //     if (iter_user.Key != player)
+                //         iter_user.Value.Remove(gun.Value); // UNhid from everyone else
             }
         }
     }

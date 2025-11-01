@@ -427,34 +427,38 @@ public class TemUtils
         // viewModel.RenderMode = RenderMode_t.kRenderTransAlpha;
         // Utilities.SetStateChanged(viewModel, "CBaseModelEntity", "m_nRenderMode");
 
-        var weaponServices = pawn.WeaponServices;
-        if (weaponServices != null)
-        {
-            var activeWeapon = weaponServices.ActiveWeapon.Value;
-            if (activeWeapon != null && activeWeapon.IsValid)
-            {
-                activeWeapon.Render = fadeColor;
-                Utilities.SetStateChanged(activeWeapon, "CBaseModelEntity", "m_clrRender");
-                activeWeapon.AcceptInput(shadowInput);
-                // activeWeapon.ShadowStrength = ShadowStrength;
-                // Utilities.SetStateChanged(activeWeapon, "CBaseModelEntity", "m_flShadowStrength");
-            }
-        }
+        // var weaponServices = pawn.WeaponServices;
+        // if (weaponServices != null)
+        // {
+        //     var activeWeapon = weaponServices.ActiveWeapon.Value;
+        //     if (activeWeapon != null && activeWeapon.IsValid)
+        //     {
+        //         // activeWeapon.Render = fadeColor;
+        //         // Utilities.SetStateChanged(activeWeapon, "CBaseModelEntity", "m_clrRender");
+        //         // activeWeapon.AcceptInput("Color", value: $"{fadeColor.R} {fadeColor.G} {fadeColor.B}");
+        //         activeWeapon.AcceptInput("Alpha", value: alpha.ToString());
+        //         activeWeapon.AcceptInput(shadowInput);
+        //         // activeWeapon.ShadowStrength = ShadowStrength;
+        //         // Utilities.SetStateChanged(activeWeapon, "CBaseModelEntity", "m_flShadowStrength");
+        //     }
+        // }
 
-        var myWeapons = pawn.WeaponServices?.MyWeapons;
-        if (myWeapons != null)
-            foreach (var gun in myWeapons)
-            {
-                var weapon = gun.Value;
-                if (weapon != null)
-                {
-                    weapon.Render = fadeColor;
-                    Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_clrRender");
-                    weapon.AcceptInput(shadowInput);
-                    // weapon.ShadowStrength = ShadowStrength;
-                    // Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_flShadowStrength");
-                }
-            }
+        // var myWeapons = pawn.WeaponServices?.MyWeapons;
+        // if (myWeapons != null)
+        //     foreach (var gun in myWeapons)
+        //     {
+        //         var weapon = gun.Value;
+        //         if (weapon != null)
+        //         {
+        //             // weapon.Render = fadeColor;
+        //             // Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_clrRender");
+        //             // weapon.AcceptInput("Color", value: $"{fadeColor.R} {fadeColor.G} {fadeColor.B}");
+        //             weapon.AcceptInput("Alpha", value: alpha.ToString());
+        //             weapon.AcceptInput(shadowInput);
+        //             // weapon.ShadowStrength = ShadowStrength;
+        //             // Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_flShadowStrength");
+        //         }
+        //     }
     }
 
     public static void CleanWeaponOwner(CCSPlayerController player)
