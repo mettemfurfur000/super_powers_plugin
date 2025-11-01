@@ -381,6 +381,9 @@ public class Invisibility : BasePower
 
     public void HideWeapons(CCSPlayerController player, bool do_hide)
     {
+        if (player == null || !player.IsValid || player.LifeState != (byte)LifeState_t.LIFE_ALIVE)
+            return;
+    
         var pawn = player.PlayerPawn.Value!;
 
         var weaponServices = pawn.WeaponServices;

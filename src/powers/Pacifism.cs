@@ -37,7 +37,7 @@ public class Pacifism : BasePower
                 // Server.PrintToChatAll("pacifism victom found");
                 if (status.Contains(victim)) // effect is active, cancel all damage
                 {
-                    // Server.PrintToChatAll("damage sustained");
+                    // Server.PrintToChatAll($"damage sustained {realEvent.DmgHealth}");
 
                     var victim_pawn = victim.PlayerPawn.Value;
                     if (victim_pawn == null || !victim_pawn.IsValid)
@@ -50,18 +50,18 @@ public class Pacifism : BasePower
                     Utilities.SetStateChanged(victim_pawn, "CCSPlayerPawn", "m_ArmorValue");
                 }
             }
-        }
-        else
-        {
-            // Server.PrintToChatAll("Gained pacifism");
-            // reset pacifism status
-            status.Clear();
-            status = [.. Users];
 
-            Users.ForEach((c) => c.PrintToChat("Gained Pacifism"));
-
-            // Server.PrintToChatAll(status.ToString());
+            return HookResult.Continue;
         }
+
+        // Server.PrintToChatAll("Gained pacifism");
+        // reset pacifism status
+        status.Clear();
+        status = [.. Users];
+
+        Users.ForEach((c) => c.PrintToChat("Gained Pacifism"));
+
+        // Server.PrintToChatAll(status.ToString());
 
         return HookResult.Continue;
     }
