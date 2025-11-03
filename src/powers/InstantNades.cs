@@ -26,8 +26,7 @@ public class InstantNades : BasePower
         if (!Users.Contains(player))
             return HookResult.Continue;
 
-        // Server.PrintToChatAll(realEvent.Weapon);
-
+        
         var match_grenade = Utilities.FindAllEntitiesByDesignerName<CHEGrenadeProjectile>(realEvent.Weapon + "_projectile");
         if (match_grenade.Count() == 0)
             return HookResult.Continue;

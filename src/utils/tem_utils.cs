@@ -56,14 +56,14 @@ public class TemUtils
     public static void InformValueChanged(CCSPlayerController player, int amount, string reason)
     {
         string theme = " " + (amount < 0 ? ChatColors.LightRed : ChatColors.Lime);
-        player.PrintToChat(theme + (amount < 0 ? "-$" : "+$") + Math.Abs(amount) + $" {ChatColors.White} " + reason);
+        player.PrintIfShould(theme + (amount < 0 ? "-$" : "+$") + Math.Abs(amount) + $" {ChatColors.White} " + reason);
     }
 
     public static bool AttemptPaidAction(CCSPlayerController player, int amount, string object_name, Action a)
     {
         if (player.InGameMoneyServices!.Account < amount && amount > 0)
         {
-            player.PrintToChat($" {ChatColors.LightRed}Not enough money to buy {object_name}");
+            player.PrintIfShould($" {ChatColors.LightRed}Not enough money to buy {object_name}");
             player.ExecuteClientCommand("play sounds/ui/weapon_cant_buy.vsnd");
             return false;
         }
@@ -76,7 +76,7 @@ public class TemUtils
         if (amount > 0)
             TemUtils.InformValueChanged(player, -amount, $"for buying {object_name}");
         else
-            player.PrintToChat($"{object_name} Acquired");
+            player.PrintIfShould($"{object_name} Acquired");
 
         player.ExecuteClientCommand("play sounds/ui/panorama/claim_gift_01.vsnd");
 
@@ -131,7 +131,7 @@ public class TemUtils
 
                 if (ptr == null)
                 {
-                    Server.PrintToChatAll("view vectors not found");
+                    Server.PrintToChatAll("View vectors not found - unable to scale player hulls");
                     return;
                 }
 
@@ -176,7 +176,6 @@ public class TemUtils
 
             }
 
-            // Server.PrintToChatAll("Set hull max to " + m_vHullMax->ToString());
         }
     }
 
@@ -295,22 +294,25 @@ public class TemUtils
     {
         string output = "";
 
-        var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+        var fields = type.GetFields(SuperPowerController.fieldFlags);
         int total = 0;
+
         foreach (var field in fields)
         {
-            var fieldInfo = type.GetField(field.Name, BindingFlags.Instance | BindingFlags.NonPublic);
+            var fieldInfo = type.GetField(field.Name, SuperPowerController.fieldFlags);
+
+            var property_name = field.Name;
+            if (!property_name.StartsWith(SuperPowerController.prefix))
+                continue;
+            property_name = property_name.Replace(SuperPowerController.prefix, "");
 
             if (fieldInfo != null)
             {
-                if (fieldInfo.IsPublic) continue;
-                if (fieldInfo.Name.Contains("Triggers")) continue;
-                if (fieldInfo.Name.Contains("Users")) continue;
-                output += $"{field.Name}: {fieldInfo.GetValue(power)}\n";
+                output += $"{property_name}: {fieldInfo.GetValue(power)}\n";
                 total++;
             }
             else
-                output += $"{field.Name}: null\n";
+                output += $"{property_name}: null\n";
         }
 
         if (total == 0)
@@ -405,7 +407,6 @@ public class TemUtils
         alpha = alpha > 255 ? 255 : alpha < 0 ? 0 : alpha; // >:3
         var fadeColor = Color.FromArgb(alpha, 255, 255, 255);
 
-        // Server.PrintToChatAll("alpha for " + player.PlayerName + " is " + alpha);
 
         string shadowInput = invisibilityLevel > 0.25 ? "DisableShadow" : "EnableShadow";
 

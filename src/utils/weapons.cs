@@ -92,7 +92,7 @@ public static class WeaponHelpers
         {
             user.GiveNamedItem(weapon);
             if (chatFeedback)
-                user.PrintToChat($"{GetRarityString(1, (int)(1 / probabilityPercentage), "+" + readName)}");
+                user.PrintIfShould($"{GetRarityString(1, (int)(1 / probabilityPercentage), "+" + readName)}");
         }
     }
 

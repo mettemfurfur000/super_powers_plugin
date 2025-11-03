@@ -36,6 +36,8 @@ public class Invisibility : BasePower
     public float cfg_weaponReloadRevealFactor = 0.55f;
     public float cfg_weaponRevealFactor = 0.75f;
     public float cfg_weaponRevealFactorSilenced = 0.35f;
+    public bool cfg_dropAllWeapons = true;
+    public bool cfg_killWeapons = false;
 
     // public bool bombFoundForTheRound = false;
     // public CBasePlayerWeapon? bomb = null;
@@ -50,7 +52,6 @@ public class Invisibility : BasePower
     {
         if (gameEvent is EventHostageFollows realEventFollows)
         {
-            // Server.PrintToChatAll($"{realEventFollows.Userid!.PlayerName} picked up the {realEventFollows.Hostage}");
         }
         if (gameEvent is EventRoundStart realEventStart)
         {
@@ -72,12 +73,16 @@ public class Invisibility : BasePower
 
             var weapon = realEventEquip.Userid!.PlayerPawn.Value!.WeaponServices!.ActiveWeapon.Value!;
 
-            if (weapon.DesignerName == "weapon_knife")
+            if (weapon.DesignerName == "weapon_knife" || cfg_dropAllWeapons == true)
+            // so its either knife, or every single weapon
             {
                 user.DropActiveWeapon();
                 Server.NextFrame(() =>
                 {
-                    weapon.AcceptInput("Kill");
+                    if (cfg_killWeapons)
+                        weapon.AcceptInput("Kill");
+                    else
+                        weapon.AcceptInput("ToggleCanBePickedUp");
                 });
                 return HookResult.Continue;
             }
@@ -108,7 +113,6 @@ public class Invisibility : BasePower
         if (gameEvent is EventPlayerSound realEventSound)
         {
             float impact = realEventSound.Radius / (float)cfg_soundDivider;
-            // Server.PrintToChatAll($"{impact}");
             IncreaseVisibility(realEventSound.Userid, impact < 0.1 ? 0 : impact);
         }
         if (gameEvent is EventWeaponFire realEventFire)
@@ -206,9 +210,6 @@ public class Invisibility : BasePower
 
         double gainEachTick = cfg_tickSkip / ((cfg_fullRecoverMs / 1000.0f) * 64.0f);
 
-        // Server.PrintToChatAll(fullRecoverMs.ToString());
-        // Server.PrintToChatAll(timeRecoverTicks.ToString());
-        // Server.PrintToChatAll(gainEachTick.ToString());
 
         for (int i = 0; i < Users.Count; i++)
         {
@@ -383,7 +384,7 @@ public class Invisibility : BasePower
     {
         if (player == null || !player.IsValid || player.LifeState != (byte)LifeState_t.LIFE_ALIVE)
             return;
-    
+
         var pawn = player.PlayerPawn.Value!;
 
         var weaponServices = pawn.WeaponServices;
@@ -428,6 +429,5 @@ public class Invisibility : BasePower
 
     public override string GetDescription() => $"Gain invisibility, when not making sounds (Custom items will still be seen)";
     public override string GetDescriptionColored() => $"Gain " + StringHelpers.Blue("invisibility") + ", when not making sounds (Custom items will still be seen)";
-
     public double[] Levels = new double[65];
 }

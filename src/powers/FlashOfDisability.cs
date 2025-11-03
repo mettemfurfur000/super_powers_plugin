@@ -19,7 +19,6 @@ public class FlashOfDisability : BasePower
 
         var realEvent = (EventPlayerBlind)gameEvent;
 
-        // Server.PrintToChatAll("blind detected");
 
         var attacker = realEvent.Attacker;
         var victim = realEvent.Userid;

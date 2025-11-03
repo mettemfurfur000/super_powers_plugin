@@ -34,7 +34,7 @@ public class BiocodedWeapons : BasePower
         {
             if (gameEvent.GetType() == typeof(EventWeaponFire))
                 shooter.DropActiveWeapon();
-            shooter.PrintToChat($"{ChatColors.DarkRed}[BIOCODED] Weapon is biocoded and can't be used");
+            shooter.PrintIfShould($"{ChatColors.DarkRed}[BIOCODED] Weapon is biocoded and can't be used");
         }
 
         return HookResult.Continue;

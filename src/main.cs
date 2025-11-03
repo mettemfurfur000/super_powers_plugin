@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
+using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Utils;
 
 namespace super_powers_plugin.src;
@@ -117,7 +118,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
                     {
                         info.TransmitEntities.Remove(entity);
                         // if (power.Name != "wallhacks")
-                        //     Server.PrintToChatAll($"power {power.Name} requested to hide {entity.DesignerName}");
+                        //     Server.PrintIfShouldAll($"power {power.Name} requested to hide {entity.DesignerName}");
                     }
                 }
             }
@@ -303,7 +304,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             var key = commandInfo.GetArg(i);
             var value = commandInfo.GetArg(i + 1);
             forced_cfg[key] = value;
-            resp += $"Set [{key}] to [{value}]";
+            resp += $"Set [{key}] to [{value}]" + (i < commandInfo.ArgCount - 2 ? ", " : "");
         }
         SuperPowerController.Reconfigure(forced_cfg, commandInfo.GetArg(1));
         commandInfo.ReplyToCommand("Reconfigured!\n" + resp);
@@ -328,6 +329,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             string? power_field_values = TemUtils.InspectPowerReflective(power, power.GetType());
             if (power_field_values != null)
                 commandInfo.ReplyToCommand(StringHelpers.GetPowerNameReadable(power) + ":\n" + power_field_values);
+            else
+                commandInfo.ReplyToCommand(StringHelpers.GetPowerNameReadable(power) + ": No info");
         }
     }
 
@@ -375,4 +378,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         SuperPowerController.FeedTheConfig(Config);
     }
+
+    public FakeConVar<bool> silent = new("sp_silent", "", false);
 }

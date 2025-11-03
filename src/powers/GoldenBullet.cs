@@ -30,12 +30,10 @@ public class GoldenBullet : BasePower
         if (weapon.Value!.Clip1 == 1)
         {
             float timesMult = 1.0f;
-            // Server.PrintToChatAll("last");
-
+            
             if (cfg_headshotMultEnabled && realEvent.Headshot)
             {
-                // Server.PrintToChatAll("headshot");
-                timesMult = cfg_multOnHeadshot;
+                                timesMult = cfg_multOnHeadshot;
             }
 
             TemUtils.GiveMoney(shooter, (int)(cfg_killReward * timesMult), $"for killing an enemy with a last bullet ({StringHelpers.GetPowerColoredName(this)})");

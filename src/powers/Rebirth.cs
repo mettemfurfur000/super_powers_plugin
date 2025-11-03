@@ -23,22 +23,19 @@ public class Rebirth : BasePower
         {
             EventPlayerDeath realEvent = (EventPlayerDeath)gameEvent;
 
-            // Server.PrintToChatAll("men am ded");
-
+            
             var player = realEvent.Userid;
             if (player == null)
                 return HookResult.Continue;
 
             if (Users.Contains(player))
             {
-                // Server.PrintToChatAll("user");
-                var pawn = player.PlayerPawn.Value!;
+                                var pawn = player.PlayerPawn.Value!;
                 positions[player] = new Tuple<Vector, QAngle>(
                     new Vector(pawn.AbsOrigin!.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z),
                     new QAngle(pawn.V_angle.X, pawn.V_angle.Y, pawn.V_angle.Z)
                     );
-                // Server.PrintToChatAll($"{pawn.AbsOrigin!.X}, {pawn.AbsOrigin.Y}, {pawn.AbsOrigin.Z}");
-            }
+                            }
         }
 
         if (gameEvent.GetType() == typeof(EventRoundStart))
@@ -49,15 +46,12 @@ public class Rebirth : BasePower
             {
                 var pawn = player.PlayerPawn.Value!;
 
-                // Server.PrintToChatAll("men i wana spawn");
-
+                
                 if (Users.Contains(player))
                 {
-                    // Server.PrintToChatAll("user spawn");
-                    if (positions.TryGetValue(player, out Tuple<Vector, QAngle>? value))
+                                        if (positions.TryGetValue(player, out Tuple<Vector, QAngle>? value))
                     {
-                        // Server.PrintToChatAll("position found");
-
+                        
                         Server.NextFrame(() => pawn.Teleport(value.Item1, value.Item2, new Vector(0, 0, 0)));
 
                         if (cfg_allowBuy)

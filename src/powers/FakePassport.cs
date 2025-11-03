@@ -26,8 +26,7 @@ public class FakePassport : BasePower
 
                 if (pawn.LifeState == (byte)LifeState_t.LIFE_ALIVE)
                 {
-                    // Server.PrintToChatAll($"{user.PlayerName} is alive, resetting");
-                    consecutiveDeaths[user] = 0;
+                                        consecutiveDeaths[user] = 0;
                 }
             });
         }
@@ -46,8 +45,7 @@ public class FakePassport : BasePower
 
             consecutiveDeaths[realEvent.Userid] = isHeadshot ? consecutiveDeaths[realEvent.Userid] + 1 : 0;
 
-            // Server.PrintToChatAll($"{victim.PlayerName} dead, streak {consecutiveDeaths[realEvent.Userid]}");
-        }
+                    }
 
         if (gameEvent.GetType() == typeof(EventRoundStart))
         {
@@ -63,8 +61,7 @@ public class FakePassport : BasePower
                 pawn.Health = (int)(pawn.Health * Math.Pow(cfg_health_mult, cur_streak));
                 Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
 
-                // Server.PrintToChatAll($"{user.PlayerName} respawn, streak {cur_streak}");
-            });
+                            });
         }
 
         return HookResult.Continue;

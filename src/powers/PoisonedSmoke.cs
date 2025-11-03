@@ -40,8 +40,7 @@ public class PoisonedSmoke : BasePower
                 smokeEntity.SmokeColor.Y = Random.Shared.NextSingle() * 255.0f;
                 smokeEntity.SmokeColor.Z = 0.0f;
                 // Utilities.SetStateChanged(smokeEntity, "CSmokeGrenadeProjectile", "m_vSmokeColor");
-                // Server.PrintToChatAll($"set to green entity {smokeEntity.DesignerName}");
-            }
+                            }
 
         }
 

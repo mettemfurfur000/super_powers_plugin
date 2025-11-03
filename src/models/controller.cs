@@ -374,9 +374,9 @@ public static class SuperPowerController
             // if (power.OnAdd(player) == false)
             //     goto again;
             string alert = $"Your power for this round: {ChatColors.Blue}{StringHelpers.GetPowerNameReadable(power)}";
-            player.PrintToChat(alert);
+            player.PrintIfShould(alert);
             string description = $"Power description: {ChatColors.Blue}{power.GetDescription()}";
-            player.PrintToChat(description);
+            player.PrintIfShould(description);
             if (!silent)
                 player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
 
@@ -479,7 +479,7 @@ public static class SuperPowerController
             {
                 added_powers_feedback = added_powers_feedback.TrimEnd(',');
 
-                player.PrintToChat(added_powers_feedback);
+                player.PrintIfShould(added_powers_feedback);
                 if (!silent)
                     player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
             }
@@ -533,7 +533,7 @@ public static class SuperPowerController
 
             if (removed_powers != 0 && reasonDisconnect == false)
             {
-                player.PrintToChat(removed_powers_feedback);
+                player.PrintIfShould(removed_powers_feedback);
                 if (!silent)
                     player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
             }
@@ -559,8 +559,8 @@ public static class SuperPowerController
         }
         return args;
     }
-    private static BindingFlags fieldFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-    private static readonly string prefix = "cfg_"; 
+    public static BindingFlags fieldFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+    public static readonly string prefix = "cfg_";
     private static void GenerateAddFields(Dictionary<string, string> dest, object instance, Type type)
     {
         var iter = type;
@@ -614,9 +614,9 @@ public static class SuperPowerController
                 catch (FormatException ex) { TemUtils.AlertError($"Error occured while processing {iter_type} : Invalid format for {fieldInfo.Name}: {ex.Message}"); }
                 // Log($"resloved {field.Key}");
             }
-            catch
+            catch (Exception ex)
             {
-                // aah whatever
+                TemUtils.AlertError($"Error occured while processing {iter_type} : Invalid format for {fieldInfo.Name}: {ex.Message}");
             }
         }
 

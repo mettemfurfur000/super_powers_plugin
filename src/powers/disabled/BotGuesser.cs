@@ -22,11 +22,11 @@ public class BotGuesser : BasePower
 
         foreach (var user in Users)
         {
-            user.PrintToChat("Vote availiable - use !signal kick <name>");
-            user.PrintToChat("Vote availiable - use !signal kick <name>");
-            user.PrintToChat("Vote availiable - use !signal kick <name>");
-            user.PrintToChat("Vote availiable - use !signal kick <name>");
-            user.PrintToChat("Wildcards usable to match any set of characters, example - '*hnepixel*' , matches 0hnepixel ");
+            user.PrintIfShould("Vote availiable - use !signal kick <name>");
+            user.PrintIfShould("Vote availiable - use !signal kick <name>");
+            user.PrintIfShould("Vote availiable - use !signal kick <name>");
+            user.PrintIfShould("Vote availiable - use !signal kick <name>");
+            user.PrintIfShould("Wildcards usable to match any set of characters, example - '*hnepixel*' , matches 0hnepixel ");
 
             allow_vote = true;
         }
@@ -51,7 +51,6 @@ public class BotGuesser : BasePower
             }
 
             string target = args[2];
-            // Server.PrintToChatAll($"desired to kick {target}");
 
             var sel = TemUtils.SelectPlayers(target);
 
@@ -62,8 +61,6 @@ public class BotGuesser : BasePower
             }
 
             var sel_player = sel.First();
-
-            // Server.PrintToChatAll($"selected {sel_player.PlayerName}");
 
             var power = SuperPowerController.GetPowersByName("bot_disguise");
 

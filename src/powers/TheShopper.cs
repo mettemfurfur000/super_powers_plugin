@@ -63,7 +63,7 @@ public class TheShopper : BasePower
                 if (user.IsValid)
                     if (activeShops.TryGetValue(user, out List<ShopOption>? shop))
                     {
-                        user.PrintToChat(StringHelpers.Paint("Shop closed", ChatColors.Gold));
+                        user.PrintIfShould(StringHelpers.Paint("Shop closed", ChatColors.Gold));
                         activeShops.Remove(user);
                     }
             }
@@ -85,8 +85,7 @@ public class TheShopper : BasePower
             if (args.Count > 1)
                 choice = args[1];
 
-            // Server.PrintToChatAll("Shopper signal received: " + command + (choice != null ? $", {choice}" : ""));
-
+            
             if (activeShops.TryGetValue(player, out List<ShopOption>? shop))
             {
                 if (choice != null && int.TryParse(choice, out int index) && index > 0 && index <= shop.Count)
@@ -106,17 +105,17 @@ public class TheShopper : BasePower
                         });
                     }
                     else
-                        player.PrintToChat($"You already bought {StringHelpers.GetPowerColoredName(option.Power!)}");
+                        player.PrintIfShould($"You already bought {StringHelpers.GetPowerColoredName(option.Power!)}");
                 }
                 else
-                    player.PrintToChat("Invalid choice!");
+                    player.PrintIfShould("Invalid choice!");
             }
             else
             {
                 if (!cfg_is_paid)
-                    player.PrintToChat("Only 1 power can be chosen!");
+                    player.PrintIfShould("Only 1 power can be chosen!");
                 else
-                    player.PrintToChat("Invalid shop!");
+                    player.PrintIfShould("Invalid shop!");
             }
         }
 
@@ -183,16 +182,16 @@ public class TheShopper : BasePower
 
     public void PrintShopToChat(CCSPlayerController user, List<ShopOption> options)
     {
-        user.PrintToChat($" {ChatColors.Gold}Super Power Shop");
-        user.PrintToChat($" {ChatColors.Grey}Use command {ChatColors.Gold}/b <number> {ChatColors.Grey} pick a power" + (!cfg_is_paid ? "(Only 1 pick)" : ""));
+        user.PrintIfShould($" {ChatColors.Gold}Super Power Shop");
+        user.PrintIfShould($" {ChatColors.Grey}Use command {ChatColors.Gold}/b <number> {ChatColors.Grey} pick a power" + (!cfg_is_paid ? "(Only 1 pick)" : ""));
 
         // options.Sort((a, b) => a.Power!.priority.CompareTo(b.Power!.priority));
         // options.Reverse();
         for (int i = 0; i < options.Count; i++)
         {
             var option = options[i];
-            user.PrintToChat($" {i + 1} - {ChatColors.Green} {(cfg_is_paid ? "${option.Price}" : "")} {StringHelpers.GetPowerColoredName(option.Power!)}");
-            user.PrintToChat($" {option.Power!.GetDescriptionColored()}");
+            user.PrintIfShould($" {i + 1} - {ChatColors.Green} {(cfg_is_paid ? "${option.Price}" : "")} {StringHelpers.GetPowerColoredName(option.Power!)}");
+            user.PrintIfShould($" {option.Power!.GetDescriptionColored()}");
         }
     }
 

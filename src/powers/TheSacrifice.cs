@@ -33,7 +33,7 @@ public class TheSacrifice : BasePower
                     if (pawn == null)
                         return;
 
-                    p.PrintToChat($"{player.PlayerName} Sacrificed {cfg_value} health for you");
+                    p.PrintIfShould($"{player.PlayerName} Sacrificed {cfg_value} health for you");
 
                     pawn.Health += cfg_value;
                     Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");

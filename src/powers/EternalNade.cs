@@ -36,9 +36,7 @@ public class EternalNade : BasePower
                 if (thrown.Weapon == "incgrenade")
                 {
                     incGrenades.Add(thrown.Userid!);
-                    // Server.PrintToChatAll($"handing the edge case");
                 }
-                // Server.PrintToChatAll($"thrown {thrown.Userid!}, {thrown.Weapon}");
                 break;
             case EventHegrenadeDetonate he:
                 player = he.Userid;
@@ -51,7 +49,6 @@ public class EternalNade : BasePower
                 {
                     weaponName = "weapon_incgrenade";
                     incGrenades.Remove(player);
-                    // Server.PrintToChatAll($"inc grenade instead");
                 }
                 break;
             case EventSmokegrenadeDetonate smoke:
@@ -74,7 +71,6 @@ public class EternalNade : BasePower
         if (!Users.Contains(player))
             return HookResult.Continue;
 
-        // Server.PrintToChatAll($"giving {weaponName}");
         player.GiveNamedItem(weaponName);
         return HookResult.Continue;
     }
