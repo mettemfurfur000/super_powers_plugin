@@ -394,6 +394,21 @@ public class TemUtils
         return output.ToString();
     }
 
+    public static void InvisiblitiyFirstAdded(CCSPlayerController player)
+    {
+        var pawn = player.PlayerPawn.Value;
+        if (pawn == null || !pawn.IsValid)
+        {
+            TemUtils.Log("Player pawn is not valid.");
+            return;
+        }
+
+        // do this hack to disable gloves
+        string originalModel = pawn.CBodyComponent!.SceneNode!.GetSkeletonInstance().ModelState.ModelName;
+        pawn.SetModel("models/player/ghost/ghost.mdl");
+        pawn.SetModel(originalModel);
+    }
+
     public static void SetPlayerInvisibilityLevel(CCSPlayerController player, float invisibilityLevel)
     {
         var pawn = player.PlayerPawn.Value;
@@ -406,7 +421,6 @@ public class TemUtils
         int alpha = (int)((1.0f - invisibilityLevel) * 255);
         alpha = alpha > 255 ? 255 : alpha < 0 ? 0 : alpha; // >:3
         var fadeColor = Color.FromArgb(alpha, 255, 255, 255);
-
 
         string shadowInput = invisibilityLevel > 0.25 ? "DisableShadow" : "EnableShadow";
 

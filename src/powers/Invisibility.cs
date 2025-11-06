@@ -56,6 +56,11 @@ public class Invisibility : BasePower
         if (gameEvent is EventRoundStart realEventStart)
         {
             Utilities.GetPlayers().ForEach(player => playerHiddenEntities[player] = []);
+
+            Users.ForEach((player) =>
+            {
+                TemUtils.InvisiblitiyFirstAdded(player);
+            });
         }
         if (gameEvent is EventItemEquip realEventEquip)
         {
@@ -209,7 +214,6 @@ public class Invisibility : BasePower
             return;
 
         double gainEachTick = cfg_tickSkip / ((cfg_fullRecoverMs / 1000.0f) * 64.0f);
-
 
         for (int i = 0; i < Users.Count; i++)
         {
@@ -425,6 +429,14 @@ public class Invisibility : BasePower
 
         foreach (var user in Users)
             SetVisibilityLevel(user, 0);
+    }
+
+    public override bool OnAdd(CCSPlayerController player, bool forced = false)
+    {
+        TemUtils.InvisiblitiyFirstAdded(player);
+        SetVisibilityLevel(player, 1.0f);
+
+        return base.OnAdd(player, forced);
     }
 
     public override string GetDescription() => $"Gain invisibility, when not making sounds (Custom items will still be seen)";
