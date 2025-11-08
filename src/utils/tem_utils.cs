@@ -211,6 +211,14 @@ public class TemUtils
 
     public static IEnumerable<CCSPlayerController> SelectPlayers(string name_pattern)
     {
+        if (name_pattern.ToLower().StartsWith("#"))
+        {
+            string team_str = name_pattern.Replace("#", "");
+            CsTeam team = ParseTeam(team_str);
+
+            return SelectTeam(team);
+        }
+
         if (name_pattern.StartsWith("@"))
         {
             ulong steamid64 = ulong.Parse(name_pattern.Replace("@", ""));
