@@ -335,8 +335,11 @@ public class Invisibility : BasePower
         UpdateWeaponMeshGroupMask(weapon, isLegacy);
     }
 
-    public void SetVisibilityLevel(CCSPlayerController player, float invisibilityLevel)
+    public void SetVisibilityLevel(CCSPlayerController? player, float invisibilityLevel)
     {
+        if (player == null || !player.IsValid || !Users.Contains(player))
+            return;
+
         if (invisibilityLevel >= 1.0f)
             invisibilityLevel = 1.0f;
 
@@ -426,6 +429,8 @@ public class Invisibility : BasePower
             SetVisibilityLevel(player, 0);
             return;
         }
+
+        // clear all
 
         foreach (var user in Users)
             SetVisibilityLevel(user, 0);

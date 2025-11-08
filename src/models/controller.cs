@@ -651,4 +651,12 @@ public static class SuperPowerController
             }
         }
     }
+
+    public class CapabilityHandler : ISuperPowersController
+    {
+        public string Signal(CCSPlayerController player, List<string> args)
+        {
+            return SuperPowerController.Signal(player, args);
+        }
+    }
 }

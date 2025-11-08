@@ -11,5 +11,9 @@
     <Reference Include="CounterStrikeSharp.API">
       <HintPath>../../api/CounterStrikeSharp.API.dll</HintPath>
     </Reference>
+
+    <Reference Include="super_powers_plugin_api">
+      <HintPath>../../shared/super_powers_plugin_api/super_powers_plugin_api.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

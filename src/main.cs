@@ -1,6 +1,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
+using CounterStrikeSharp.API.Core.Capabilities;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Cvars;
@@ -15,9 +16,14 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     public override string ModuleAuthor => "tem";
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
     public List<BasePower> checkTransmitTargets = [];
+    public static PluginCapability<ISuperPowersController> Capability_SuperPowersController { get; } = new("tem_sp:controllerapi");
     public override void Load(bool hotReload)
     {
         TemUtils.__plugin = this;
+
+        // Register our capability
+
+        Capabilities.RegisterPluginCapability(Capability_SuperPowersController, () => new SuperPowerController.CapabilityHandler());
 
         RegisterListener<Listeners.OnServerPrecacheResources>(OnServerPrecacheResources);
 
@@ -32,6 +38,12 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             Server.PrintToConsole($"Round started, mode: {SuperPowerController.GetMode()}");
 
             return SuperPowerController.ExecutePower(@event);
+        });
+
+        RegisterEventHandler<EventNextlevelChanged>((@event, info) =>
+        {
+            SuperPowerController.CleanInvalidUsers();
+            return HookResult.Continue;
         });
         // converting these keys into my special commands
         // requires some work on the client side though
@@ -93,7 +105,9 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         RegisterListener<Listeners.OnTick>(() =>
         {
-            SuperPowerController.CleanInvalidUsers();
+            // might be expensive
+            if (Server.TickCount % 32 == 0)
+                SuperPowerController.CleanInvalidUsers();
             SuperPowerController.Update();
         });
 
