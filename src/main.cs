@@ -6,6 +6,7 @@ using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Utils;
+using SuperPowersPlugin.Utils;
 
 namespace super_powers_plugin.src;
 
@@ -20,6 +21,10 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     public override void Load(bool hotReload)
     {
         TemUtils.__plugin = this;
+
+        string connString = "Server=localhost;User=root;Password=dwKWAdX8k6iHWg==;Database=cs2sp"; // TODO: move to config
+        CustomStorage.InitializeDatabase(connString);
+        CustomStorage.LoadAllPlayerDataFromDatabase();
 
         // Register our capability
 
@@ -153,6 +158,10 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         SuperPowerController.UnRegisterHooks();
 
         checkTransmitTargets.Clear();
+
+        CustomStorage.CloseDatabase();
+
+        Console.WriteLine("Super Powers Plugin unloaded.");
     }
 
     [ConsoleCommand("sp_help", "should help in most cases")]
@@ -277,6 +286,112 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         SuperPowerController.SetMode(mode);
 
         commandInfo.ReplyToCommand($"Mode {mode} set");
+    }
+
+    public bool MakeHiddenKnife(CBasePlayerWeapon weapon, bool do_hide)
+    {
+        List<string> knifes = [
+            "weapon_knife",
+            // TODO: add all the other knives
+        ];
+
+        if (knifes.Contains(weapon.DesignerName))
+        {
+            // weapon.RenderMode = do_hide ? RenderMode_t.kRenderNone : RenderMode_t.kRenderNormal; 
+            // weapon.Render?
+            // weapon.AcceptInput("Alpha", null, null, $"{(do_hide ? 0 : 255)}");
+            // weapon.AcceptInput("SetModelScale", null, null, $"{(do_hide ? 0 : 1)}");
+
+            // weapon.Render = System.Drawing.Color.FromArgb((do_hide ? 0 : 255), 255, 255, 255);
+            // Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_clrRender");
+            // none of these work ^^^
+            
+            weapon.SetModel("poopmodel");
+            return true;
+        }
+
+        return false;
+    }
+
+    [ConsoleCommand("sp_test", "todo")]
+    [CommandHelper(minArgs: 1, usage: "state", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    // [RequiresPermissions("@css/root")]
+    public void OnTest(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var do_hide = commandInfo.GetArg(1).ToLower() == "1" || commandInfo.GetArg(1).ToLower() == "true";
+        // var manual_group = commandInfo.GetArg(1);
+        var manual_group = do_hide ? "2" : "0";
+        var player = caller;
+
+        if (player == null || !player.IsValid || player.LifeState != (byte)LifeState_t.LIFE_ALIVE)
+            return;
+
+        var pawn = player.PlayerPawn.Value!;
+
+        var weaponServices = pawn.WeaponServices;
+        if (weaponServices == null)
+            return;
+
+        // var activeWeapon = weaponServices.ActiveWeapon.Value!;
+        // activeWeapon.AcceptInput("SetBodygroup", null, null, $"body,{manual_group}");
+
+        // player.PrintToChat($"Set active weapon bodygroup to {manual_group}");
+
+        var myWeapons = weaponServices.MyWeapons;
+        if (myWeapons == null)
+            return;
+
+        foreach (var gun in myWeapons)
+        {
+            if (gun.Value == null || !gun.IsValid || gun.Value.OwnerEntity == null || !gun.Value.OwnerEntity.IsValid)
+                continue;
+
+            var entity = gun.Value;
+
+            if (MakeHiddenKnife(entity, do_hide) == false)
+            {
+                player.PrintToChat($"Setting bodygroup for {entity.DesignerName} to {manual_group}");
+                entity.AcceptInput("SetBodyGroup", null, null, $"body,{manual_group}");
+            }
+            else
+                player.PrintToChat($"Setting knife thing for {entity.DesignerName} to {(do_hide ? "hidden" : "normal")}");
+        }
+    }
+
+    [ConsoleCommand("sp_db_set", "todo")]
+    [CommandHelper(minArgs: 1, usage: "state", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    // [RequiresPermissions("@css/root")]
+    public void OnDatabaseSetTest(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var value = commandInfo.GetArg(1).ToLower();
+
+        if (caller == null || !caller.IsValid || caller.LifeState != (byte)LifeState_t.LIFE_ALIVE)
+            return;
+
+        var PlayerData = CustomStorage.GetOrCreatePlayerData(caller)!;
+
+        // CustomStorage.set(steamId, "test_key", state).Wait();
+
+        PlayerData.SetAttribute("test_key", value);
+
+        caller.PrintToChat($"Set \"{value}\"");
+    }
+
+    [ConsoleCommand("sp_db_get", "todo")]
+    [CommandHelper(minArgs: 0, usage: "state", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    // [RequiresPermissions("@css/root")]
+    public void OnDatabaseGetTest(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        if (caller == null || !caller.IsValid || caller.LifeState != (byte)LifeState_t.LIFE_ALIVE)
+            return;
+
+        var PlayerData = CustomStorage.GetOrCreatePlayerData(caller)!;
+
+        // PlayerData.SetAttribute("test_key", state);
+
+        var value = PlayerData.GetAttribute("test_key");
+
+        caller.PrintToChat($"Got \"{value}\"");
     }
 
     [ConsoleCommand("sp_list", "lists all posibl powers")]

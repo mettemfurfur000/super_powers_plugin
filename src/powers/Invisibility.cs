@@ -33,10 +33,10 @@ public class Invisibility : BasePower
     public bool cfg_sendBar = true;
     public int cfg_tickSkip = 2;
     public float cfg_visibilityFloor = 0.5f;
-    public float cfg_weaponReloadRevealFactor = 0.55f;
+    public float cfg_weaponReloadRevealFactor = 0.50f;
     public float cfg_weaponRevealFactor = 0.75f;
     public float cfg_weaponRevealFactorSilenced = 0.35f;
-    public bool cfg_dropAllWeapons = true;
+    public bool cfg_dropAllWeapons = false;
     public bool cfg_killWeapons = false;
 
     // public bool bombFoundForTheRound = false;
