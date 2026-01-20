@@ -2,7 +2,7 @@ cur = ${shell pwd | awk -F'/' '{print $$NF}'}
 files = bin/Debug/net8.0/${cur}.*
 version = ${shell grep Version src/main.cs | awk -F'=>' '{print $$2}' | tr -d '\ \";'}
 
-path = ${shell grep -r mysqlconnector obj/project.nuget.cache | tr -d ' ' | sed -e 's/mysqlconnector.2.5.0.nupkg.sha512/lib\\net8.0\\MySqlConnector.dll/g'}
+mysqldllpath = ${shell grep -r mysqlconnector obj/project.nuget.cache | tr -d ' ' | sed -e 's/mysqlconnector.2.5.0.nupkg.sha512/lib\\net8.0\\MySqlConnector.dll/g'}
 
 all:
 	rm -f *.zip
@@ -12,7 +12,7 @@ all:
 	rm -f ${cur}.deps.json
 	dotnet build
 	cp ${files} .
-	if grep -q MySqlConnector super_powers_plugin.csproj; then cp ${path} . ; fi
+	if grep -q MySqlConnector super_powers_plugin.csproj; then cp ${mysqldllpath} . ; fi
 
 .PHONY: release
 release:

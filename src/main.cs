@@ -176,18 +176,17 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         TODO */
 
         const string player_format = "<player>";
-        const string steamid_format = "@<steamid64>";
-        const string pl_format = player_format + "/" + steamid_format;
+        const string steamid_format = "<steamid64>";
         const string pw_format = "<power>";
-        const string team_format = "[t,ct]";
+        // const string team_format = "[t,ct]";
+        commandInfo.ReplyToCommand($"<player> format supports: wildcards (*), team selection (#t, #ct) and steamid64 (@76561199020654675)");
+        commandInfo.ReplyToCommand($"<power> format supports: wildcards (*), multiple powers separated by comma (,)");
         commandInfo.ReplyToCommand($"Availiable commands:");
         commandInfo.ReplyToCommand($"  sp_help \t\t\t\t\t\t - should help in most cases");
-        commandInfo.ReplyToCommand($"  sp_add {pl_format} {pw_format} (now) \t\t\t - adds power to player");
+        commandInfo.ReplyToCommand($"  sp_add {player_format} {pw_format} (now) \t\t\t - adds power to player");
         commandInfo.ReplyToCommand($"  sp_add_offline {steamid_format} {pw_format} \t\t\t - adds power to an offline player");
-        commandInfo.ReplyToCommand($"  sp_add_team {team_format} {pw_format} (now)  \t\t\t - adds power to all players of team");
-        commandInfo.ReplyToCommand($"  sp_remove {pl_format} {pw_format} \t\t\t - removes power from player");
-        commandInfo.ReplyToCommand($"  sp_remove_team {team_format}  {pw_format} \t\t - removes power from all players of team");
-        commandInfo.ReplyToCommand($"  sp_list {pl_format}  \t\t\t\t\t - lists availiable powers");
+        commandInfo.ReplyToCommand($"  sp_remove {player_format} {pw_format} \t\t\t - removes power from player");
+        commandInfo.ReplyToCommand($"  sp_list {player_format}  \t\t\t\t\t - lists availiable powers");
         commandInfo.ReplyToCommand($"  sp_mode [normal, random] \t\t\t\t - sets a special gamemode");
         commandInfo.ReplyToCommand($"flag 'now' triggers the power immediaty");
         commandInfo.ReplyToCommand($"Advanced commands:");
@@ -229,28 +228,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         commandInfo.ReplyToCommand(SuperPowerController.AddPowerOffline(steamIdString, powerNamePattern));
     }
 
-    [ConsoleCommand("sp_add_team", "Adds a superpower to specified team, supports wildcards")]
-    [CommandHelper(minArgs: 2, usage: "[ct/t] [power/*] optional: (now)", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    [RequiresPermissions("@css/root")]
-    public void OnPowerAddTeam(CCSPlayerController? caller, CommandInfo commandInfo)
-    {
-        var teamStr = commandInfo.GetArg(1);
-        var powerNamePattern = commandInfo.GetArg(2);
-        var now_flag = false;
-        var force_flag = false;
-        if (commandInfo.ArgCount >= 4)
-        {
-            now_flag = commandInfo.GetArg(3).ToLower().Contains("now");
-            force_flag = commandInfo.GetArg(3).ToLower().Contains("force");
-        }
-
-        CsTeam csteam = TemUtils.ParseTeam(teamStr);
-        if (csteam == CsTeam.None)
-            commandInfo.ReplyToCommand($"Unrecognized option: {teamStr}");
-        else
-            commandInfo.ReplyToCommand(SuperPowerController.AddPowers("unused", powerNamePattern, now_flag, csteam, true, force_flag));
-    }
-
     [ConsoleCommand("sp_remove", "Removes a superpower from specified player, supports wildcards")]
     [CommandHelper(minArgs: 2, usage: "[player/*] [power/*]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
     [RequiresPermissions("@css/root")]
@@ -259,21 +236,6 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         var playerNamePattern = commandInfo.GetArg(1);
         var powerNamePattern = commandInfo.GetArg(2);
         commandInfo.ReplyToCommand(SuperPowerController.RemovePowers(playerNamePattern, powerNamePattern));
-    }
-
-    [ConsoleCommand("sp_remove_team", "Removes a superpower from specified team, supports wildcards")]
-    [CommandHelper(minArgs: 2, usage: "[ct/t] [power/*]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    [RequiresPermissions("@css/root")]
-    public void OnPowerRemoveTeam(CCSPlayerController? caller, CommandInfo commandInfo)
-    {
-        var teamStr = commandInfo.GetArg(1);
-        var powerNamePattern = commandInfo.GetArg(2);
-
-        CsTeam csteam = TemUtils.ParseTeam(teamStr);
-        if (csteam == CsTeam.None)
-            commandInfo.ReplyToCommand($"Unrecognized option: {teamStr}");
-        else
-            commandInfo.ReplyToCommand(SuperPowerController.RemovePowers("unused", powerNamePattern, csteam));
     }
 
     [ConsoleCommand("sp_mode", "todo")]
