@@ -41,7 +41,7 @@ public class HealingZeus : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Zap your teammates to set their health to {cfg_health_set}";
+
     public override string GetDescriptionColored() => $"Zap your " + StringHelpers.Green("teammates") + " to set their health to " + StringHelpers.Green(cfg_health_set);
 
     public int cfg_health_set = 75;

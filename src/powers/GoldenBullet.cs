@@ -42,8 +42,8 @@ public class GoldenBullet : BasePower
         return HookResult.Continue;
     }
 
-    // public override string GetDescription() => $"Last bullet in your chamber always hits x{mult} damage";
-    public override string GetDescription() => $"Kill with a last bullet gives you ${cfg_killReward}{(cfg_headshotMultEnabled ? $", X{cfg_multOnHeadshot} for headshots" : "")}";
+
+
     public override string GetDescriptionColored() => "Kill with a last bullet gives you $" + StringHelpers.Green(cfg_killReward) + (cfg_headshotMultEnabled ? $", X{cfg_multOnHeadshot} for headshots" : "");
     public int cfg_killReward = 3000;
     public float cfg_multOnHeadshot = 1.5f;

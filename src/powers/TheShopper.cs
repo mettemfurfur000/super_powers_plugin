@@ -63,7 +63,7 @@ public class TheShopper : BasePower
                 if (user.IsValid)
                     if (activeShops.TryGetValue(user, out List<ShopOption>? shop))
                     {
-                        user.PrintIfShould(StringHelpers.Paint("Shop closed", ChatColors.Gold));
+                        user.PrintToggleable(StringHelpers.Paint("Shop closed", ChatColors.Gold));
                         activeShops.Remove(user);
                     }
             }
@@ -105,17 +105,17 @@ public class TheShopper : BasePower
                         });
                     }
                     else
-                        player.PrintIfShould($"You already bought {StringHelpers.GetPowerColoredName(option.Power!)}");
+                        player.PrintToggleable($"You already bought {StringHelpers.GetPowerColoredName(option.Power!)}");
                 }
                 else
-                    player.PrintIfShould("Invalid choice!");
+                    player.PrintToggleable("Invalid choice!");
             }
             else
             {
                 if (!cfg_is_paid)
-                    player.PrintIfShould("Only 1 power can be chosen!");
+                    player.PrintToggleable("Only 1 power can be chosen!");
                 else
-                    player.PrintIfShould("Invalid shop!");
+                    player.PrintToggleable("Invalid shop!");
             }
         }
 
@@ -182,20 +182,20 @@ public class TheShopper : BasePower
 
     public void PrintShopToChat(CCSPlayerController user, List<ShopOption> options)
     {
-        user.PrintIfShould($" {ChatColors.Gold}Super Power Shop");
-        user.PrintIfShould($" {ChatColors.Grey}Use command {ChatColors.Gold}/b <number> {ChatColors.Grey} pick a power" + (!cfg_is_paid ? "(Only 1 pick)" : ""));
+        user.PrintToggleable($" {ChatColors.Gold}Super Power Shop");
+        user.PrintToggleable($" {ChatColors.Grey}Use command {ChatColors.Gold}/b <number> {ChatColors.Grey} pick a power" + (!cfg_is_paid ? "(Only 1 pick)" : ""));
 
         // options.Sort((a, b) => a.Power!.priority.CompareTo(b.Power!.priority));
         // options.Reverse();
         for (int i = 0; i < options.Count; i++)
         {
             var option = options[i];
-            user.PrintIfShould($" {i + 1} - {ChatColors.Green} {(cfg_is_paid ? "${option.Price}" : "")} {StringHelpers.GetPowerColoredName(option.Power!)}");
-            user.PrintIfShould($" {option.Power!.GetDescriptionColored()}");
+            user.PrintToggleable($" {i + 1} - {ChatColors.Green} {(cfg_is_paid ? "${option.Price}" : "")} {StringHelpers.GetPowerColoredName(option.Power!)}");
+            user.PrintToggleable($" {option.Power!.GetDescriptionColored()}");
         }
     }
 
-    public override string GetDescription() => $"Allows to buy powers on the start of each round";
+
 
     public int cfg_shop_amount = 4;
     public float cfg_price_mult = 1;

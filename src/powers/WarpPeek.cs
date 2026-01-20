@@ -81,7 +81,7 @@ public class WarpPeek : BasePower
             current_index = 0;
     }
 
-    public override string GetDescription() => $"Warp back in time when hit";
+
     public override string GetDescriptionColored() => "Warp " + StringHelpers.Blue("back in time") + " when hit";
 
     // each user must have their own position history

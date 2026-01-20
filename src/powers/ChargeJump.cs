@@ -49,7 +49,7 @@ public class ChargeJump : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Jump while crouching to make a leap forward";
+
     public override string GetDescriptionColored() => StringHelpers.Blue("Jump while crouching") + " to make a " + StringHelpers.Blue("leap forward");
 
     public float cfg_jump_force = 600f;

@@ -25,7 +25,7 @@ public class Wallhacks : BasePower
         // no change needed
     }
 
-    public override string GetDescription() => $"smaller model, same hull";
+
 
     public override void Update()
     {

@@ -35,10 +35,8 @@ public class BasePower : ShopPower
 
     public void SetDisabled() { enabled = false; }
     public bool IsDisabled() => !enabled;
-
-    public virtual string GetDescription() => "";                       // ! Set custom description here
-    public virtual string GetDescriptionColored() => "";                // ! Colored version for the shopper
-
+    public virtual string GetDescriptionColored() => "";                // ! Use colors here, will be shown in shop and other places
+    public string GetDescriptionPlain() => StringHelpers.RemoveColorCodes(GetDescriptionColored()); // ! Plain version for the config or other uses
     public virtual HookResult Execute(GameEvent gameEvent)
     {
         return HookResult.Continue;                                     // ! Put custom logic here

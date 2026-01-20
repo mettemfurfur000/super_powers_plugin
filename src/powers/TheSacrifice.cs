@@ -33,7 +33,7 @@ public class TheSacrifice : BasePower
                     if (pawn == null)
                         return;
 
-                    p.PrintIfShould($"{player.PlayerName} Sacrificed {cfg_value} health for you");
+                    p.PrintToggleable($"{player.PlayerName} Sacrificed {cfg_value} health for you");
 
                     pawn.Health += cfg_value;
                     Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
@@ -44,7 +44,7 @@ public class TheSacrifice : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"+{cfg_value} HP to all teammates on your death";
+
     public override string GetDescriptionColored() => StringHelpers.Green("+" + cfg_value) + " HP to all teammates on your death";
     public int cfg_value = 50;
 }

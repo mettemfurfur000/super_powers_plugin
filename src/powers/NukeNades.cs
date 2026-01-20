@@ -48,7 +48,7 @@ public class NukeNades : BasePower
         return HookResult.Continue;
     }
     public readonly double knownDelay = 1.5;
-    public override string GetDescription() => $"HE grenades are {cfg_multiplier} times more explosive and it takes {cfg_detonateTime} to explode";
+
     public override string GetDescriptionColored() => "HE grenades are " + StringHelpers.Red(cfg_multiplier) + " times more explosive takes " + StringHelpers.Red(cfg_detonateTime) + " to explode";
     public float cfg_multiplier = 10;
     public float cfg_detonateTime = 5;

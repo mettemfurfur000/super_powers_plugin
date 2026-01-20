@@ -43,7 +43,7 @@ public class SuperJump : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Look up and jump to get {cfg_multiplier} times higher";
+
     public override string GetDescriptionColored() => "Look up and jump to get " + StringHelpers.Blue(cfg_multiplier) + " times higher";
 
     public float cfg_multiplier = 2;

@@ -17,55 +17,46 @@ public class BiocodedWeapons : BasePower
     {
         CCSPlayerController? shooter = null;
 
-        if (gameEvent.GetType() == typeof(EventInspectWeapon))
+        switch (gameEvent)
         {
-            var realEvent = gameEvent as EventInspectWeapon;
-            shooter = realEvent!.Userid;
-            return HookResult.Continue;
-        }
-        else if (gameEvent.GetType() == typeof(EventWeaponFire))
-        {
-            var realEvent = gameEvent as EventWeaponFire;
-            shooter = realEvent!.Userid;
-            return HookResult.Continue;
+            case EventWeaponFire fireEvent:
+                shooter = fireEvent.Userid;
+                break;
+            case EventInspectWeapon inspectEvent:
+                shooter = inspectEvent.Userid;
+                break;
         }
 
-        if (shooter != null && IsWeaponBiocoded(shooter))
-        {
-            if (gameEvent.GetType() == typeof(EventWeaponFire))
-                shooter.DropActiveWeapon();
-            shooter.PrintIfShould($"{ChatColors.DarkRed}[BIOCODED] Weapon is biocoded and can't be used");
-        }
+        if (shooter == null)
+            return HookResult.Continue;
+
+        if (PlayerCanUse(shooter))
+            return HookResult.Continue;
+
+        shooter.DropActiveWeapon();
+        shooter.PrintToggleable($"{ChatColors.DarkRed}[BIOCODED] Weapon is biocoded and can't be used");
 
         return HookResult.Continue;
     }
 
     // if owners does not match and owner has this power, make weapon unusable
-    public bool IsWeaponBiocoded(CCSPlayerController currentUser)
+    public bool PlayerCanUse(CCSPlayerController currentUser)
     {
-        ulong shooterId = currentUser.SteamID;
-        // ulong weaponOwnerId = TemUtils.GetActiveWeaponUserSteamId64(currentUser);
-
         CCSPlayerController? originalOwner = Utilities.GetPlayerFromSteamId(currentUser.PlayerPawn!.Value!.WeaponServices!.ActiveWeapon.Value!.OriginalOwnerXuidLow);
 
-        if (originalOwner == null)
-            return false;
-
-        if (!Users.Contains(originalOwner))
-            return false;
-
-        if (currentUser != originalOwner)
+        if (originalOwner == null) // owner not found
             return true;
 
-        // if (shooterId != weaponOwnerId) // if shooter is shooting someon esles weapon, check users
-        //     foreach (var user in Users)
-        //         if (user.SteamID == weaponOwnerId) // owner has the power
-        //             return true;
+        if (!Users.Contains(originalOwner)) // owner does not have the power
+            return true;
 
-        return false;
+        if (currentUser != originalOwner) // if shooter is not the owner (owner has the power)
+            return false;
+
+        return true; // shooter is the owner
     }
 
-    public override string GetDescription() => $"Only you can use weapons you bought";
-    public override string GetDescriptionColored() => "Only you can use your " + StringHelpers.Red("weapons");
+
+    public override string GetDescriptionColored() => $"{StringHelpers.Red("Weapons")} you bought are {StringHelpers.Red("biocoded")} to you only";
 }
 

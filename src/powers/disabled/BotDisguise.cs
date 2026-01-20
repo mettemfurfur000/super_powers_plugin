@@ -34,7 +34,7 @@ public class BotDisguise : BasePower
 
     public List<string> name_pool = ["Maddison", "Colton", "Rose", "Phoenix", "Maxine", "Chase", "Anna", "Andres", "Jaliyah", "Fox", "Emerie", "Karsyn", "Faye", "Lennox", "Reign", "Cole", "Kynlee", "Emory", "Bethany", "Van", "Emory", "Kenji", "Ivy", "Kane", "Alivia", "Bryce", "Milan", "Riley", "Reina", "Idris", "Ellis", "Nova", "Giovanna", "Ulises", "Harper", "Mark", "Mercy", "Iker", "Rowan", "Blake", "Mariah", "Korbin", "Nola", "Dillon", "Amara", "Gael", "Briana", "Dane", "Melany", "Quentin", "Sutton", "Shepherd", "Margo", "Matthias", "Paris", "Allen", "Whitney", "Blaze", "Leyla", "Eden", "Remy", "Remi", "Izabella", "Victor", "Freyja", "Waylon", "Judith", "Enoch", "Kinslee", "Marlon", "Jade", "Zyair", "Ryleigh", "Aaron", "Miracle", "Kannon", "Aaliyah", "Lochlan", "Ivanna", "Luka", "Kairi", "Jason", "Megan", "Kohen", "Bexley", "Patrick", "Persephone", "Shepard", "Ariella", "Johnathan", "Josephine", "Jacob", "Ansley", "Solomon", "Aylin", "Armando", "Aaliyah", "Anthony", "Kendra", "Jones", "Gracie", "Osiris", "Kylee", "Blaise", "Adeline", "Rodney", "Destiny", "Dominick", "Estelle", "Reuben", "Mia", "Cody", "Iyla", "Fabian", "Oakleigh", "Roger", "Anaya", "Brodie", "Emmalyn", "Memphis", "Keily", "Forest", "Millie", "Jorge", "Elise", "Caleb", "Summer", "Manuel", "Pearl", "Pierce", "Rosalia", "Edgar", "June", "Marley", "Marlowe", "Edgar", "Mavis", "Kashton", "Dayana", "Marshall", "Alanna", "Layne", "Adelina", "Mekhi"];
 
-    public override string GetDescription() => $"Disguise as a bot (to a certain point)";
+
 
     public override void Update()
     {

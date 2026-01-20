@@ -39,7 +39,7 @@ public class BonusHealth : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"+{cfg_bonus - 100} HP on the start of each round";
+
     public override string GetDescriptionColored() => "+" + StringHelpers.Green((cfg_bonus - 100).ToString() + " Health ") + "on the start of the round";
     public int cfg_bonus = 250;
 }

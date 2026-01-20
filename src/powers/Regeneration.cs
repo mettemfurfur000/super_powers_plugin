@@ -30,7 +30,7 @@ public class Regeneration : BasePower
         }
     }
 
-    public override string GetDescription() => $"Regenerate {cfg_increment} Health if less than {cfg_limit} every {(float)(cfg_period / 64)} seconds";
+
     public override string GetDescriptionColored() => "Regenerate " + StringHelpers.Green(cfg_increment) + " Health if less than " + StringHelpers.Blue(cfg_limit) + " every " + StringHelpers.Blue(cfg_period / 64) + " seconds";
 
     public int cfg_increment = 10;

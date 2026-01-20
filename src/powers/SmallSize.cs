@@ -32,7 +32,7 @@ public class SmallSize : BasePower
             Users.ForEach(user => SetScale(user, 1));
     }
 
-    public override string GetDescription() => $"smaller model, same hull";
+
 
     public void SetScale(CCSPlayerController? player, float value = 1)
     {

@@ -33,7 +33,7 @@ public class BitcoinMiner : BasePower
     public int cfg_probabilityPercentage = 5;
     public int cfg_periodSeconds = 5;
 
-    public override string GetDescription() => $"Every ${cfg_periodSeconds} second(s), gain ${cfg_moneyBonusAmount} with a chance of {cfg_probabilityPercentage}%";
+
     public override string GetDescriptionColored() => "Every" + StringHelpers.Green(cfg_periodSeconds) + ", gain $" + StringHelpers.Green(cfg_moneyBonusAmount) + " with a chance of " + StringHelpers.Blue(cfg_probabilityPercentage.ToString() + "%");
 }
 

@@ -12,6 +12,8 @@ public class SpeedyFella : BasePower
     public SpeedyFella()
     {
         Triggers = [];
+        Price = 3000;
+        Rarity = "Common";
     }
 
     public override HookResult Execute(GameEvent gameEvent)
@@ -57,7 +59,7 @@ public class SpeedyFella : BasePower
         Utilities.SetStateChanged(pawn, "CPlayer_MovementServices", "m_flMaxspeed");
     }
 
-    public override string GetDescription() => $"";
+
     public override string GetDescriptionColored() => $"";
     public int cfg_minimalSpeed = 250;
     public float cfg_factor = 1.01f;

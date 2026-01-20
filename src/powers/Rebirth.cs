@@ -83,7 +83,7 @@ public class Rebirth : BasePower
         });
     }
 
-    public override string GetDescription() => $"Respawn at your last death location. If survived, spawn with yout team as before";
+
     public override string GetDescriptionColored() => $"Respawn at your " + StringHelpers.Blue("last death location") + ". If survived, spawn with yout team as before";
 
     public Dictionary<CCSPlayerController, Tuple<Vector, QAngle>> positions = [];

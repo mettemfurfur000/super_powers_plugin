@@ -10,7 +10,7 @@ public class SuperSpeed : BasePower
     {
         Triggers = [typeof(EventRoundStart)];
         Price = 3500;
-        Rarity = "Common";
+        Rarity = "Uncommon";
     }
 
     public override HookResult Execute(GameEvent gameEvent)
@@ -30,7 +30,7 @@ public class SuperSpeed : BasePower
         TemUtils.PowerRemoveSpeedModifier(Users, player);
     }
 
-    public override string GetDescription() => $"Increased walking speed ({(float)cfg_value / default_velocity_max}X faster)";
+
     public override string GetDescriptionColored() => "Increased walking speed (" + StringHelpers.Blue((float)cfg_value / default_velocity_max) + "X faster)";
 
     public int cfg_value = 700;

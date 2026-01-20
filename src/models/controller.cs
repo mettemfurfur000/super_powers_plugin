@@ -374,9 +374,9 @@ public static class SuperPowerController
             // if (power.OnAdd(player) == false)
             //     goto again;
             string alert = $"Your power for this round: {ChatColors.Blue}{StringHelpers.GetPowerNameReadable(power)}";
-            player.PrintIfShould(alert);
-            string description = $"Power description: {ChatColors.Blue}{power.GetDescription()}";
-            player.PrintIfShould(description);
+            player.PrintToggleable(alert);
+            string description = $"Power description: {ChatColors.Blue}{power.GetDescriptionPlain()}";
+            player.PrintToggleable(description);
             if (!silent)
                 player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
 
@@ -479,7 +479,7 @@ public static class SuperPowerController
             {
                 added_powers_feedback = added_powers_feedback.TrimEnd(',');
 
-                player.PrintIfShould(added_powers_feedback);
+                player.PrintToggleable(added_powers_feedback);
                 if (!silent)
                     player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
             }
@@ -533,7 +533,7 @@ public static class SuperPowerController
 
             if (removed_powers != 0 && reasonDisconnect == false)
             {
-                player.PrintIfShould(removed_powers_feedback);
+                player.PrintToggleable(removed_powers_feedback);
                 if (!silent)
                     player.ExecuteClientCommand("play sounds/diagnostics/bell.vsnd");
             }

@@ -41,7 +41,7 @@ public class InstantNades : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Reduce nade and flash fuse time by {cfg_divider} times";
+
     public override string GetDescriptionColored() => "Reduce nade and flash fuse time by " + StringHelpers.Red(cfg_divider) + " times";
 
     public int cfg_divider = 4;

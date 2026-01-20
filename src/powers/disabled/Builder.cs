@@ -36,7 +36,7 @@ public class Builder : BasePower
         return prop.Index;
     }
 
-    public override string GetDescription() => $"build";
+
 
     // public List<string> NeededResources { get; set; } = ["models/props/de_dust/stoneblocks48.vmdl_c"];
 }

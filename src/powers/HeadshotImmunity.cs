@@ -41,7 +41,7 @@ public class HeadshotImmunity : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Calcels all headshots, landed on your head";
+
     public override string GetDescriptionColored() => StringHelpers.Green("Calcels all headshots") + ", landed on your head";
 }
 

@@ -43,7 +43,7 @@ public class InfiniteAmmo : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Free ammo, yay!";
+
     public override string GetDescriptionColored() => StringHelpers.Blue("Free ammo, yay!");
 }
 

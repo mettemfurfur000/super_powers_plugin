@@ -37,7 +37,7 @@ public class DamageBonus : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"All your damage is multiplied by {cfg_damage_multiplier}";
+
 
     public int cfg_damage_multiplier = 2;
 }

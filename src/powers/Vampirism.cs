@@ -48,7 +48,7 @@ public class Vampirism : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Gain {(int)(100 / cfg_divisor)}% of dealt damage as extra health" + (cfg_playSounds ? ", annoying sounds included" : "");
+
     public override string GetDescriptionColored() => "Gain " + StringHelpers.Green((int)(100 / cfg_divisor)) + "% of dealt damage as extra health" + (cfg_playSounds ? ", annoying sounds included" : "");
 
     public int cfg_divisor = 5;

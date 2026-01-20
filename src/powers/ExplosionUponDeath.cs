@@ -47,7 +47,7 @@ public class ExplosionUponDeath : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Explode on death, dealing {cfg_damage} damage in a {cfg_radius}Hu radius";
+
     public override string GetDescriptionColored() => "Explode on death, dealing " + StringHelpers.Red(cfg_damage.ToString() + " dmg") + " in a " + StringHelpers.Blue(cfg_radius) + " Hu radius";
 
     public int cfg_radius = 500;

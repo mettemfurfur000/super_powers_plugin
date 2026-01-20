@@ -41,21 +41,21 @@ public class RandomLoadout : BasePower
             // give it
             user.GiveNamedItem(main_weapon!.Value.Item2);
             if (cfg_chatFeedback)
-                user.PrintIfShould($"Main weapon type: {WeaponHelpers.GetRarityString(main_type.Value.Item1, WeaponHelpers.types.Sum(x => x.Item1), StringHelpers.FirstUpper(main_type.Value.Item2))}");
+                user.PrintToggleable($"Main weapon type: {WeaponHelpers.GetRarityString(main_type.Value.Item1, WeaponHelpers.types.Sum(x => x.Item1), StringHelpers.FirstUpper(main_type.Value.Item2))}");
 
             if (cfg_chatFeedback)
             {
-                if (main_type.Value.Item2 == "rifle") user.PrintIfShould($"Rifle: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.rifles.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
-                if (main_type.Value.Item2 == "smg") user.PrintIfShould($"SMG: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.smgs.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
-                if (main_type.Value.Item2 == "heavy") user.PrintIfShould($"Heavy: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.heavies.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
-                if (main_type.Value.Item2 == "sniper") user.PrintIfShould($"Sniper: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.snipers.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
+                if (main_type.Value.Item2 == "rifle") user.PrintToggleable($"Rifle: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.rifles.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
+                if (main_type.Value.Item2 == "smg") user.PrintToggleable($"SMG: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.smgs.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
+                if (main_type.Value.Item2 == "heavy") user.PrintToggleable($"Heavy: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.heavies.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
+                if (main_type.Value.Item2 == "sniper") user.PrintToggleable($"Sniper: {WeaponHelpers.GetRarityString(main_weapon.Value.Item1, WeaponHelpers.snipers.Sum(x => x.Item1), StringHelpers.FirstUpper(main_weapon.Value.Item2))}");
             }
             // select a pistol
             var pistol_selected = cfg_weightedSelection ? WeaponHelpers.GetWeighted(WeaponHelpers.pistols) : WeaponHelpers.pistols[Random.Shared.Next(WeaponHelpers.pistols.Count)]; ;
 
             user.GiveNamedItem(pistol_selected!.Value.Item2);
             if (cfg_chatFeedback)
-                user.PrintIfShould($"Pistol: {WeaponHelpers.GetRarityString(pistol_selected!.Value.Item1, WeaponHelpers.pistols.Sum(x => x.Item1), StringHelpers.FirstUpper(pistol_selected.Value.Item2))}");
+                user.PrintToggleable($"Pistol: {WeaponHelpers.GetRarityString(pistol_selected!.Value.Item1, WeaponHelpers.pistols.Sum(x => x.Item1), StringHelpers.FirstUpper(pistol_selected.Value.Item2))}");
 
             // roll utils and stuff
             WeaponHelpers.SingleItemRoll(user, "weapon_decoy", "Decoy", cfg_chance_decoy);
@@ -73,7 +73,7 @@ public class RandomLoadout : BasePower
             WeaponHelpers.RollAction(user, () =>
             {
                 if (cfg_chatFeedback)
-                    user.PrintIfShould($"+{WeaponHelpers.GetRarityString((int)(100 * cfg_kevlarChance), 100, "Armor")}");
+                    user.PrintToggleable($"+{WeaponHelpers.GetRarityString((int)(100 * cfg_kevlarChance), 100, "Armor")}");
 
                 user.PlayerPawn.Value!.ArmorValue = cfg_kevlarIsAlsoRandom ? 1 + Random.Shared.Next(100) : 100;
                 Utilities.SetStateChanged(user.PlayerPawn.Value!, "CCSPlayerPawn", "m_ArmorValue");
@@ -81,7 +81,7 @@ public class RandomLoadout : BasePower
                 WeaponHelpers.RollAction(user, () =>
                  {
                      if (cfg_chatFeedback)
-                         user.PrintIfShould($"+{WeaponHelpers.GetRarityString((int)(100 * cfg_helmetChance), 100, "Helmet")}");
+                         user.PrintToggleable($"+{WeaponHelpers.GetRarityString((int)(100 * cfg_helmetChance), 100, "Helmet")}");
                      new CCSPlayer_ItemServices(user.PlayerPawn.Value!.ItemServices!.Handle).HasHelmet = true;
                      Utilities.SetStateChanged(user.PlayerPawn.Value, "CCSPlayer_ItemServices", "m_bHasHelmet");
                  }, cfg_helmetChance);
@@ -96,7 +96,7 @@ public class RandomLoadout : BasePower
                 WeaponHelpers.RollAction(user, () =>
                 {
                     if (cfg_chatFeedback)
-                        user.PrintIfShould($"+{WeaponHelpers.GetRarityString((int)(100 * cfg_helmetChance), 100, "Helmet")}");
+                        user.PrintToggleable($"+{WeaponHelpers.GetRarityString((int)(100 * cfg_helmetChance), 100, "Helmet")}");
                     new CCSPlayer_ItemServices(user.PlayerPawn.Value!.ItemServices!.Handle).HasDefuser = true;
                     Utilities.SetStateChanged(user.PlayerPawn.Value, "CCSPlayer_ItemServices", "m_bHasDefuser");
                 }, cfg_defuserChance);
@@ -147,5 +147,5 @@ public class RandomLoadout : BasePower
     public float cfg_chance_taser = 0.5f;
     public float cfg_chance_smoke = 0.5f;
 
-    public override string GetDescription() => $"todo";
+
 }

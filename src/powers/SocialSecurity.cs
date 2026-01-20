@@ -28,7 +28,7 @@ public class SocialSecurity : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"At round start, if your k/d is below {cfg_gate}, gain {cfg_value}$";
+
     public override string GetDescriptionColored() => $"At round start, If your k/d is below " + StringHelpers.Blue(cfg_gate) + ", gain " + StringHelpers.Green(cfg_value) + "$";
 
     public int cfg_value = 2500;

@@ -27,7 +27,7 @@ public class BonusArmor : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Obtain {cfg_value} armor each round, head armor not included";
+
 
     public int cfg_value = 250;
 }

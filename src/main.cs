@@ -137,7 +137,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
                     {
                         info.TransmitEntities.Remove(entity);
                         // if (power.Name != "wallhacks")
-                        //     Server.PrintIfShouldAll($"power {power.Name} requested to hide {entity.DesignerName}");
+                        //     Server.PrintToggleableAll($"power {power.Name} requested to hide {entity.DesignerName}");
                     }
                 }
             }
@@ -366,7 +366,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         if (powers != null)
             foreach (var power in powers)
-                commandInfo.ReplyToCommand($"\t{StringHelpers.GetSnakeName(power.GetType())}\t{power.GetDescription()}"
+                commandInfo.ReplyToCommand($"\t{StringHelpers.GetSnakeName(power.GetType())}\t{power.GetDescriptionPlain()}"
                 + (power.IsDisabled() ? "\t(Disabled)" : "")
                 + (power.teamReq != CsTeam.None ? (
                     power.teamReq == CsTeam.Terrorist ? "\t(T Only)" : "\t(CT Only)"

@@ -87,7 +87,7 @@ public class PoisonedSmoke : BasePower
 
     public List<Tuple<int, Vector>> SmokesActivePos = [];
 
-    public override string GetDescription() => $"Your smoke is poisoned, deals {cfg_value} damage, but cant kill on its own";
+
     public override string GetDescriptionColored() => "Your smoke is poisoned, deals " + StringHelpers.Red(cfg_value) + " damage, but cant kill on its own";
 
     public int cfg_value = 2;

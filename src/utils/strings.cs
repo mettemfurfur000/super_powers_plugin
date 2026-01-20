@@ -88,6 +88,36 @@ public static class StringHelpers
 
     public static string GetPowerDescription(BasePower power)
     {
-        return $" {ChatColors.White}{power.GetDescription()}";
+        return $" {ChatColors.White}{power.GetDescriptionPlain()}";
     }
+
+    static string StringFilterColorCodes(string coloredString)
+    {
+        char colorFirst = '\x01';
+        char colorLast = '\x10';
+
+        string outString = "";
+
+        foreach (char c in coloredString)
+            if (c < colorFirst || c > colorLast)
+                outString += c;
+        
+        return outString;
+    }
+
+    internal static string RemoveColorCodes(string v)
+    {
+        // char colorFirst = '\x01';
+        // char colorLast = '\x10';
+
+        // for (char c = colorFirst; c <= colorLast; c++)
+        // {
+        //     v = v.Replace(c.ToString(), "");
+        // }
+
+        // return v;
+
+        return StringFilterColorCodes(v);
+    }
+
 }

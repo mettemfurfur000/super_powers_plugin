@@ -88,6 +88,6 @@ public class ConcreteSmoke : BasePower
     //     }
     // }
 
-    public override string GetDescription() => $"Your smokes block all bullets going through";
+
 }
 

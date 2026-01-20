@@ -56,14 +56,14 @@ public class TemUtils
     public static void InformValueChanged(CCSPlayerController player, int amount, string reason)
     {
         string theme = " " + (amount < 0 ? ChatColors.LightRed : ChatColors.Lime);
-        player.PrintIfShould(theme + (amount < 0 ? "-$" : "+$") + Math.Abs(amount) + $" {ChatColors.White} " + reason);
+        player.PrintToggleable(theme + (amount < 0 ? "-$" : "+$") + Math.Abs(amount) + $" {ChatColors.White} " + reason);
     }
 
     public static bool AttemptPaidAction(CCSPlayerController player, int amount, string object_name, Action a)
     {
         if (player.InGameMoneyServices!.Account < amount && amount > 0)
         {
-            player.PrintIfShould($" {ChatColors.LightRed}Not enough money to buy {object_name}");
+            player.PrintToggleable($" {ChatColors.LightRed}Not enough money to buy {object_name}");
             player.ExecuteClientCommand("play sounds/ui/weapon_cant_buy.vsnd");
             return false;
         }
@@ -76,7 +76,7 @@ public class TemUtils
         if (amount > 0)
             TemUtils.InformValueChanged(player, -amount, $"for buying {object_name}");
         else
-            player.PrintIfShould($"{object_name} Acquired");
+            player.PrintToggleable($"{object_name} Acquired");
 
         player.ExecuteClientCommand("play sounds/ui/panorama/claim_gift_01.vsnd");
 

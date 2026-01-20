@@ -51,6 +51,6 @@ public class Banana : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Spawns a banana each round, not edible";
+
 }
 

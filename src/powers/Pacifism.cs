@@ -28,7 +28,7 @@ public class Pacifism : BasePower
             {
                                 status.Remove(attacker);
 
-                attacker.PrintIfShould("Pacifism removed");
+                attacker.PrintToggleable("Pacifism removed");
             }
 
             if (Users.Contains(victim)) // check if victim might be le pacifist
@@ -55,7 +55,7 @@ public class Pacifism : BasePower
         status.Clear();
         status = [.. Users];
 
-        Users.ForEach((c) => c.PrintIfShould("Gained Pacifism"));
+        Users.ForEach((c) => c.PrintToggleable("Gained Pacifism"));
 
         
         return HookResult.Continue;
@@ -66,19 +66,19 @@ public class Pacifism : BasePower
         if (player != null)
         {
             status.Remove(player);
-            player.PrintIfShould("Pacifism removed");
+            player.PrintToggleable("Pacifism removed");
         }
         else
         {
             status.Clear();
-            status.ForEach((c) => c.PrintIfShould("Pacifism removed"));
+            status.ForEach((c) => c.PrintToggleable("Pacifism removed"));
         }
     }
 
     // public Dictionary<CCSPlayerController, bool> status;
     public List<CCSPlayerController> status = [];
 
-    public override string GetDescription() => $"Gain invincibility until you deal damage first";
+
     public override string GetDescriptionColored() => "Gain " + StringHelpers.Blue("invincibility") + " until you deal damage first";
 }
 

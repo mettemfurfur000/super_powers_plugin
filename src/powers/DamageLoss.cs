@@ -44,7 +44,7 @@ public class DamageLoss : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"{cfg_probabilityPercentage}% chance to ignore incoming damage event";
+
     public override string GetDescriptionColored() => StringHelpers.Green(cfg_probabilityPercentage) + "% chance to ignore incoming damage event";
 
     public int cfg_probabilityPercentage = 50;

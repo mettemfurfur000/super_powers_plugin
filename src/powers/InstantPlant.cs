@@ -41,7 +41,7 @@ public class InstantPlant : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Plant a bomb with no delay";
+
     public override string GetDescriptionColored() => $"Plant a " + StringHelpers.Red("bomb") + " with " + StringHelpers.Red("no delay");
 }
 

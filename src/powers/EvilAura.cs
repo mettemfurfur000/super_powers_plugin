@@ -56,7 +56,7 @@ public class EvilAura : BasePower
     public int cfg_damage = 1;
     public int cfg_period = 16;
 
-    public override string GetDescription() => $"Slowly harm enemies close to you. Can't kill";
+
     public override string GetDescriptionColored() => $"Slowly " + StringHelpers.Red("harm") + " enemies close to you. Can't kill";
 }
 

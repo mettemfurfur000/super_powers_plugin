@@ -65,7 +65,7 @@ public class DormantPower : BasePower
 
     public Dictionary<int, HashSet<string>> dormant_power_rules = [];
 
-    public override string GetDescription() => $"Internal use only";
+
 
     public string cfg_master_rule = "fill_me";
     public string cfg_round_rule_separator = "|";

@@ -64,7 +64,7 @@ public class Snowballing : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Each kill will give you {cfg_heal} more HP and {cfg_dmg_inc * 100}% more damage";
+
     public override string GetDescriptionColored() => "Each kill will give you " + StringHelpers.Green(cfg_heal) + " more HP and " + StringHelpers.Red((cfg_dmg_inc * 100) + "%") + " more damage";
 
     public int cfg_heal = 25;

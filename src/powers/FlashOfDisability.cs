@@ -37,7 +37,7 @@ public class FlashOfDisability : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => "Disables powers of players, blinded by your flash" + (cfg_ignore_self_flash ? "(Self-flash ignored)" : "");
+
     public override string GetDescriptionColored() => "Disables powers of players, blinded by your flash" + (cfg_ignore_self_flash ? StringHelpers.Blue("(Self-flash ignored)") : "");
     public bool cfg_ignore_self_flash = true;
 }

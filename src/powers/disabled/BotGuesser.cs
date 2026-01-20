@@ -22,11 +22,11 @@ public class BotGuesser : BasePower
 
         foreach (var user in Users)
         {
-            user.PrintIfShould("Vote availiable - use !signal kick <name>");
-            user.PrintIfShould("Vote availiable - use !signal kick <name>");
-            user.PrintIfShould("Vote availiable - use !signal kick <name>");
-            user.PrintIfShould("Vote availiable - use !signal kick <name>");
-            user.PrintIfShould("Wildcards usable to match any set of characters, example - '*hnepixel*' , matches 0hnepixel ");
+            user.PrintToggleable("Vote availiable - use !signal kick <name>");
+            user.PrintToggleable("Vote availiable - use !signal kick <name>");
+            user.PrintToggleable("Vote availiable - use !signal kick <name>");
+            user.PrintToggleable("Vote availiable - use !signal kick <name>");
+            user.PrintToggleable("Wildcards usable to match any set of characters, example - '*hnepixel*' , matches 0hnepixel ");
 
             allow_vote = true;
         }
@@ -96,6 +96,6 @@ public class BotGuesser : BasePower
     public bool allow_vote = false;
     public int rounds_without_a_vote = 0;
 
-    public override string GetDescription() => $"Allows to kick bots each round";
+
 }
 

@@ -87,7 +87,7 @@ public class BloodFury : BasePower
 
         return HookResult.Continue;
     }
-    // public override string GetDescription() => $"When a player gets {KillsToRage} {(CountOnlyHeadshots ? "Headshots" : "Kills")}, he enters 'rage mode,' gaining speed, damage boost, and temporary invincibility";
+
 
 
     public override void OnRemovePower(CCSPlayerController? player)
@@ -137,7 +137,6 @@ public class BloodFury : BasePower
     public double cfg_DamageBonusMult = 0.25d;
     public int cfg_HealthRegenPerUpdate = 1;
     public double cfg_InvincibilitySeconds = 1.5d;
-    public override string GetDescription() => $"After getting {cfg_KillsToRage} {(cfg_CountOnlyHeadshots ? "Headshots" : "Kills")}, gain speed, +%damage, and temporary invincibility";
     public override string GetDescriptionColored() => "After " + StringHelpers.Red(cfg_KillsToRage) + (cfg_CountOnlyHeadshots ? " Headshots" : " Kills") + ", gain speed, extra damage, and " + StringHelpers.Blue("temporary invincibility");
     public List<CCSPlayerController> ActivatedUsers = [];
     public List<Tuple<CCSPlayerController, int>> InvicibilityTicks = [];

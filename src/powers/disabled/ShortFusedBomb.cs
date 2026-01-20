@@ -27,7 +27,7 @@ public class ShortFusedBomb : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"bomb have detonation time divided by {cfg_divisor} (T only)";
+
 
     public int cfg_divisor = 2;
 }

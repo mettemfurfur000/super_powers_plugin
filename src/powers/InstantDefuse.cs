@@ -44,7 +44,7 @@ public class InstantDefuse : BasePower
         return HookResult.Continue;
     }
 
-    public override string GetDescription() => $"Defuse bombs instantly";
+
     public override string GetDescriptionColored() => StringHelpers.Blue("Defuse") + " bombs instantly";
 }
 
