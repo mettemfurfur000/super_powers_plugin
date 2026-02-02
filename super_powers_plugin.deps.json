@@ -9,7 +9,7 @@
       "super_powers_plugin/1.0.0": {
         "dependencies": {
           "MySqlConnector": "2.5.0",
-          "CounterStrikeSharp.API": "1.0.351.0",
+          "CounterStrikeSharp.API": "1.0.362.0",
           "super_powers_plugin_api": "1.0.0.0"
         },
         "runtime": {
@@ -47,11 +47,11 @@
           }
         }
       },
-      "CounterStrikeSharp.API/1.0.351.0": {
+      "CounterStrikeSharp.API/1.0.362.0": {
         "runtime": {
           "CounterStrikeSharp.API.dll": {
-            "assemblyVersion": "1.0.351.0",
-            "fileVersion": "1.0.351.0"
+            "assemblyVersion": "1.0.362.0",
+            "fileVersion": "1.0.362.0"
           }
         }
       },
@@ -380,7 +380,7 @@
       "path": "mysqlconnector/2.5.0",
       "hashPath": "mysqlconnector.2.5.0.nupkg.sha512"
     },
-    "CounterStrikeSharp.API/1.0.351.0": {
+    "CounterStrikeSharp.API/1.0.362.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

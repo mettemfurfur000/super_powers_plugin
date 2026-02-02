@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Utils;
 
 using super_powers_plugin.src;
+using SuperPowersPlugin.Utils;
 
 public class ChargeJump : BasePower
 {

@@ -14,6 +14,7 @@ using super_powers_plugin.src;
 public class BasePower : ShopPower
 {
     public string Name => StringHelpers.GetPowerName(this);
+    public string ColoredName => StringHelpers.GetPowerColoredName(this);
     public List<Type> Triggers = [];                                    // ! Put types of events that trigger this power logic here
     public List<CCSPlayerController> Users = [];                        // ! Active users live here
     public List<Tuple<CCSPlayerController, int>> UsersDisabled = [];    // Temporary disabled users live here, useful when powers disable other powers

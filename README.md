@@ -2,6 +2,10 @@
 
 this plugin is cool but still sucks i think
 
+## problum
+
+both charge_jump and super_jump wont work without `sv_legacy_jump 1` cuz jump events are not gettink produced without it
+
 ## curent power list
 
 copied from `sp_list` output (and edited for readability)

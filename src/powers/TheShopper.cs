@@ -29,17 +29,19 @@ public class TheShopper : BasePower
 {
     public TheShopper()
     {
-        Triggers = [typeof(EventRoundStart), typeof(EventGameStart)];
+        Triggers = [typeof(EventRoundStart), typeof(EventGameStart), typeof(EventPlayerHurt)];
         NoShop = true;
     }
 
     public int shopStartedTick = 0; // used to track when the shop was started, so we can close it after some time
+    public Dictionary<(CCSPlayerController, CCSPlayerController), bool> revealedThisRound = []; // track revealed power pairs to avoid spam
 
     public override HookResult Execute(GameEvent gameEvent)
     {
         if (gameEvent.GetType() == typeof(EventRoundStart))
         {
             shopStartedTick = Server.TickCount;
+            revealedThisRound.Clear(); // Clear power reveals on new round
 
             foreach (var user in Users)
                 if (!activeShops.ContainsKey(user))
@@ -48,8 +50,52 @@ public class TheShopper : BasePower
                     PrintShopToChat(user, activeShops[user]);
                 }
         }
+        else if (gameEvent.GetType() == typeof(EventPlayerHurt))
+        {
+            var hurtEvent = (EventPlayerHurt)gameEvent;
+            var attacker = hurtEvent.Attacker;
+            var victim = hurtEvent.Userid;
+
+            if (attacker == null || victim == null)
+                return HookResult.Continue;
+
+            // Check if victim has shopper power
+            if (!Users.Contains(victim))
+                return HookResult.Continue;
+
+            // Check if we haven't already revealed this attacker to this victim this round
+            var pair = (attacker, victim);
+            if (revealedThisRound.ContainsKey(pair))
+                return HookResult.Continue;
+
+            revealedThisRound[pair] = true;
+
+            // Get all powers the attacker has
+            var attackerPowerNames = GetPlayerPowerNames(attacker);
+            
+            attackerPowerNames.Sort();
+            attackerPowerNames.Remove(StringHelpers.GetPowerColoredName(this)); // remove shopper power from the list
+
+            if (attackerPowerNames.Count > 0)
+            {
+                var powerList = string.Join($"{ChatColors.White}, ", attackerPowerNames);
+                victim.PrintToggleable($"{ChatColors.Gold}{attacker.PlayerName} powers: {ChatColors.White}{powerList}");
+            }
+        }
 
         return HookResult.Continue;
+    }
+
+    // Helper method to get all power names for a player
+    private List<string> GetPlayerPowerNames(CCSPlayerController player)
+    {
+        var powerNames = new List<string>();
+        foreach (var power in SuperPowerController.GetPowers())
+        {
+            if (power.Users.Contains(player))
+                powerNames.Add(power.ColoredName);
+        }
+        return powerNames;
     }
 
     public override void Update()

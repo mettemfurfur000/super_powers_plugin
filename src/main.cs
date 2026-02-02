@@ -13,7 +13,7 @@ namespace super_powers_plugin.src;
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 {
     public override string ModuleName => "super_powers_plugin";
-    public override string ModuleVersion => "0.3.0";
+    public override string ModuleVersion => "0.3.1";
     public override string ModuleAuthor => "tem";
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
     public List<BasePower> checkTransmitTargets = [];
@@ -267,7 +267,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             // weapon.Render = System.Drawing.Color.FromArgb((do_hide ? 0 : 255), 255, 255, 255);
             // Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_clrRender");
             // none of these work ^^^
-            
+
             weapon.SetModel("poopmodel");
             return true;
         }
