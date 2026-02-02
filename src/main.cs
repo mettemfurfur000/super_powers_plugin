@@ -22,8 +22,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     {
         TemUtils.__plugin = this;
 
-        string connString = "Server=localhost;User=root;Password=dwKWAdX8k6iHWg==;Database=cs2sp"; // TODO: move to config
-        CustomStorage.InitializeDatabase(connString);
+        CustomStorage.InitializeDatabase(Config.DataBaseConnectionString);
         CustomStorage.LoadAllPlayerDataFromDatabase();
 
         // Register our capability
