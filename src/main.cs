@@ -21,9 +21,18 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     public override void Load(bool hotReload)
     {
         TemUtils.__plugin = this;
-
-        CustomStorage.InitializeDatabase(Config.DataBaseConnectionString);
-        CustomStorage.LoadAllPlayerDataFromDatabase();
+        try
+        {
+            CustomStorage.InitializeDatabase(Config.DataBaseConnectionString);
+            CustomStorage.LoadAllPlayerDataFromDatabase();
+        }
+        catch (Exception e)
+        {
+            var _ = e.Data;
+            Console.WriteLine("Failed to load database, oh dingle!");
+            Console.WriteLine("Not that big of a deal, just configure the connection string in super_powers_plugin.json");
+            Console.WriteLine("Doesn do anything at the moment");
+        }
 
         // Register our capability
 
