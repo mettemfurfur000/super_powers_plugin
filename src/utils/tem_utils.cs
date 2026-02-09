@@ -874,3 +874,59 @@ public static class TemConfigExtensions
         }
     }
 }
+
+public static class VectorExtensions
+{
+    public static float Dot(this Vector a, Vector b) =>
+        a.X * b.X + a.Y * b.Y + a.Z * b.Z;
+    public static Vector Cross(this Vector a, Vector b) =>
+        new Vector(
+            a.Y * b.Z - a.Z * b.Y,
+            a.Z * b.X - a.X * b.Z,
+            a.X * b.Y - a.Y * b.X);
+
+    public static float SqrMagnitude(this Vector v) =>
+        v.X * v.X + v.Y * v.Y + v.Z * v.Z;
+    
+    public static float Magnitude(this Vector v) =>
+        (float)Math.Sqrt(v.SqrMagnitude());
+    
+    public static float Length(this Vector v) => v.Magnitude();
+    public static Vector Normalize(this Vector v)
+    {
+        float magnitude = (float)Math.Sqrt(v.SqrMagnitude());
+        if (magnitude > 0)
+        {
+            v.X /= magnitude;
+            v.Y /= magnitude;
+            v.Z /= magnitude;
+        }
+        return v;
+    }
+
+    public static QAngle AngleTo(this Vector from, Vector to)
+    {
+        Vector direction = new Vector(to.X - from.X, to.Y - from.Y, to.Z - from.Z);
+        QAngle angles = new QAngle();
+        NativeAPI.VectorAngles(direction.Handle, 0, angles.Handle);
+        return angles;
+        // float yaw = (float)(Math.Atan2(direction.Y, direction.X) * (180 / Math.PI));
+        // float pitch = (float)(Math.Atan2(direction.Z, Math.Sqrt(direction.X * direction.X + direction.Y * direction.Y)) * (180 / Math.PI));
+        // return new QAngle(pitch, yaw, 0);
+    }
+    
+    public static Vector Mult(this Vector a, float scalar) =>
+        new Vector(a.X * scalar, a.Y * scalar, a.Z * scalar);
+    public static float Distance(this Vector a, Vector b) =>
+        (float)Math.Sqrt(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2) + Math.Pow(a.Z - b.Z, 2));
+}
+
+public static class PlayerExtensions
+{
+    public static Vector? GetEyePosition(this CCSPlayerPawn playerPawn)
+    {
+        return playerPawn.AbsOrigin is not { } absOrigin
+            ? null
+            : new Vector(absOrigin.X, absOrigin.Y, absOrigin.Z + playerPawn.ViewOffset.Z);
+    }
+}

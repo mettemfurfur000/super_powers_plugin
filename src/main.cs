@@ -20,6 +20,10 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     public static PluginCapability<ISuperPowersController> Capability_SuperPowersController { get; } = new("tem_sp:controllerapi");
     public override void Load(bool hotReload)
     {
+        if(hotReload)
+        {
+            RayTrace.CRayTrace.Init();
+        }
         TemUtils.__plugin = this;
         try
         {
@@ -149,6 +153,14 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
                     }
                 }
             }
+        });
+
+        RegisterEventHandler<EventServerSpawn>((@event, info) =>
+        {
+            // SuperPowerController.CleanInvalidUsers();
+            RayTrace.CRayTrace.Init();
+            Server.PrintToConsole("Server spawned, RayTrace initialized");
+            return HookResult.Continue;
         });
 
         SuperPowerController.RegisterHooks();

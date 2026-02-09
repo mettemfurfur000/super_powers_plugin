@@ -42,7 +42,14 @@ public class BiocodedWeapons : BasePower
     // if owners does not match and owner has this power, make weapon unusable
     public bool PlayerCanUse(CCSPlayerController currentUser)
     {
-        CCSPlayerController? originalOwner = Utilities.GetPlayerFromSteamId(currentUser.PlayerPawn!.Value!.WeaponServices!.ActiveWeapon.Value!.OriginalOwnerXuidLow);
+        if(currentUser == null || !currentUser.IsValid)
+            return true;
+
+        UInt32 lowId = currentUser.PlayerPawn!.Value!.WeaponServices!.ActiveWeapon.Value!.OriginalOwnerXuidLow;
+        UInt32 highId = currentUser.PlayerPawn!.Value!.WeaponServices!.ActiveWeapon.Value!.OriginalOwnerXuidHigh;
+        ulong weaponOwnerId = ((ulong)highId << 32) | lowId;
+
+        CCSPlayerController? originalOwner = Utilities.GetPlayerFromSteamId64(weaponOwnerId);
 
         if (originalOwner == null) // owner not found
             return true;

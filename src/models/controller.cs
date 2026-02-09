@@ -74,6 +74,7 @@ public static class SuperPowerController
         Powers.Add(new SmallSize()); // hull size vector is stored as a static variable and all players share the same size
         Powers.Add(new Wallhacks());
         Powers.Add(new SpeedyFella());
+        Powers.Add(new HomingNade());
 
         // cant implement rn
         // Powers.Add(new ConcreteSmoke()); // voxel data is so mystical...
