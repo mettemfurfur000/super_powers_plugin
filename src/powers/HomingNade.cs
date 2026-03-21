@@ -122,8 +122,8 @@ public class HomingNade : BasePower
         });
     }
 
-    private const float cfg_TraceRadius = 512.0f;
-    private const float cfg_HomingStrength = 64.0f;
+    public float cfg_TraceRadius = 512.0f;
+    public float cfg_HomingStrength = 64.0f;
     public List<CBaseCSGrenadeProjectile> liveGrenades = [];
 
     public override string GetDescriptionColored() => $"Grenades " + StringHelpers.Blue("gravitate") + " towards enemy players when thrown.";

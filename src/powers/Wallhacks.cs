@@ -62,7 +62,9 @@ public class Wallhacks : BasePower
         foreach (CCSPlayerController ctrl in Utilities.GetPlayers().Where(IsPlayerConnected))
             if (!models.ContainsKey(ctrl))
             {
-                var ret = TemUtils.MakePawnGlow(ctrl.PlayerPawn.Value!, (byte)(ctrl.PlayerPawn.Value!.TeamNum == 2 ? 3 : 2));
+                if (ctrl.PlayerPawn.Value == null)
+                    continue;
+                var ret = TemUtils.MakePawnGlow(ctrl.PlayerPawn.Value, (byte)(ctrl.PlayerPawn.Value.TeamNum == 2 ? 3 : 2));
 
                 if (ret != null)
                     models.Add(ctrl, ret);

@@ -236,7 +236,7 @@ public class TheShopper : BasePower
         for (int i = 0; i < options.Count; i++)
         {
             var option = options[i];
-            user.PrintToggleable($" {i + 1} - {ChatColors.Green} {(cfg_is_paid ? "${option.Price}" : "")} {StringHelpers.GetPowerColoredName(option.Power!)}");
+            user.PrintToggleable($" {i + 1} - {ChatColors.Green} {(cfg_is_paid ? $"{option.Price}" : "")} {StringHelpers.GetPowerColoredName(option.Power!)}");
             user.PrintToggleable($" {option.Power!.GetDescriptionColored()}");
         }
     }

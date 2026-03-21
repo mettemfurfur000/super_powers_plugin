@@ -23,19 +23,19 @@ public class Rebirth : BasePower
         {
             EventPlayerDeath realEvent = (EventPlayerDeath)gameEvent;
 
-            
+
             var player = realEvent.Userid;
             if (player == null)
                 return HookResult.Continue;
 
             if (Users.Contains(player))
             {
-                                var pawn = player.PlayerPawn.Value!;
+                var pawn = player.PlayerPawn.Value!;
                 positions[player] = new Tuple<Vector, QAngle>(
                     new Vector(pawn.AbsOrigin!.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z),
                     new QAngle(pawn.V_angle.X, pawn.V_angle.Y, pawn.V_angle.Z)
                     );
-                            }
+            }
         }
 
         if (gameEvent.GetType() == typeof(EventRoundStart))
@@ -46,12 +46,12 @@ public class Rebirth : BasePower
             {
                 var pawn = player.PlayerPawn.Value!;
 
-                
+
                 if (Users.Contains(player))
                 {
-                                        if (positions.TryGetValue(player, out Tuple<Vector, QAngle>? value))
+                    if (positions.TryGetValue(player, out Tuple<Vector, QAngle>? value))
                     {
-                        
+
                         Server.NextFrame(() => pawn.Teleport(value.Item1, value.Item2, new Vector(0, 0, 0)));
 
                         if (cfg_allowBuy)
@@ -79,7 +79,8 @@ public class Rebirth : BasePower
     {
         buyspamactive.ForEach(user =>
         {
-            user.PlayerPawn.Value!.InBuyZone = true;
+            if (IsUser(user))
+                user.PlayerPawn.Value!.InBuyZone = false;
         });
     }
 

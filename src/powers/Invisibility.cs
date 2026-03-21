@@ -9,6 +9,9 @@ using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using super_powers_plugin.src;
 
+using CounterStrikeSharp.API.Modules.Commands;
+using CounterStrikeSharp.API.Modules.UserMessages;
+
 public class Invisibility : BasePower
 {
     public Invisibility()
@@ -78,19 +81,19 @@ public class Invisibility : BasePower
 
             var weapon = realEventEquip.Userid!.PlayerPawn.Value!.WeaponServices!.ActiveWeapon.Value!;
 
-            if (weapon.DesignerName == "weapon_knife" || cfg_dropAllWeapons == true)
-            // so its either knife, or every single weapon
-            {
-                user.DropActiveWeapon();
-                Server.NextFrame(() =>
-                {
-                    if (cfg_killWeapons)
-                        weapon.AcceptInput("Kill");
-                    else
-                        weapon.AcceptInput("ToggleCanBePickedUp");
-                });
-                return HookResult.Continue;
-            }
+            // if (weapon.DesignerName == "weapon_knife" || cfg_dropAllWeapons == true)
+            // // so its either knife, or every single weapon
+            // {
+            //     user.DropActiveWeapon();
+            //     Server.NextFrame(() =>
+            //     {
+            //         if (cfg_killWeapons)
+            //             weapon.AcceptInput("Kill");
+            //         else
+            //             weapon.AcceptInput("ToggleCanBePickedUp");
+            //     });
+            //     return HookResult.Continue;
+            // }
 
             if (washedWeapons.Contains(weapon))
                 return HookResult.Continue;
@@ -402,25 +405,57 @@ public class Invisibility : BasePower
         if (myWeapons == null)
             return;
 
+        var manual_group = do_hide ? "2" : "0";
+
         foreach (var gun in myWeapons)
         {
             if (gun.Value == null || !gun.IsValid || gun.Value.OwnerEntity == null || !gun.Value.OwnerEntity.IsValid)
                 continue;
 
-            if (do_hide)
+            switch (gun.Value.DesignerName)
             {
-                // foreach (var iter_user in playerHiddenEntities)
-                //     if (iter_user.Key != player)
-                //         iter_user.Value.Add(gun.Value); // hid from everyone else
+                case "weapon_knife":
+                case "weapon_taser":
+                case "weapon_smokegrenade":
+                case "weapon_decoy":
+                case "weapon_flashbang":
+                case "weapon_healthshot":
+                case "weapon_incgrenade":
+                case "weapon_molotov":
+                case "weapon_hegrenade":
+                    // case "knife":
+                    if (do_hide)
+                    {
+                        string? orig_model = orig_models.GetValueOrDefault(gun.Value);
+
+                        if (orig_model == null)
+                        {
+                            orig_models.Add(gun.Value, gun.Value.CBodyComponent!.SceneNode!.GetSkeletonInstance().ModelState.ModelName);
+
+                            gun.Value.SetModel("sp_invalid");
+                        }
+                    }
+                    else
+                    {
+                        string? orig_model = orig_models.GetValueOrDefault(gun.Value);
+                        // Server.PrintToChatAll("un nuking model " + gun.Value.DesignerName + "to use " + orig_model);
+                        if (orig_model != null)
+                        {
+                            gun.Value.SetModel(orig_model);
+                            orig_models.Remove(gun.Value);
+                        }
+                    }
+                    break;
+                default:
+                    // Server.PrintToChatAll("boydgroup switch " + gun.Value.DesignerName);
+                    gun.Value.AcceptInput("SetBodyGroup", null, null, $"body,{manual_group}");
+                    break;
             }
-            else
-            {
-                // foreach (var iter_user in playerHiddenEntities)
-                //     if (iter_user.Key != player)
-                //         iter_user.Value.Remove(gun.Value); // UNhid from everyone else
-            }
+
         }
     }
+
+    public Dictionary<CBasePlayerWeapon, string> orig_models = [];
 
     public override void OnRemovePower(CCSPlayerController? player)
     {
@@ -444,7 +479,25 @@ public class Invisibility : BasePower
         return base.OnAdd(player, forced);
     }
 
+    public override void RegisterHooks()
+    {
+        var msg_id = UserMessage.FindIdByName("ItemDrop");
 
-    public override string GetDescriptionColored() => $"Gain " + StringHelpers.Blue("invisibility") + ", when not making sounds (Custom items will still be seen)";
+        Server.PrintToChatAll("found " + msg_id);
+        TemUtils.__plugin!.HookUserMessage(msg_id, um =>
+        {
+            return HookResult.Continue;
+        }, HookMode.Pre);
+
+        base.RegisterHooks();
+    }
+
+    public override void UnRegisterHooks()
+    {
+        TemUtils.__plugin!.UnhookUserMessage(UserMessage.FindIdByName("ItemDrop"), un => { return HookResult.Continue;});
+        base.UnRegisterHooks();
+    }
+
+    public override string GetDescriptionColored() => $"Gain " + StringHelpers.Blue("invisibility") + ", when not making sounds";
     public double[] Levels = new double[65];
 }
