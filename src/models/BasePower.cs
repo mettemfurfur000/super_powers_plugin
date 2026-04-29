@@ -88,7 +88,7 @@ public class BasePower : ShopPower
     {
         Users.ForEach(s =>
         {
-            if (s == null || !s.IsValid || s.Connected != PlayerConnectedState.PlayerConnected)
+            if (s == null || !s.IsValid || s.Connected != PlayerConnectedState.Connected)
             {
                 OnRemovePower(s);
                 OnRemoveUser(s, false);

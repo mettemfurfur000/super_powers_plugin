@@ -266,7 +266,7 @@ public class TemUtils
     //     {
     //         var controller = Utilities.GetPlayerFromSlot(i);
 
-    //         if (controller == null || !controller.IsValid || controller.Connected != PlayerConnectedState.PlayerConnected)
+    //         if (controller == null || !controller.IsValid || controller.Connected != PlayerConnectedState.Connected)
     //             continue;
 
     //         players.Add(controller);

@@ -73,7 +73,7 @@ public class Wallhacks : BasePower
 
     public static bool IsPlayerConnected(CCSPlayerController player)
     {
-        return player.Connected == PlayerConnectedState.PlayerConnected;
+        return player.Connected == PlayerConnectedState.Connected;
     }
 
     public override List<CBaseModelEntity>? GetHiddenEntities(CCSPlayerController player)

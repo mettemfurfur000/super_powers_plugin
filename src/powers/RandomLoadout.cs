@@ -122,7 +122,7 @@ public class RandomLoadout : BasePower
 
     public override void Update()
     {
-        buyspamactive.RemoveAll(s => s == null || !s.IsValid || s.Connected != PlayerConnectedState.PlayerConnected);
+        buyspamactive.RemoveAll(s => s == null || !s.IsValid || s.Connected != PlayerConnectedState.Connected);
         buyspamactive.ForEach(user =>
         {
             if (IsUser(user))

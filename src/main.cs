@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
@@ -5,6 +6,8 @@ using CounterStrikeSharp.API.Core.Capabilities;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Cvars;
+using CounterStrikeSharp.API.Modules.Memory;
+using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using SuperPowersPlugin.Utils;
 
@@ -13,14 +16,14 @@ namespace super_powers_plugin.src;
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 {
     public override string ModuleName => "super_powers_plugin";
-    public override string ModuleVersion => "0.3.1";
+    public override string ModuleVersion => "0.3.2";
     public override string ModuleAuthor => "tem";
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
     public List<BasePower> checkTransmitTargets = [];
     public static PluginCapability<ISuperPowersController> Capability_SuperPowersController { get; } = new("tem_sp:controllerapi");
     public override void Load(bool hotReload)
     {
-        if(hotReload)
+        if (hotReload)
         {
             RayTrace.CRayTrace.Init();
         }
@@ -294,50 +297,35 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         return false;
     }
+    static MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr>? CBaseEntity_SetSizeFunc = null;
+    // new("48 8B C4 48 89 58 ? 48 89 68 ? 48 89 70 ? 48 89 78 ? 41 56 48 83 EC ? F2 0F 10 02", Addresses.ServerPath);
+    // new("48 81 C1 ? ? ? ? E9 ? ? ? ? CC CC CC CC 48 89 5C 24 ? 55 56 57 48 8D 6C 24", Addresses.ServerPath);
+
 
     [ConsoleCommand("sp_test", "todo")]
     [CommandHelper(minArgs: 1, usage: "state", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
     // [RequiresPermissions("@css/root")]
     public void OnTest(CCSPlayerController? caller, CommandInfo commandInfo)
     {
-        var do_hide = commandInfo.GetArg(1).ToLower() == "1" || commandInfo.GetArg(1).ToLower() == "true";
-        // var manual_group = commandInfo.GetArg(1);
-        var manual_group = do_hide ? "2" : "0";
-        var player = caller;
-
-        if (player == null || !player.IsValid || player.LifeState != (byte)LifeState_t.LIFE_ALIVE)
+        if (caller == null)
             return;
 
-        var pawn = player.PlayerPawn.Value!;
+        // CBaseEntity_SetSizeFunc = new("48 81 C1 ? ? ? ? E9 ? ? ? ? CC CC CC CC 48 83 EC ? 4C 8B C2", Addresses.ServerPath);// works with entities
+        CBaseEntity_SetSizeFunc = new("48 8B C4 48 89 58 ? 48 89 68 ? 48 89 70 ? 48 89 78 ? 41 56 48 83 EC ? F2 0F 10 02", Addresses.ServerPath); // works with collision properties
 
-        var weaponServices = pawn.WeaponServices;
-        if (weaponServices == null)
-            return;
-
-        // var activeWeapon = weaponServices.ActiveWeapon.Value!;
-        // activeWeapon.AcceptInput("SetBodygroup", null, null, $"body,{manual_group}");
-
-        // player.PrintToChat($"Set active weapon bodygroup to {manual_group}");
-
-        var myWeapons = weaponServices.MyWeapons;
-        if (myWeapons == null)
-            return;
-
-        foreach (var gun in myWeapons)
+        if (CBaseEntity_SetSizeFunc == null)
         {
-            if (gun.Value == null || !gun.IsValid || gun.Value.OwnerEntity == null || !gun.Value.OwnerEntity.IsValid)
-                continue;
-
-            var entity = gun.Value;
-
-            if (MakeHiddenKnife(entity, do_hide) == false)
-            {
-                player.PrintToChat($"Setting bodygroup for {entity.DesignerName} to {manual_group}");
-                entity.AcceptInput("SetBodyGroup", null, null, $"body,{manual_group}");
-            }
-            else
-                player.PrintToChat($"Setting knife thing for {entity.DesignerName} to {(do_hide ? "hidden" : "normal")}");
+            Server.PrintToChatAll("not found the function");
+            return;
         }
+
+        Vector vector_min_test = new Vector(-8, -8, 0);
+        Vector vector_max_test = new Vector(8, 8, 8);
+
+        IntPtr ret = CBaseEntity_SetSizeFunc.Invoke(caller.PlayerPawn.Value!.Collision.Handle, vector_min_test.Handle, vector_max_test.Handle);
+        // IntPtr ret = CBaseEntity_SetSizeFunc.Invoke(caller.PlayerPawn.Value.Handle, vector_min_test.Handle, vector_max_test.Handle);
+
+        Server.PrintToChatAll("ret ptr = " + ret);
     }
 
     [ConsoleCommand("sp_db_set", "todo")]

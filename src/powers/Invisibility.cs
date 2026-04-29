@@ -481,21 +481,21 @@ public class Invisibility : BasePower
 
     public override void RegisterHooks()
     {
-        var msg_id = UserMessage.FindIdByName("ItemDrop");
+        // var msg_id = UserMessage.FindIdByName("ItemDrop");
 
-        Server.PrintToChatAll("found " + msg_id);
-        TemUtils.__plugin!.HookUserMessage(msg_id, um =>
-        {
-            return HookResult.Continue;
-        }, HookMode.Pre);
+        // Server.PrintToChatAll("found " + msg_id);
+        // TemUtils.__plugin!.HookUserMessage(msg_id, um =>
+        // {
+        //     return HookResult.Continue;
+        // }, HookMode.Pre);
 
-        base.RegisterHooks();
+        // base.RegisterHooks();
     }
 
     public override void UnRegisterHooks()
     {
-        TemUtils.__plugin!.UnhookUserMessage(UserMessage.FindIdByName("ItemDrop"), un => { return HookResult.Continue;});
-        base.UnRegisterHooks();
+        // TemUtils.__plugin!.UnhookUserMessage(UserMessage.FindIdByName("ItemDrop"), un => { return HookResult.Continue;});
+        // base.UnRegisterHooks();
     }
 
     public override string GetDescriptionColored() => $"Gain " + StringHelpers.Blue("invisibility") + ", when not making sounds";
