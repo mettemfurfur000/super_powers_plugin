@@ -1,4 +1,7 @@
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
@@ -27,18 +30,25 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         {
             RayTrace.CRayTrace.Init();
         }
+
         TemUtils.__plugin = this;
+
+        // Pre-load native SQLite library so it's in the process-wide load address space
+        // SQLitePCLRaw's P/Invoke needs this but doesn't search the plugin directory.
+        var pluginDir = ModuleDirectory;
+        var nativeSqlite = Path.Combine(pluginDir,
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "e_sqlite3.dll" : "libe_sqlite3.so");
+        try { if (File.Exists(nativeSqlite)) NativeLibrary.Load(nativeSqlite); }
+        catch { }
+
         try
         {
-            CustomStorage.InitializeDatabase(Config.DataBaseConnectionString);
+            CustomStorage.InitializeDatabase(Config.DataBaseConnectionString, Config.StandaloneDatabase);
             CustomStorage.LoadAllPlayerDataFromDatabase();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            var _ = e.Data;
-            Console.WriteLine("Failed to load database, oh dingle!");
-            Console.WriteLine("Not that big of a deal, just configure the connection string in super_powers_plugin.json");
-            Console.WriteLine("Doesn do anything at the moment");
+            Console.WriteLine($"[super_powers_plugin] Database init failed: {ex.GetType().Name} — {ex.Message}");
         }
 
         // Register our capability
@@ -113,6 +123,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
         {
+            SuperPowerController.SaveAllProgressions(@event.Userid!);
             Server.PrintToConsole(SuperPowerController.RemovePowers(@event.Userid!.PlayerName, "*", CsTeam.None, true, true)); // FIX ME
             return HookResult.Continue;
         });
@@ -120,6 +131,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         RegisterEventHandler<EventPlayerConnectFull>((@event, info) =>
         {
             SuperPowerController.Rejoined(@event.Userid!);
+            SuperPowerController.LoadAllProgressions(@event.Userid!);
             return HookResult.Continue;
         });
 
@@ -160,6 +172,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         RegisterEventHandler<EventServerSpawn>((@event, info) =>
         {
+            // Server globals are ready here — safe to call Utilities.GetPlayers()
+            SuperPowerController.LoadAllConnectedProgressions();
             // SuperPowerController.CleanInvalidUsers();
             RayTrace.CRayTrace.Init();
             Server.PrintToConsole("Server spawned, RayTrace initialized");
@@ -167,6 +181,8 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         });
 
         SuperPowerController.RegisterHooks();
+        if (hotReload)
+            SuperPowerController.LoadAllConnectedProgressions();
     }
 
     private void OnServerPrecacheResources(ResourceManifest manifest)
@@ -471,11 +487,107 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             commandInfo.ReplyToCommand(ret);
     }
 
+    [ConsoleCommand("sp_pstats", "Shows leveling stats for a player's powers")]
+    [CommandHelper(minArgs: 1, usage: "<player> [power]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnPowerStats(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var playerPattern = commandInfo.GetArg(1);
+        var players = TemUtils.SelectPlayers(playerPattern);
+        if (players == null || !players.Any())
+        {
+            commandInfo.ReplyToCommand("No players found");
+            return;
+        }
+
+        foreach (var player in players)
+        {
+            commandInfo.ReplyToCommand($"Levels for {player.PlayerName}:");
+
+            IEnumerable<BasePower> powers;
+            if (commandInfo.ArgCount >= 3)
+                powers = SuperPowerController.SelectPowers(commandInfo.GetArg(2));
+            else
+                powers = SuperPowerController.GetPowers();
+
+            foreach (var power in powers)
+            {
+                if (!power.SupportsLeveling) continue;
+                if (power.PlayerProgression.TryGetValue(player.SteamID, out var prog))
+                {
+                    var name = StringHelpers.GetPowerNameReadable(power);
+                    int xpNeeded = (int)(power.cfg_levelUpBase * Math.Pow(power.cfg_levelUpMultiplier, prog.Level));
+                    commandInfo.ReplyToCommand($"  {name}: Level {prog.Level}, XP {prog.XP}/{xpNeeded}");
+                }
+                else
+                    commandInfo.ReplyToCommand($"  {StringHelpers.GetPowerNameReadable(power)}: Not yet leveled");
+            }
+        }
+    }
+
+    [ConsoleCommand("sp_setlevel", "Sets level for a player's power (admin override)")]
+    [CommandHelper(minArgs: 3, usage: "<player> <power> <level>", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnSetLevel(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var playerPattern = commandInfo.GetArg(1);
+        var powerPattern = commandInfo.GetArg(2);
+        if (!int.TryParse(commandInfo.GetArg(3), out var level))
+        {
+            commandInfo.ReplyToCommand("Invalid level value");
+            return;
+        }
+
+        var players = TemUtils.SelectPlayers(playerPattern);
+        if (players == null || !players.Any())
+        {
+            commandInfo.ReplyToCommand("No players found");
+            return;
+        }
+
+        var powers = SuperPowerController.SelectPowers(powerPattern);
+        if (powers == null || !powers.Any())
+        {
+            commandInfo.ReplyToCommand("No powers found");
+            return;
+        }
+
+        foreach (var player in players)
+        {
+            foreach (var power in powers)
+            {
+                if (!power.SupportsLeveling) continue;
+
+                if (!power.PlayerProgression.TryGetValue(player.SteamID, out var prog))
+                    power.PlayerProgression[player.SteamID] = prog = new PlayerPowerProgression();
+
+                prog.Level = Math.Clamp(level, 0, power.cfg_maxLevel);
+                power.SaveProgression(player);
+
+                commandInfo.ReplyToCommand($"Set {StringHelpers.GetPowerNameReadable(power)} level to {prog.Level} for {player.PlayerName}");
+            }
+        }
+    }
+
     public void OnConfigParsed(SuperPowerConfig config)
     {
         Config = config;
 
         SuperPowerController.FeedTheConfig(Config);
+
+        // Persist merged config back to disk so stale entries are cleaned up
+        var configDir = Path.Combine(ModuleDirectory, "..", "..", "configs", "plugins", ModuleName);
+        var configPath = Path.GetFullPath(Path.Combine(configDir, $"{ModuleName}.json"));
+        try
+        {
+            Directory.CreateDirectory(configDir);
+            var json = JsonSerializer.Serialize(Config, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(configPath, json);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[super_powers_plugin] Failed to save merged config: {ex.Message}");
+        }
     }
 
     public FakeConVar<bool> silent = new("sp_silent", "", false);
