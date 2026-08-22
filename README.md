@@ -1,82 +1,206 @@
-# powers and shi
+# Super Powers Plugin
 
-this plugin is cool but still sucks i think
+A Counter-Strike 2 plugin for [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp) that gives players superpowers. Powers can be assigned manually, handed out randomly every round, or bought in a round-start shop.
 
-## problum
+## Requirements
 
-both charge_jump and super_jump wont work without `sv_legacy_jump 1` cuz jump events are not gettink produced without it
+- Counter-Strike 2 dedicated server
+- [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp) **v343+** (the version shipping the native `Trace` API, net10.0 runtime)
+- Optional: MySQL server for cross-server player data (SQLite is used by default)
 
-## curent power list
+## Installation
 
-copied from `sp_list` output (and edited for readability)
+1. Download a release (or build it yourself, see below).
+2. Extract the archive into `game/csgo/addons/`, so that:
+   - plugin files land in `addons/counterstrikesharp/plugins/super_powers_plugin/`
+   - the shared API lands in `addons/counterstrikesharp/shared/super_powers_plugin_api/`
+3. Restart the server or run `css_plugins reload super_powers_plugin`.
+4. A default config is generated at `addons/counterstrikesharp/configs/plugins/super_powers_plugin/super_powers_plugin.json` on first launch.
+
+## Game modes
+
+Set with `sp_mode <mode>` (console, requires `@css/root`):
+
+| Mode | Behavior |
+|---|---|
+| `normal` | No automatic power assignment. Use `sp_add` to hand out powers. |
+| `random` | Every round start every player gets a random power. |
+| `shop` | Every round start every player gets the `the_shopper` power and can buy powers with the `b` command. |
+
+The mode persists until changed or the server restarts.
+
+## Commands
+
+All `sp_*` commands require the `@css/root` permission unless noted otherwise.
+
+### Managing powers
+
+| Command | Description |
+|---|---|
+| `sp_add <player> <power> [now\|force]` | Add power(s) to player(s). `now` triggers the power immediately, `force` bypasses team/disabled checks. |
+| `sp_add_offline <steamid64> <power>` | Add a power to an offline player (applies when they rejoin). |
+| `sp_remove <player> <power>` | Remove power(s). |
+| `sp_list` | List all available powers and their status. |
+| `sp_status` | Show which players currently have which powers (active + saved). |
+| `sp_mode <normal\|random\|shop>` | Set the game mode. |
+
+### Configuring
+
+| Command | Description |
+|---|---|
+| `sp_inspect <power>` | Dump all config values of a power. |
+| `sp_reconfigure <power> <key> <value> [...]` | Live-override config values without restarting. Pairs of key/value: `sp_reconfiguration radiation period_ticks 32`. |
+
+### Player data / leveling
+
+| Command | Description |
+|---|---|
+| `sp_pstats <player> [power]` | Show XP/level progression for a player's powers. |
+| `sp_setlevel <player> <power> <level>` | Admin override of a power's level (used e.g. to unlock supply_closet's helmet upgrade). |
+
+### Debug / misc
+
+| Command | Description |
+|---|---|
+| `sp_trace [flags] [-exclude flags] [self]` | Ray trace test from your eyes along your view. No args = sweep of common masks. Example: `sp_trace solid,window -player`. |
+| `sp_signal <args>` / `b` | Pass arbitrary input to powers (also used by the shopper UI). |
+| `sp_force_signal <player> <args>` | Same, but targeted at a specific player. |
+
+### Player selectors
+
+`<player>` accepts:
+
+- exact name or wildcards: `*`, `tem*`, `*bot`
+- teams: `#t`, `#ct`
+- SteamID64: `@76561198012345678`
+
+`<power>` accepts wildcards too (`radia*`) and multiple comma-separated names.
+
+## Configuration
+
+The config file (`configs/plugins/super_powers_plugin/super_powers_plugin.json`) is generated automatically on first launch by reflecting over every power class. Any public field starting with `cfg_` becomes a tunable entry under its power's name:
+
+```json
+{
+  "args": {
+    "radiation": {
+      "damage": "1",
+      "health_cap": "50",
+      "range": "3072",
+      "period_ticks": "64",
+      "trace_margin": "16"
+    }
+  }
+}
 ```
-dormant_power 				Internal use only
-bot_disguise 				Disguise as a bot (to a certain point)
-bot_guesser 				Allows to kick bots each round
-banana 						Spawns a banana each round, not edible
-bonus_health 				+150 HP on the start of each round
-bonus_armor 				Obtain 250 armor each round, head armor not included
-instant_defuse 				Defuse bombs instantly (even withot defuse kit)
-instant_plant 				Plant a bomb with no delay
-infinite_ammo 				Zeus included, nades not included
-super_speed 				Increased walking speed (2.8)
-headshot_immunity 			Calcels all headshots, landed on your head
-infinite_money 				Near infinite supply of money
-nuke_nades 					HE grenades, but 10 times more explosive
-evil_aura 					Slowly harm enemies close to you. Can't kill
-damage_bonus 				All your damage is multiplied by 2
-vampirism 					Gain 20% of dealt damage, annoying sounds included
-super_jump 					Look up and jump to get 2 times higher
-invisibility 				I cant really see you
-explosion_upon_death 		Explode on death, dealing 125 damage in a 500 units radius
-regeneration 				Regenerate 10 HP if less than 75 every 2 seconds
-warp_peek 					Warp back in time when hit. Only position is saved
-snowballing 				Each kill will give you 25 more HP and 10% more damage. Limited to 300 HP and 100% bonus damage
-charge_jump 				Jump while crouching to make a leap forward
-rage_mode 					When a player gets 3 Kills, he enters 'rage mode,' gaining speed, damage boost, and temporary invincibility
-healing_zeus 				zap your teammates to set their health to 75
-flash_of_disability 		enemies have their powers disabled if you flash them
-poisoned_smoke 				your smoke poisons anyone in it, 2 damage per second
-damage_loss 				50% chance to ignore incoming damage event
-instant_nades 				Reduce grenade and flash fuse by 4 times
-pacifism 					On round start, gain invincibility until you start dealing damage
-rebirth 					Respawn at your last death location. If survived, spawn with yout team as before
-the_sacrifice 				+50 HP to all teammates on your death
-talisman 					if k/d is below 1, gain 2500$
-biocoded_weapons 			Only you can use weapons you bought
-eternal_nade 				Once your grenade detonates, you get it back
+
+Notes:
+
+- Values are strings and parsed into whatever type the field declares.
+- Stale entries are cleaned up and new ones filled with defaults on startup — you never need to hand-edit the structure.
+- Global options at the root of the JSON:
+  - `DataBaseConnectionString` — MySQL connection string if you want shared storage.
+  - `StandaloneDatabase` — `true` uses a local SQLite file instead (default).
+
+Changes apply after restart, or instantly via `sp_reconfigure`.
+
+## Powers
+
+Rarity affects nothing mechanically yet beyond shop coloring; prices are used by shop mode.
+
+### Common
+
+| Power | Price | Description |
+|---|---|---|
+| bonus_health | 2000 | +150 HP at round start |
+| instant_defuse (CT only) | 2500 | Defuse bombs instantly, no kit needed |
+| instant_plant (T only) | 2500 | Plant bombs with no delay |
+| charge_jump | 2500 | Crouch-jump to leap forward |
+| explosion_upon_death | 2500 | Explode on death: 125 dmg in 500u radius |
+| healing_zeus | 2500 | Zeus zaps set teammates' health to 75 |
+| super_jump | 2500 | Look up + jump for double height |
+| door_dash | 2500 | $100 per 2s standing still after respawning |
+| biocoded_weapons | 2500 | Only you can use weapons you bought |
+| speedy_fella | 3000 | Increased walking speed |
+| buildup | 3000 | +16 armor per thrown utility (cap 100) |
+| social_security | 3500 | Round-end payout if your K/D is below 0.9 |
+| super_speed | 3500 | Increased movement speed |
+
+### Uncommon
+
+| Power | Price | Description |
+|---|---|---|
+| bounty_hunter | 4500 | +$300 per kill, -$300 if you end the round with none |
+| drop_reload | 4500 | Dropping your empty weapon fully reloads the second one |
+| fake_passport | 4500 | Appear as the enemy team on radar/scoreboard-ish checks |
+| golden_bullet | 4000 | Kill reward when using your last bullet |
+| instant_nades | 3500 | Grenade/flash fuse reduced 4x |
+| regeneration | 5000 | Regenerate 10 HP/s while below 75 |
+| bitcoin_miner | 5000 | Random money ticks |
+| damage_loss | 5000 | 50% chance to ignore incoming damage |
+| poisoned_smoke | 5000 | Your smoke deals 2 dmg/s inside |
+| infinite_ammo | 6500 | Endless magazine ammo (zeus included) |
+| bullet_drain | 6500 | 50% chance to drain a bullet from enemies you hit |
+| eternal_nade | 6000 | Grenades return to you after detonating |
+| flash_of_disability | 6000 | Flashing enemies disables their powers briefly |
+| pacifism | 6000 | Invincible until you deal damage |
+| supply_closet | 6000 | Teammates in line of sight gain 2 armor/s (upgraded: helmets at full armor) |
+
+### Rare
+
+| Power | Price | Description |
+|---|---|---|
+| blood_fury | 7000 | Kills grant stacking damage/speed bonuses |
+| evil_aura | 9500 | Slowly harm nearby enemies through walls, can't kill |
+| headshot_immunity | 9000 | Headshots against you are cancelled |
+| homing_nade | 8000 | Your grenades gravitate toward visible enemies |
+| nuke_nades | 7000 | HE grenades, 10x more explosive |
+| radiation | 7000 | 1 dmg/s to enemies in sight, stops at 50 HP |
+| snowballing | 7500 | Kills grant HP and damage, stacks up to caps |
+| warp_peek | 7000 | Warp back to where you were shortly before being hit |
+
+### Legendary
+
+| Power | Price | Description |
+|---|---|---|
+| invisibility | 8000 | You are nearly invisible |
+| rebirth | 8000 | Respawn at your last death location |
+| vampirism | 8000 | Heal 20% of damage dealt |
+| wallhacks | 8500 | See all players glowing through walls |
+
+### Disabled / internal
+
+Not obtainable in random/shop modes: `banana`, `bonus_armor`, `bot_disguise`, `bot_guesser`, `damage_bonus`, `dormant_power` (internal utility), plus unfinished experiments in `src/powers/disabled/`.
+
+## Leveling
+
+Powers with `SupportsLeveling` (currently `supply_closet`) gain XP as they trigger. Levels scale their effect (see each power) and unlock upgrades. Progression is stored per player in the configured database. Inspect with `sp_pstats`, override with `sp_setlevel`.
+
+## Known caveats
+
+- **`charge_jump` and `super_jump`** require `sv_legacy_jump 1` — CS2 does not produce jump events otherwise.
+- The config is regenerated/merged on first launch after adding or renaming powers.
+- The plugin must be built inside a real CS2 install so the CSSharp API DLL can be referenced (see below).
+
+## Building from source
+
+Requirements: .NET SDK (net10.0), make + bash (msys2 on Windows works fine).
+
+Clone/place the repo inside `game/csgo/addons/counterstrikesharp/plugins/super_powers_plugin/` so that `../../api/CounterStrikeSharp.API.dll` resolves, then:
+
+```bash
+make                 # build + copy binaries next to the sources
+make release_full    # package a release zip
 ```
-some powers ar blacklisted for certain teams or disabled completely by default
 
-## commands
+`watch.sh` rebuilds whenever `src/` changes.
 
-copied from `sp_help` output
-```
-Availiable commands:
-  sp_help                                                - should help in most cases
-  sp_add <player> <power> (now)                          - adds power to player
-  sp_add_team [t,ct] <power> (now)                       - adds power to all players of team
-  sp_remove <player> <power> (now)                       - removes power from player
-  sp_remove_team [t,ct]  <power> (now)                   - removes power from all players of team
-  sp_list <player>                                       - lists availiable powers
-  sp_mode [normal, random]                               - sets a special gamemode
-flag 'now' triggers the power immediaty
-Advanced commands:
-  sp_status                                              - prints status of all powers and its users
-  sp_inspect <power>                                     - prints info about power and its parameters
-  sp_reconfigure <power> <power> [key1] [value1] ...     - reconfigures power
-Special:
-  sp_signal / signal / s <any input>                     - pass a signal of arbitrary data to the plugin system
-```
+## Contributing a power
 
-you can also use flag `force` instead of `now` to set the power regardless of team requirements or if power is disabled, but i never said anything like that ok?
+1. Create `src/powers/YourPower.cs` extending `BasePower`.
+2. Set `Triggers` to the game events you care about, override `Execute(GameEvent)` and/or `Update()` (per tick — keep it light).
+3. Add `cfg_`-prefixed public fields for anything servers should be able to tune.
+4. Register it in the constructor list in `src/models/controller.cs`.
+5. Override `GetDescriptionColored()` — this is what players see in chat/shop.
 
-# config
-
-configuration is generated reflectivly from powers private fields, pretti cool i think
-
-# buildink
-
-don mind my makefile here i use it with my msys2 developend enviorent
-
-make sure to have dotnet installed and compile it inside of a plugin folder in cs2 on either linux or windows platforms so dotnet finds de dll needed for linking and stuff
+See any file in `src/powers/` for examples; `Radiation.cs` shows ray tracing, `BountyHunter.cs` shows multi-event state tracking.
