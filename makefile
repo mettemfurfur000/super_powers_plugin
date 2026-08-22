@@ -1,5 +1,5 @@
 cur = ${shell pwd | awk -F'/' '{print $$NF}'}
-files = bin/Debug/net8.0/${cur}.*
+files = bin/Debug/net10.0/${cur}.*
 version = ${shell grep Version src/main.cs | awk -F'=>' '{print $$2}' | tr -d '\ \";'}
 
 mysqldllpath = ${shell grep -r mysqlconnector obj/project.nuget.cache | tr -d ', ' | sed -e 's/mysqlconnector.2.5.0.nupkg.sha512/lib\\net8.0\\MySqlConnector.dll/g'}
@@ -13,6 +13,8 @@ all:
 	dotnet build
 	cp ${files} .
 	if grep -q MySqlConnector super_powers_plugin.csproj; then cp ${mysqldllpath} . ; fi
+	if [ -f bin/Debug/net10.0/runtimes/win-x64/native/e_sqlite3.dll ]; then cp bin/Debug/net10.0/runtimes/win-x64/native/e_sqlite3.dll . ; fi
+	if [ -f bin/Debug/net10.0/Microsoft.Data.Sqlite.dll ]; then cp bin/Debug/net10.0/Microsoft.Data.Sqlite.dll bin/Debug/net10.0/SQLitePCLRaw.core.dll bin/Debug/net10.0/SQLitePCLRaw.provider.e_sqlite3.dll bin/Debug/net10.0/SQLitePCLRaw.batteries_v2.dll . ; fi
 
 .PHONY: release_full
 release_full:

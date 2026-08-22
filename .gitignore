@@ -8,3 +8,5 @@ addons/*
 *.deps.json
 *.sln
 boing/*
+*.so
+*.dylib
