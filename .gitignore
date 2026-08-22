@@ -7,6 +7,5 @@ addons/*
 *.txt
 *.deps.json
 *.sln
-boing/*
 *.so
-*.dylib
+boing/*

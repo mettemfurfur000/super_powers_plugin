@@ -9,5 +9,7 @@ public class SuperPowerConfig : IBasePluginConfig
     public Dictionary<string, Dictionary<string, string>> args { get; set; } = SuperPowerController.GenerateDefaultConfig();
     public int Version { get; set; } = 0x0ff - 0x0b;
     // replace with your own connection string
-    public string DataBaseConnectionString { get; set; } = "Server=localhost;User=root;Password=dwKWAdX8k6iHWg==;Database=cs2sp"; 
+    public string DataBaseConnectionString { get; set; } = "Server=localhost;User=root;Password=dwKWAdX8k6iHWg==;Database=cs2sp";
+    // set to true to use a local SQLite file instead of MySQL (for testing)
+    public bool StandaloneDatabase { get; set; } = false;
 }

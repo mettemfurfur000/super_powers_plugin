@@ -1,6 +1,7 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Utils;
+using SuperPowersPlugin.Utils;
 using super_powers_plugin.src;
 
 // TODO:
@@ -31,6 +32,79 @@ public class BasePower : ShopPower
     // return null if player is not affected by any check transmit thingies
     public virtual List<CBaseModelEntity>? GetHiddenEntities(CCSPlayerController player) { return null; }
     public bool checkTransmitListenerEnabled = false;    // but only if enabled
+
+    // Leveling system — per-player progression
+    public Dictionary<ulong, PlayerPowerProgression> PlayerProgression = [];
+    public virtual bool SupportsLeveling => false;
+    public int cfg_xpPerTrigger = 1;
+    public int cfg_levelUpBase = 100;
+    public float cfg_levelUpMultiplier = 1.5f;
+    public int cfg_maxLevel = 10;
+
+    public void GrantXP(CCSPlayerController player, int amount)
+    {
+        if (!SupportsLeveling || player == null || !player.IsValid)
+            return;
+
+        var steamId = player.SteamID;
+        if (!PlayerProgression.TryGetValue(steamId, out var prog))
+            PlayerProgression[steamId] = prog = new PlayerPowerProgression();
+
+        prog.XP += amount;
+
+        int required = (int)(cfg_levelUpBase * Math.Pow(cfg_levelUpMultiplier, prog.Level));
+        while (prog.XP >= required && prog.Level < cfg_maxLevel)
+        {
+            prog.XP -= required;
+            prog.Level++;
+            OnLevelUp(player, prog.Level);
+            required = (int)(cfg_levelUpBase * Math.Pow(cfg_levelUpMultiplier, prog.Level));
+        }
+
+        SaveProgression(player);
+    }
+
+    public int GetLevel(CCSPlayerController player)
+        => PlayerProgression.TryGetValue(player.SteamID, out var p) ? p.Level : 0;
+
+    public virtual float GetScaledValue(CCSPlayerController player, float baseValue, string fieldKey)
+    {
+        if (!SupportsLeveling || !PlayerProgression.TryGetValue(player.SteamID, out var prog))
+            return baseValue;
+        return baseValue * (1.0f + prog.Level * 0.1f);
+    }
+
+    public int GetScaledInt(CCSPlayerController player, int baseValue, string fieldKey)
+        => (int)GetScaledValue(player, (float)baseValue, fieldKey);
+
+    public virtual bool GetScaledBool(CCSPlayerController player, bool baseValue, string fieldKey)
+        => baseValue;
+
+    public virtual void OnLevelUp(CCSPlayerController player, int newLevel) { }
+
+    public void SaveProgression(CCSPlayerController player)
+    {
+        if (!PlayerProgression.TryGetValue(player.SteamID, out var prog))
+            return;
+
+        var data = CustomStorage.GetOrCreatePlayerData(player);
+        var name = StringHelpers.GetPowerName(this);
+
+        data.SetAttribute($"{name}_xp", prog.XP);
+        data.SetAttribute($"{name}_level", prog.Level);
+    }
+
+    public void LoadProgression(CCSPlayerController player)
+    {
+        var data = CustomStorage.GetOrCreatePlayerData(player);
+        var name = StringHelpers.GetPowerName(this);
+
+        var xp = data.GetAttribute<int>($"{name}_xp");
+        var level = data.GetAttribute<int>($"{name}_level");
+
+        if (level > 0 || xp > 0)
+            PlayerProgression[player.SteamID] = new PlayerPowerProgression { XP = xp, Level = level };
+    }
 
     private bool enabled = true;                                        // Disabled powers wont show up anywhere
 

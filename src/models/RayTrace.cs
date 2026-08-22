@@ -111,7 +111,7 @@ namespace RayTrace
 
 	public static class CRayTrace
 	{
-		private static nint g_pRayTraceHandle = nint.Zero;
+		private static nint? g_pRayTraceHandle = nint.Zero;
 		private static bool g_bRayTraceLoaded = false;
 
 		private static Func<nint, nint, nint, nint, nint, nint, bool>? _traceShape;
@@ -120,7 +120,7 @@ namespace RayTrace
 
 		public static void Init()
 		{
-			g_pRayTraceHandle = (nint)Utilities.MetaFactory("CRayTraceInterface001")!;
+			g_pRayTraceHandle = (nint)Utilities.MetaFactory("CRayTraceInterface002")!;
 
 			if (g_pRayTraceHandle == nint.Zero)
 				throw new Exception("Failed to get Ray-Trace interface handle. Is Ray-Trace MetaMod module loaded?");
@@ -142,9 +142,9 @@ namespace RayTrace
 				traceHullShapeIndex = 3;
 			}
 
-			_traceShape = VirtualFunction.Create<nint, nint, nint, nint, nint, nint, bool>(g_pRayTraceHandle, traceShapeIndex);
-			_traceEndShape = VirtualFunction.Create<nint, nint, nint, nint, nint, nint, bool>(g_pRayTraceHandle, traceEndShapeIndex);
-			_traceHullShape = VirtualFunction.Create<nint, nint, nint, nint, nint, nint, nint, nint, bool>(g_pRayTraceHandle, traceHullShapeIndex);
+			_traceShape = VirtualFunction.Create<nint, nint, nint, nint, nint, nint, bool>((nint)g_pRayTraceHandle!, traceShapeIndex);
+			_traceEndShape = VirtualFunction.Create<nint, nint, nint, nint, nint, nint, bool>((nint)g_pRayTraceHandle!, traceEndShapeIndex);
+			_traceHullShape = VirtualFunction.Create<nint, nint, nint, nint, nint, nint, nint, nint, bool>((nint)g_pRayTraceHandle!, traceHullShapeIndex);
 		}
 
 		public static unsafe bool TraceShape(Vector origin, QAngle angles, CBaseEntity? ignoreEntity, TraceOptions options, out TraceResult result)
@@ -157,7 +157,7 @@ namespace RayTrace
 			TraceResult resultBuffer = default;
 			TraceOptions optionsBuffer = options;
 
-			bool success = _traceShape!(g_pRayTraceHandle,
+			bool success = _traceShape!((nint)g_pRayTraceHandle!,
 										origin.Handle,
 										angles.Handle,
 										ignoreEntity?.Handle ?? nint.Zero,
@@ -178,7 +178,7 @@ namespace RayTrace
 			TraceResult resultBuffer = default;
 			TraceOptions optionsBuffer = options;
 
-			bool success = _traceEndShape!(g_pRayTraceHandle,
+			bool success = _traceEndShape!((nint)g_pRayTraceHandle!,
 										   origin.Handle,
 										   endOrigin.Handle,
 										   ignoreEntity?.Handle ?? nint.Zero,
@@ -199,7 +199,7 @@ namespace RayTrace
 			TraceResult resultBuffer = default;
 			TraceOptions optionsBuffer = options;
 
-			bool success = _traceHullShape!(g_pRayTraceHandle,
+			bool success = _traceHullShape!((nint)g_pRayTraceHandle!,
 										   vecStart.Handle,
 										   vecEnd.Handle,
 										   hullMins.Handle,

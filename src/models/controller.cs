@@ -185,9 +185,36 @@ public static class SuperPowerController
 
     public static void FeedTheConfig(SuperPowerConfig cfg)
     {
+        // Merge existing config with fresh defaults to auto-handle stale entries
+        // when powers are added/removed/renamed between versions
+        var defaults = GenerateDefaultConfig();
+
+        foreach (var (powerName, defaultFields) in defaults)
+        {
+            if (cfg.args.TryGetValue(powerName, out var existingFields))
+            {
+                // Keep user's values for fields that still exist, add new defaults
+                foreach (var (key, value) in defaultFields)
+                    if (!existingFields.ContainsKey(key))
+                        existingFields[key] = value;
+            }
+            else
+            {
+                // New power not in config yet — insert default entry
+                cfg.args[powerName] = new Dictionary<string, string>(defaultFields);
+            }
+        }
+
+        // Remove stale power entries that no longer exist in the code
+        var stale = cfg.args.Keys.Where(k => !defaults.ContainsKey(k)).ToList();
+        foreach (var key in stale)
+            cfg.args.Remove(key);
+
         foreach (var power in Powers)
-            try { power.ParseCfg(cfg.args[StringHelpers.GetPowerName(power)]); }
-            catch { }
+        {
+            if (cfg.args.TryGetValue(StringHelpers.GetPowerName(power), out var powerCfg))
+                power.ParseCfg(powerCfg);
+        }
     }
 
     public static void Reconfigure(Dictionary<string, string> configuration, string power_name_pattern)
@@ -201,6 +228,25 @@ public static class SuperPowerController
     {
         foreach (var power in Powers)
             power.CleanInvalidUsers();
+    }
+
+    public static void LoadAllProgressions(CCSPlayerController player)
+    {
+        foreach (var power in Powers)
+            power.LoadProgression(player);
+    }
+
+    public static void SaveAllProgressions(CCSPlayerController player)
+    {
+        foreach (var power in Powers)
+            power.SaveProgression(player);
+    }
+
+    public static void LoadAllConnectedProgressions()
+    {
+        var players = Utilities.GetPlayers();
+        foreach (var player in players)
+            LoadAllProgressions(player);
     }
 
     public static HookResult ExecutePower(GameEvent gameEvent)
@@ -579,7 +625,7 @@ public static class SuperPowerController
 
                 var property_value = property.GetValue(instance);
 
-                if (property_value != null)
+                if (property_value != null && !dest.ContainsKey(property_name))
                     dest.Add(property_name, property_value.ToString() ?? "null");
             }
 
