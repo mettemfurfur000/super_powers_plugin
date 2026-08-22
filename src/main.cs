@@ -19,18 +19,13 @@ namespace super_powers_plugin.src;
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 {
     public override string ModuleName => "super_powers_plugin";
-    public override string ModuleVersion => "0.3.2";
+    public override string ModuleVersion => "0.4.0";
     public override string ModuleAuthor => "tem";
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
     public List<BasePower> checkTransmitTargets = [];
     public static PluginCapability<ISuperPowersController> Capability_SuperPowersController { get; } = new("tem_sp:controllerapi");
     public override void Load(bool hotReload)
     {
-        if (hotReload)
-        {
-            RayTrace.CRayTrace.Init();
-        }
-
         TemUtils.__plugin = this;
 
         // Pre-load native SQLite library so it's in the process-wide load address space
@@ -111,6 +106,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         RegisterEventHandler<EventPlayerDeath>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBulletImpact>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventItemEquip>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventPlayerSpawn>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventPlayerBlind>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventSmokegrenadeDetonate>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventSmokegrenadeExpired>((@event, info) => SuperPowerController.ExecutePower(@event));
@@ -175,8 +171,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             // Server globals are ready here — safe to call Utilities.GetPlayers()
             SuperPowerController.LoadAllConnectedProgressions();
             // SuperPowerController.CleanInvalidUsers();
-            RayTrace.CRayTrace.Init();
-            Server.PrintToConsole("Server spawned, RayTrace initialized");
+            Server.PrintToConsole("Server spawned");
             return HookResult.Continue;
         });
 
@@ -342,6 +337,133 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         // IntPtr ret = CBaseEntity_SetSizeFunc.Invoke(caller.PlayerPawn.Value.Handle, vector_min_test.Handle, vector_max_test.Handle);
 
         Server.PrintToChatAll("ret ptr = " + ret);
+    }
+
+    [ConsoleCommand("sp_trace", "traces a ray from your eyes along your view, prints where it lands")]
+    [CommandHelper(minArgs: 0, usage: "[contents flags (comma separated)] [exclude flags] [self]", whoCanExecute: CommandUsage.CLIENT_ONLY)]
+    // [RequiresPermissions("@css/root")]
+    public void OnTraceTest(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        if (caller == null || !caller.IsValid || caller.PlayerPawn.Value == null || !caller.PlayerPawn.Value.IsValid)
+            return;
+
+        var pawn = caller.PlayerPawn.Value;
+        var eyePos = pawn.GetEyePosition();
+        if (eyePos == null)
+            return;
+
+        var angles = pawn.V_angle;
+
+        commandInfo.ReplyToCommand($"eye = ({eyePos.X:F1}, {eyePos.Y:F1}, {eyePos.Z:F1}), view = ({angles.X:F1}, {angles.Y:F1}, {angles.Z:F1})");
+
+        bool ignoreSelf = true; // 'self' as an arg disables this, so the ray is allowed to hit you
+        Contents customMask = 0;
+        Contents customExclude = 0;
+        bool hasCustomMask = false;
+        bool hasCustomExclude = false;
+
+        for (int i = 1; i < commandInfo.ArgCount; i++)
+        {
+            var arg = commandInfo.GetArg(i);
+
+            if (arg.Equals("self", StringComparison.OrdinalIgnoreCase))
+            {
+                ignoreSelf = false;
+                continue;
+            }
+
+            bool isExcludeList = arg.StartsWith("-");
+            foreach (var rawName in arg.TrimStart('-').Split(','))
+            {
+                if (!Enum.TryParse<Contents>(rawName.Trim(), true, out var flag))
+                {
+                    commandInfo.ReplyToCommand($"unknown contents flag '{rawName}', valid: {string.Join(", ", Enum.GetNames<Contents>())}");
+                    continue;
+                }
+
+                if (isExcludeList)
+                {
+                    customExclude |= flag;
+                    hasCustomExclude = true;
+                }
+                else
+                {
+                    customMask |= flag;
+                    hasCustomMask = true;
+                }
+            }
+        }
+
+        void RunTrace(string label, Contents mask, Contents exclude, CBaseEntity? ignoreEntity)
+        {
+            var options = new TraceOptions
+            {
+                InteractsAs = Contents.Solid,
+                InteractsWith = mask,
+                InteractsExclude = exclude
+            };
+
+            var result = Trace.TraceShape(eyePos, angles, ignoreEntity, options);
+
+            string hitInfo = result.DidHit()
+                ? $"HIT frac={result.Fraction:F3} end=({result.EndPos.X:F0}, {result.EndPos.Y:F0}, {result.EndPos.Z:F0}) ent={DescribeEntity(result.HitEntity())}"
+                : "NO HIT";
+
+            commandInfo.ReplyToCommand($"[{label}] {hitInfo}");
+        }
+
+        void RunTraceEnd(string label, Contents mask, Contents exclude, CBaseEntity? ignoreEntity)
+        {
+            // same ray as RunTrace but through the segment based overload the powers use
+            double pitch = angles.X * Math.PI / 180.0;
+            double yaw = angles.Y * Math.PI / 180.0;
+            var endPos = new Vector(
+                eyePos.X + (float)(Math.Cos(pitch) * Math.Cos(yaw)) * 8192f,
+                eyePos.Y + (float)(Math.Cos(pitch) * Math.Sin(yaw)) * 8192f,
+                eyePos.Z + (float)(-Math.Sin(pitch)) * 8192f);
+
+            var options = new TraceOptions
+            {
+                InteractsAs = Contents.Solid,
+                InteractsWith = mask,
+                InteractsExclude = exclude
+            };
+
+            var result = Trace.TraceEndShape(eyePos, endPos, ignoreEntity, options);
+
+            string hitInfo = result.DidHit()
+                ? $"HIT frac={result.Fraction:F3} end=({result.EndPos.X:F0}, {result.EndPos.Y:F0}, {result.EndPos.Z:F0}) ent={DescribeEntity(result.HitEntity())}"
+                : "NO HIT";
+
+            commandInfo.ReplyToCommand($"[{label}] {hitInfo}");
+        }
+
+        static string DescribeEntity(CEntityInstance? entity)
+        {
+            if (entity == null || !entity.IsValid)
+                return "<none>";
+            try { return $"{entity.DesignerName}({entity.Index})"; }
+            catch { return "<invalid>"; }
+        }
+
+        if (hasCustomMask || hasCustomExclude)
+        {
+            RunTrace("custom", customMask, customExclude, ignoreSelf ? pawn : null);
+            RunTraceEnd("custom end-shape", customMask, customExclude, ignoreSelf ? pawn : null);
+            return;
+        }
+
+        // no args - sweep through common masks to see which ones behave
+        RunTrace("solid", Contents.Solid, 0, ignoreSelf ? pawn : null);
+        RunTrace("solid|window", Contents.Solid | Contents.Window, 0, ignoreSelf ? pawn : null);
+        RunTrace("solid|window|playerclip", Contents.Solid | Contents.Window | Contents.PlayerClip, 0, ignoreSelf ? pawn : null);
+        RunTrace("+players", Contents.Solid | Contents.Window | Contents.PlayerClip | Contents.Player, 0, ignoreSelf ? pawn : null);
+        RunTrace("everything", (Contents)ulong.MaxValue, 0, ignoreSelf ? pawn : null);
+        RunTrace("everything noself-ignore", (Contents)ulong.MaxValue, 0, null);
+
+        // segment based overloads - this is what radiation/supply closet actually call
+        RunTraceEnd("end-shape solid|window", Contents.Solid | Contents.Window, 0, ignoreSelf ? pawn : null);
+        RunTraceEnd("end-shape everything", (Contents)ulong.MaxValue, 0, ignoreSelf ? pawn : null);
     }
 
     [ConsoleCommand("sp_db_set", "todo")]

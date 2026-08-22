@@ -3,7 +3,8 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Utils;
-using RayTrace;
+using NativeTrace = CounterStrikeSharp.API.Modules.Utils.Trace;
+using NativeTraceOptions = CounterStrikeSharp.API.Modules.Utils.TraceOptions;
 using super_powers_plugin.src;
 
 public class HomingNade : BasePower
@@ -81,26 +82,27 @@ public class HomingNade : BasePower
                     continue;
 
                 QAngle directionAngle = eyePos.AngleTo(grenade.AbsOrigin!);
-                var traceOptions = new RayTrace.TraceOptions()
+                var traceOptions = new NativeTraceOptions
                 {
-                    InteractsAs = (ulong)InteractionLayers.MASK_SHOT_FULL, // trace against the world and players, but not other grenades
-                    InteractsExclude = (ulong)InteractionLayers.Player
+                    InteractsAs = Contents.Solid,
+                    InteractsWith = Contents.Solid | Contents.Window | Contents.PlayerClip | Contents.PhysicsProp,
+                    InteractsExclude = Contents.Player
                 };
 
-                if (CRayTrace.TraceShape(eyePos, directionAngle, null, traceOptions, out var traceResult) == false)
+                var traceResult = NativeTrace.TraceShape(eyePos, directionAngle, null, traceOptions);
+
+                if (!traceResult.DidHit())
                     continue;
 
-                if (!traceResult.DidHit)
+                // NOTE: HitEntity() returns a plain CEntityInstance wrapper,
+                // do NOT pattern match it against CBaseEntity - the CLR type never matches
+                var hitEntity = traceResult.HitEntity();
+                if (hitEntity == null || !hitEntity.IsValid)
                     continue;
 
-                if (traceResult.HitEntity == 0)
-                    continue;
-
-                var entity = new CBaseEntity(traceResult.HitEntity);
-
-                if (entity.DesignerName == "worldent")
+                if (hitEntity.DesignerName == "worldent")
                 {
-                    // Server.PrintToChatAll("TraceShape hit the world");
+                    // trace hit the world
                     continue;
                 }
 

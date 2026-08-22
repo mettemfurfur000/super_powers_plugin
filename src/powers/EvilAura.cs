@@ -9,7 +9,7 @@ public class EvilAura : BasePower
     public EvilAura()
     {
         Triggers = [typeof(EventRoundStart)];
-        Price = 9000;
+        Price = 9500;
         Rarity = "Rare";
     }
 

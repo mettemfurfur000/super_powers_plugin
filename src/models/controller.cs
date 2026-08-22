@@ -75,6 +75,13 @@ public static class SuperPowerController
         Powers.Add(new Wallhacks());
         Powers.Add(new SpeedyFella());
         Powers.Add(new HomingNade());
+        Powers.Add(new DropReload());
+        Powers.Add(new Radiation());
+        Powers.Add(new BulletDrain());
+        Powers.Add(new Buildup());
+        Powers.Add(new SupplyCloset());
+        Powers.Add(new BountyHunter());
+        Powers.Add(new DoorDash());
 
         // cant implement rn
         // Powers.Add(new ConcreteSmoke()); // voxel data is so mystical...

@@ -1,0 +1,7 @@
+drop reload - dropping your empty weapon fully reloads your second weapon
+radiation - deals 1 damage every second to all enemies in sight, capped at 50 health
+bullet drain - 50% change to remove a bullet from the enemy's magazine when you hit them
+buildup - gain 16 armor for every thrown utility
+supply closet - give 2 armor per second for any teammates in line of sight, capped at 100. ( Upgraded: When 100 is reached, give a helmet )
+bounty hunter - gain extra $300 for every kill, lose $300 if you had no kills during the round
+doordash - for every 2 seconds that you stand AFK after respawning, gain $100

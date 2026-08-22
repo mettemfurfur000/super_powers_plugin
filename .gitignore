@@ -4,7 +4,6 @@ addons/*
 *.zip
 *.dll
 *.pdb
-*.txt
 *.deps.json
 *.sln
 *.so
