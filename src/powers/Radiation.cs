@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 
 using super_powers_plugin.src;
+using super_powers_plugin.src.hud;
 
 public class Radiation : BasePower
 {
@@ -92,4 +93,18 @@ public class Radiation : BasePower
     public float cfg_range = 3072f;
     public int cfg_periodTicks = 64;
     public float cfg_traceMargin = 16f;
+
+    public override HudState GetHudState(CCSPlayerController player)
+    {
+        return new HudState
+        {
+            Name = Name.ToUpperInvariant(),
+            Bar = "",
+            Info = $"{cfg_damage}dmg/s | range {cfg_range:F0} | cap {cfg_healthCap}hp",
+            ShowButton = false,
+            ActionText = "",
+            Rarity = Rarity,
+            IsActive = true
+        };
+    }
 }

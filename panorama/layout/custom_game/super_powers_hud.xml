@@ -1,0 +1,107 @@
+<root>
+	<styles>
+		<include src="s2r://panorama/styles/custom_game/hud_shared.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/super_powers_hud.vcss_c" />
+	</styles>
+
+	<!--
+		super_powers_hud - terminal-style power display
+
+		Implements 8 power slots driven by:
+		  sp_title / sp_tag / sp_hint    {s:}   - header/footer text
+		  power{n}                        hidden - unused slots collapse
+		  power{n}_name                   {s:}   - power name with index
+		  power{n}_bar                    {s:}   - text progress bar
+		  power{n}_info                   {s:}   - status/detail text
+		  power{n}_btn                    click  - action button
+		  power{n}_action                 {s:}   - button label
+	-->
+	<Panel class="hud-screen" hittest="false">
+		<Panel id="PanoramaRoot" class="hud-root hud-card sp-root hidden">
+
+			<Panel class="hud-head">
+				<Label class="hud-title" text="{s:sp_title}" />
+				<Label class="hud-tag" text="{s:sp_tag}" />
+			</Panel>
+
+			<Panel class="sp-powers">
+				<Panel id="power0" class="sp-power hidden">
+					<Label class="sp-power-name" text="{s:power0_name}" />
+					<Label class="sp-power-bar" text="{s:power0_bar}" />
+					<Label class="sp-power-info" text="{s:power0_info}" />
+					<Button id="power0_btn" class="sp-power-btn hidden">
+						<Label class="sp-power-btn-lbl" text="{s:power0_action}" />
+					</Button>
+				</Panel>
+
+				<Panel id="power1" class="sp-power hidden">
+					<Label class="sp-power-name" text="{s:power1_name}" />
+					<Label class="sp-power-bar" text="{s:power1_bar}" />
+					<Label class="sp-power-info" text="{s:power1_info}" />
+					<Button id="power1_btn" class="sp-power-btn hidden">
+						<Label class="sp-power-btn-lbl" text="{s:power1_action}" />
+					</Button>
+				</Panel>
+
+				<Panel id="power2" class="sp-power hidden">
+					<Label class="sp-power-name" text="{s:power2_name}" />
+					<Label class="sp-power-bar" text="{s:power2_bar}" />
+					<Label class="sp-power-info" text="{s:power2_info}" />
+					<Button id="power2_btn" class="sp-power-btn hidden">
+						<Label class="sp-power-btn-lbl" text="{s:power2_action}" />
+					</Button>
+				</Panel>
+
+				<Panel id="power3" class="sp-power hidden">
+					<Label class="sp-power-name" text="{s:power3_name}" />
+					<Label class="sp-power-bar" text="{s:power3_bar}" />
+					<Label class="sp-power-info" text="{s:power3_info}" />
+					<Button id="power3_btn" class="sp-power-btn hidden">
+						<Label class="sp-power-btn-lbl" text="{s:power3_action}" />
+					</Button>
+				</Panel>
+
+				<Panel id="power4" class="sp-power hidden">
+					<Label class="sp-power-name" text="{s:power4_name}" />
+					<Label class="sp-power-bar" text="{s:power4_bar}" />
+					<Label class="sp-power-info" text="{s:power4_info}" />
+					<Button id="power4_btn" class="sp-power-btn hidden">
+						<Label class="sp-power-btn-lbl" text="{s:power4_action}" />
+					</Button>
+				</Panel>
+
+				<Panel id="power5" class="sp-power hidden">
+					<Label class="sp-power-name" text="{s:power5_name}" />
+					<Label class="sp-power-bar" text="{s:power5_bar}" />
+					<Label class="sp-power-info" text="{s:power5_info}" />
+					<Button id="power5_btn" class="sp-power-btn hidden">
+						<Label class="sp-power-btn-lbl" text="{s:power5_action}" />
+					</Button>
+				</Panel>
+
+				<Panel id="power6" class="sp-power hidden">
+					<Label class="sp-power-name" text="{s:power6_name}" />
+					<Label class="sp-power-bar" text="{s:power6_bar}" />
+					<Label class="sp-power-info" text="{s:power6_info}" />
+					<Button id="power6_btn" class="sp-power-btn hidden">
+						<Label class="sp-power-btn-lbl" text="{s:power6_action}" />
+					</Button>
+				</Panel>
+
+				<Panel id="power7" class="sp-power hidden">
+					<Label class="sp-power-name" text="{s:power7_name}" />
+					<Label class="sp-power-bar" text="{s:power7_bar}" />
+					<Label class="sp-power-info" text="{s:power7_info}" />
+					<Button id="power7_btn" class="sp-power-btn hidden">
+						<Label class="sp-power-btn-lbl" text="{s:power7_action}" />
+					</Button>
+				</Panel>
+			</Panel>
+
+			<Panel class="hud-foot">
+				<Label class="hud-hint" text="{s:sp_hint}" />
+			</Panel>
+
+		</Panel>
+	</Panel>
+</root>

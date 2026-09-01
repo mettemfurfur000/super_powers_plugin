@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Utils;
 using SuperPowersPlugin.Utils;
 using super_powers_plugin.src;
+using super_powers_plugin.src.hud;
 
 // TODO:
 // - add dependency list thing for powers
@@ -172,4 +173,20 @@ public class BasePower : ShopPower
 
     public virtual void RegisterHooks() { }     // Custom hooks go here, but i dont use them much
     public virtual void UnRegisterHooks() { }   //
+
+    public virtual HudState GetHudState(CCSPlayerController player)
+    {
+        return new HudState
+        {
+            Name = Name.ToUpperInvariant(),
+            Bar = "",
+            Info = GetDescriptionPlain(),
+            ShowButton = false,
+            ActionText = "",
+            Rarity = Rarity,
+            IsActive = IsUser(player)
+        };
+    }
+
+    public virtual void OnHudButton(CCSPlayerController player) { }
 }

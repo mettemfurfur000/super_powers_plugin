@@ -15,6 +15,7 @@ using CounterStrikeSharp.API.Modules.Entities;
 using System.Data.Common;
 
 using super_powers_plugin.src;
+using super_powers_plugin.src.hud;
 using System.Net.Sockets;
 using CounterStrikeSharp.API.Modules.Utils;
 
@@ -256,5 +257,39 @@ public class TheShopper : BasePower
     public int cfg_legendary_weight = 1;
 
     public Dictionary<CCSPlayerController, List<ShopOption>> activeShops = [];
+
+    public override HudState GetHudState(CCSPlayerController player)
+    {
+        bool hasShop = activeShops.ContainsKey(player);
+        int remaining = Math.Max(0, cfg_shop_open_seconds - (int)((Server.TickCount - shopStartedTick) / 64));
+
+        if (!hasShop)
+        {
+            return new HudState
+            {
+                Name = Name.ToUpperInvariant(),
+                Bar = "",
+                Info = "waiting for round start",
+                ShowButton = false,
+                ActionText = "",
+                Rarity = Rarity,
+                IsActive = true
+            };
+        }
+
+        var shop = activeShops[player];
+        int available = shop.Count(o => !o.bought);
+
+        return new HudState
+        {
+            Name = Name.ToUpperInvariant(),
+            Bar = $"{available} items available",
+            Info = $"use /b <1-{shop.Count}> to buy | closes in {remaining}s",
+            ShowButton = false,
+            ActionText = "",
+            Rarity = Rarity,
+            IsActive = true
+        };
+    }
 }
 

@@ -8,6 +8,7 @@ using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using super_powers_plugin.src;
+using super_powers_plugin.src.hud;
 
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.UserMessages;
@@ -500,4 +501,23 @@ public class Invisibility : BasePower
 
     public override string GetDescriptionColored() => $"Gain " + StringHelpers.Blue("invisibility") + ", when not making sounds";
     public double[] Levels = new double[65];
+
+    public override HudState GetHudState(CCSPlayerController player)
+    {
+        var idx = Users.IndexOf(player);
+        float level = idx >= 0 ? (float)Levels[idx] : 1.0f;
+        string bar = SuperPowerHudManager.BuildBar(level);
+        string info = level >= 0.9f ? "fully cloaked" : level >= 0.5f ? "partially visible" : "nearly visible";
+
+        return new HudState
+        {
+            Name = Name.ToUpperInvariant(),
+            Bar = bar,
+            Info = info,
+            ShowButton = false,
+            ActionText = "",
+            Rarity = Rarity,
+            IsActive = true
+        };
+    }
 }

@@ -12,7 +12,9 @@ using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
+using PanoramaManager;
 using SuperPowersPlugin.Utils;
+using super_powers_plugin.src.hud;
 
 namespace super_powers_plugin.src;
 
@@ -23,6 +25,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
     public override string ModuleAuthor => "tem";
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
     public List<BasePower> checkTransmitTargets = [];
+    public SuperPowerHudManager? HudManager { get; private set; }
     public static PluginCapability<ISuperPowersController> Capability_SuperPowersController { get; } = new("tem_sp:controllerapi");
     public override void Load(bool hotReload)
     {
@@ -119,6 +122,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
         {
+            HudManager?.Close(@event.Userid!);
             SuperPowerController.SaveAllProgressions(@event.Userid!);
             Server.PrintToConsole(SuperPowerController.RemovePowers(@event.Userid!.PlayerName, "*", CsTeam.None, true, true)); // FIX ME
             return HookResult.Continue;
@@ -137,6 +141,9 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             if (Server.TickCount % 32 == 0)
                 SuperPowerController.CleanInvalidUsers();
             SuperPowerController.Update();
+
+            if (Server.TickCount % 8 == 0)
+                HudManager?.UpdateAll();
         });
 
         checkTransmitTargets = SuperPowerController.GetCheckTransmitEnabled();
@@ -176,6 +183,18 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         });
 
         SuperPowerController.RegisterHooks();
+
+        try
+        {
+            HudManager = new SuperPowerHudManager();
+            HudManager.Init(this);
+            Console.WriteLine("[super_powers_plugin] HUD initialized");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[super_powers_plugin] HUD init failed: {ex.Message}");
+        }
+
         if (hotReload)
             SuperPowerController.LoadAllConnectedProgressions();
     }
@@ -192,6 +211,9 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         SuperPowerController.UnRegisterHooks();
 
         checkTransmitTargets.Clear();
+
+        HudManager?.Shutdown();
+        HudManager = null;
 
         CustomStorage.CloseDatabase();
 
@@ -689,6 +711,35 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
                 commandInfo.ReplyToCommand($"Set {StringHelpers.GetPowerNameReadable(power)} level to {prog.Level} for {player.PlayerName}");
             }
         }
+    }
+
+    [ConsoleCommand("sp_hud", "Toggle super powers HUD display")]
+    [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_ONLY)]
+    public void OnHudToggle(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        if (caller == null || !caller.IsValid)
+            return;
+
+        HudManager?.Toggle(caller);
+    }
+
+    [ConsoleCommand("sp_hud_debug", "Debug HUD entity state")]
+    [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_ONLY)]
+    public void OnHudDebug(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        if (caller == null || !caller.IsValid)
+            return;
+
+        commandInfo.ReplyToCommand($"[SP-HUD] HudManager={HudManager != null}");
+
+        var entities = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("custom_hud_layout");
+        int count = 0;
+        foreach (var ent in entities)
+        {
+            count++;
+            commandInfo.ReplyToCommand($"  Entity: index={ent.Index}, valid={ent.IsValid}, designer={ent.DesignerName}");
+        }
+        commandInfo.ReplyToCommand($"[SP-HUD] custom_hud_layout entities: {count}");
     }
 
     public void OnConfigParsed(SuperPowerConfig config)

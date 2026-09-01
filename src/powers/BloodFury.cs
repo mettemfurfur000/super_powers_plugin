@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 
 using super_powers_plugin.src;
+using super_powers_plugin.src.hud;
 
 public class BloodFury : BasePower
 {
@@ -140,5 +141,66 @@ public class BloodFury : BasePower
     public override string GetDescriptionColored() => "After " + StringHelpers.Red(cfg_KillsToRage) + (cfg_CountOnlyHeadshots ? " Headshots" : " Kills") + ", gain speed, extra damage, and " + StringHelpers.Blue("temporary invincibility");
     public List<CCSPlayerController> ActivatedUsers = [];
     public List<Tuple<CCSPlayerController, int>> InvicibilityTicks = [];
+
+    public override HudState GetHudState(CCSPlayerController player)
+    {
+        bool activated = ActivatedUsers.Contains(player);
+        var invTick = InvicibilityTicks.FirstOrDefault(t => t.Item1 == player);
+        bool invincible = invTick != null && invTick.Item2 >= Server.TickCount;
+
+        int kills = cfg_CountOnlyHeadshots
+            ? player.ActionTrackingServices!.NumRoundKillsHeadshots
+            : player.ActionTrackingServices!.NumRoundKills;
+        float progress = Math.Clamp((float)kills / cfg_KillsToRage, 0f, 1f);
+        string bar = activated ? "RAGE ACTIVE" : SuperPowerHudManager.BuildBar(progress);
+
+        string info;
+        bool showButton = false;
+        string actionText = "";
+
+        if (invincible)
+        {
+            float remaining = (invTick!.Item2 - Server.TickCount) / 64f;
+            info = $"invincible {remaining:F1}s";
+        }
+        else if (activated)
+        {
+            info = "rage active | speed + damage";
+        }
+        else
+        {
+            int needed = cfg_KillsToRage - kills;
+            info = $"need {needed} more {(cfg_CountOnlyHeadshots ? "headshot" : "kill")}{(needed != 1 ? "s" : "")}";
+            showButton = kills >= cfg_KillsToRage;
+            actionText = "RAGE";
+        }
+
+        return new HudState
+        {
+            Name = Name.ToUpperInvariant(),
+            Bar = bar,
+            Info = info,
+            ShowButton = showButton,
+            ActionText = actionText,
+            Rarity = Rarity,
+            IsActive = true
+        };
+    }
+
+    public override void OnHudButton(CCSPlayerController player)
+    {
+        if (ActivatedUsers.Contains(player))
+            return;
+        if (!IsEnoughKills(player))
+            return;
+
+        var pawn = player.PlayerPawn.Value;
+        if (pawn == null) return;
+
+        TemUtils.PowerApplySpeed(Users, cfg_SpeedModifier);
+        TemUtils.CreateParticle(pawn.AbsOrigin!, NeededResources[0], 2, "Breakable.MatGlass", player: player);
+        InvicibilityTicks.Add(Tuple.Create(player, (int)(Server.TickCount + (cfg_InvincibilitySeconds * 64))));
+        ActivatedUsers.Add(player);
+    }
 }
 

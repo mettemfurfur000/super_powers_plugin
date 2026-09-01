@@ -8,3 +8,6 @@ addons/*
 *.sln
 *.so
 boing/*
+panorama/**/*.vxml_c
+panorama/**/*.vcss_c
+references/

@@ -1,0 +1,136 @@
+/*
+    super_powers_hud - terminal/TUI aesthetic power display.
+
+    PANORAMA IS NOT THE WEB. No display, no flex, no calc(), no rgb().
+    box-shadow takes the colour first. background-size takes "contains".
+    Check any unfamiliar property against the reference before using it.
+*/
+
+/* root card - positioned top-right, terminal look */
+.sp-root {
+    width: 340px;
+    horizontal-align: right;
+    vertical-align: top;
+}
+
+.sp-root.show {
+    visibility: visible;
+}
+
+/* power list container */
+.sp-powers {
+    flow-children: down;
+    width: 100%;
+    padding: 6px 10px;
+}
+
+/* individual power slot */
+.sp-power {
+    width: 100%;
+    margin-bottom: 4px;
+    padding: 5px 8px;
+    border-left: 2px solid #4caf6d;
+    background-color: #ffffff08;
+}
+
+.sp-power.inactive {
+    border-left-color: #4b525a;
+    opacity: 0.4;
+}
+
+/* rarity accent colors - left border */
+.sp-power.rarity-common {
+    border-left-color: #9aa2ac;
+}
+
+.sp-power.rarity-uncommon {
+    border-left-color: #4caf6d;
+}
+
+.sp-power.rarity-rare {
+    border-left-color: #56a0dd;
+}
+
+.sp-power.rarity-legendary {
+    border-left-color: #f0a531;
+}
+
+/* power name - monospace, uppercase, with index prefix */
+.sp-power-name {
+    width: 100%;
+    font-family: Stratum2 Mono;
+    font-size: 12px;
+    font-weight: bold;
+    color: #4caf6d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    text-overflow: clip;
+}
+
+/* rarity text colors */
+.sp-power.rarity-common .sp-power-name {
+    color: #9aa2ac;
+}
+
+.sp-power.rarity-uncommon .sp-power-name {
+    color: #4caf6d;
+}
+
+.sp-power.rarity-rare .sp-power-name {
+    color: #56a0dd;
+}
+
+.sp-power.rarity-legendary .sp-power-name {
+    color: #f0a531;
+}
+
+/* progress bar text - monospace block characters */
+.sp-power-bar {
+    width: 100%;
+    font-family: Stratum2 Mono;
+    font-size: 11px;
+    color: #4caf6d;
+    margin-top: 2px;
+    white-space: nowrap;
+    text-overflow: clip;
+}
+
+/* status/info text */
+.sp-power-info {
+    width: 100%;
+    font-family: Stratum2 Mono;
+    font-size: 10px;
+    color: #6b737c;
+    margin-top: 1px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* action button */
+.sp-power-btn {
+    width: 70px;
+    height: 18px;
+    margin-top: 4px;
+    border: 1px solid #4caf6d66;
+    background-color: #4caf6d22;
+    transition-property: background-color;
+    transition-duration: 0.1s;
+    transition-timing-function: ease-in-out;
+}
+
+.sp-power-btn:hover {
+    background-color: #4caf6d44;
+    border-color: #4caf6d;
+}
+
+.sp-power-btn-lbl {
+    width: 100%;
+    font-family: Stratum2 Mono;
+    font-size: 9px;
+    color: #4caf6d;
+    text-align: center;
+    vertical-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}

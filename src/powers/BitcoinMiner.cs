@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Utils;
 using super_powers_plugin.src;
+using super_powers_plugin.src.hud;
 
 public class BitcoinMiner : BasePower
 {
@@ -35,6 +36,23 @@ public class BitcoinMiner : BasePower
 
 
     public override string GetDescriptionColored() => "Every" + StringHelpers.Green(cfg_periodSeconds) + ", gain $" + StringHelpers.Green(cfg_moneyBonusAmount) + " with a chance of " + StringHelpers.Blue(cfg_probabilityPercentage.ToString() + "%");
+
+    public override HudState GetHudState(CCSPlayerController player)
+    {
+        int ticksUntilPayout = cfg_periodSeconds * 64 - (Server.TickCount % (cfg_periodSeconds * 64));
+        float secondsUntil = ticksUntilPayout / 64f;
+
+        return new HudState
+        {
+            Name = Name.ToUpperInvariant(),
+            Bar = "",
+            Info = $"${cfg_moneyBonusAmount} | {cfg_probabilityPercentage}% chance | next in {secondsUntil:F0}s",
+            ShowButton = false,
+            ActionText = "",
+            Rarity = Rarity,
+            IsActive = true
+        };
+    }
 }
 
 

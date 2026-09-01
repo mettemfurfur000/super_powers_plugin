@@ -6,6 +6,7 @@ using CounterStrikeSharp.API.Modules.UserMessages;
 using CounterStrikeSharp.API.Modules.Utils;
 
 using super_powers_plugin.src;
+using super_powers_plugin.src.hud;
 
 public class SpeedyFella : BasePower
 {
@@ -63,4 +64,22 @@ public class SpeedyFella : BasePower
     public override string GetDescriptionColored() => $"";
     public int cfg_minimalSpeed = 250;
     public float cfg_factor = 1.01f;
+
+    public override HudState GetHudState(CCSPlayerController player)
+    {
+        var pawn = player.PlayerPawn.Value;
+        float velocity = pawn?.AbsVelocity.Length() ?? 0;
+        bool moving = velocity > cfg_minimalSpeed;
+
+        return new HudState
+        {
+            Name = Name.ToUpperInvariant(),
+            Bar = "",
+            Info = moving ? $"vel {velocity:F0} | accelerating" : $"vel {velocity:F0} | idle",
+            ShowButton = false,
+            ActionText = "",
+            Rarity = Rarity,
+            IsActive = true
+        };
+    }
 }
