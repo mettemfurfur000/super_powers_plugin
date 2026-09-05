@@ -14,7 +14,7 @@ public class BotDisguise : BasePower
 
     public override HookResult Execute(GameEvent gameEvent)
     {
-        var e = gameEvent as EventRoundStart;
+        var e = gameEvent.As<EventRoundStart>();
 
         Users.ForEach(u => ChangeNameRevertable(u));
 

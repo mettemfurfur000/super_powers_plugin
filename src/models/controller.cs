@@ -25,9 +25,7 @@ public static class SuperPowerController
 
     public static IEnumerable<BasePower> SelectPowers(string pattern)
     {
-        string r_pattern = TemUtils.WildCardToRegular(pattern);
-
-        return Powers.Where(p => Regex.IsMatch(StringHelpers.GetPowerName(p), r_pattern));
+        return ModifierConfigHelper.SelectByName(Powers, pattern, StringHelpers.GetPowerName);
     }
 
     static SuperPowerController()
@@ -192,43 +190,12 @@ public static class SuperPowerController
 
     public static void FeedTheConfig(SuperPowerConfig cfg)
     {
-        // Merge existing config with fresh defaults to auto-handle stale entries
-        // when powers are added/removed/renamed between versions
-        var defaults = GenerateDefaultConfig();
-
-        foreach (var (powerName, defaultFields) in defaults)
-        {
-            if (cfg.args.TryGetValue(powerName, out var existingFields))
-            {
-                // Keep user's values for fields that still exist, add new defaults
-                foreach (var (key, value) in defaultFields)
-                    if (!existingFields.ContainsKey(key))
-                        existingFields[key] = value;
-            }
-            else
-            {
-                // New power not in config yet — insert default entry
-                cfg.args[powerName] = new Dictionary<string, string>(defaultFields);
-            }
-        }
-
-        // Remove stale power entries that no longer exist in the code
-        var stale = cfg.args.Keys.Where(k => !defaults.ContainsKey(k)).ToList();
-        foreach (var key in stale)
-            cfg.args.Remove(key);
-
-        foreach (var power in Powers)
-        {
-            if (cfg.args.TryGetValue(StringHelpers.GetPowerName(power), out var powerCfg))
-                power.ParseCfg(powerCfg);
-        }
+        ModifierConfigHelper.FeedConfig(cfg.args, Powers, StringHelpers.GetPowerName, (power, powerCfg) => power.ParseCfg(powerCfg));
     }
 
     public static void Reconfigure(Dictionary<string, string> configuration, string power_name_pattern)
     {
-        var powers = SelectPowers(power_name_pattern);
-        foreach (var power in powers)
-            power.ParseCfg(configuration);
+        ModifierConfigHelper.Reconfigure(configuration, power_name_pattern, Powers, StringHelpers.GetPowerName, (power, cfg) => power.ParseCfg(cfg));
     }
 
     public static void CleanInvalidUsers()
@@ -269,6 +236,15 @@ public static class SuperPowerController
                     ret = HookResult.Stop;
 
         return ret;
+    }
+
+    public static void ExecuteDamageHooks(DamageContext ctx)
+    {
+        foreach (var power in Powers)
+        {
+            if (power.Users.Contains(ctx.Attacker!) || power.Users.Contains(ctx.Victim!))
+                power.OnTakeDamage(ctx);
+        }
     }
 
     public static bool IsPowerCompatible(CCSPlayerController player, BasePower power)
@@ -597,99 +573,18 @@ public static class SuperPowerController
 
     public static Dictionary<string, Dictionary<string, string>> GenerateDefaultConfig()
     {
-        Dictionary<string, Dictionary<string, string>> args = [];
-
-        foreach (var power in Powers)
-        {
-            var power_name = StringHelpers.GetPowerName(power);
-            if (power_name == null)
-            {
-                continue;
-            }
-
-            args.Add(power_name, new Dictionary<string, string>());
-
-            GenerateAddFields(args[power_name], power, power.GetType());
-        }
-        return args;
+        return ModifierConfigHelper.GenerateDefaultConfig(Powers, StringHelpers.GetPowerName);
     }
-    public static BindingFlags fieldFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-    public static readonly string prefix = "cfg_";
+    public static BindingFlags fieldFlags = ModifierConfigHelper.FieldFlags;
+    public static readonly string prefix = ModifierConfigHelper.Prefix;
     private static void GenerateAddFields(Dictionary<string, string> dest, object instance, Type type)
     {
-        var iter = type;
-
-        do
-        {
-            var fields = iter.GetFields(fieldFlags);
-
-            foreach (var property in fields)
-            {
-                var property_name = property.Name;
-                if (!property_name.StartsWith(prefix))
-                    continue;
-                property_name = property_name.Replace(prefix, "");
-
-                var property_value = property.GetValue(instance);
-
-                if (property_value != null && !dest.ContainsKey(property_name))
-                    dest.Add(property_name, property_value.ToString() ?? "null");
-            }
-
-            iter = iter.BaseType;
-        } while (iter != null);
+        ModifierConfigHelper.GenerateAddFields(dest, instance, type);
     }
 
     public static void ParseConfig(BasePower power, Type iter_type, Dictionary<string, string> cfg_unresolved)
     {
-        if (cfg_unresolved.Count == 0)
-            return;
-        Dictionary<string, string> next_unresolved = [];
-
-        // sets values based on cfg unresolved dict from de existing config
-        foreach (var field in cfg_unresolved)
-        {
-            string actualKey = prefix + field.Key;
-            var fieldInfo = iter_type.GetField(actualKey, fieldFlags);
-
-            if (fieldInfo == null)
-            {
-                next_unresolved.Add(field.Key, field.Value);
-                continue;
-            }
-
-            try
-            {
-                try
-                {
-                    fieldInfo.SetValue(power, Convert.ChangeType(field.Value, fieldInfo.FieldType));
-                }
-                catch (InvalidCastException ex) { TemUtils.AlertError($"Error occured while processing {iter_type} : Failed to convert value for {fieldInfo.Name}: {ex.Message}"); }
-                catch (FormatException ex) { TemUtils.AlertError($"Error occured while processing {iter_type} : Invalid format for {fieldInfo.Name}: {ex.Message}"); }
-                // Log($"resloved {field.Key}");
-            }
-            catch (Exception ex)
-            {
-                TemUtils.AlertError($"Error occured while processing {iter_type} : Invalid format for {fieldInfo.Name}: {ex.Message}");
-            }
-        }
-
-        // parses all the fields of said power class
-
-        if (iter_type.BaseType != null)
-            ParseConfig(power, iter_type.BaseType, next_unresolved);
-        else if (next_unresolved.SequenceEqual(cfg_unresolved))
-        {
-            TemUtils.AlertError("Failed to resolve some fields for '" + iter_type + "', list of them:");
-            foreach (var field in next_unresolved)
-                TemUtils.AlertError(field.Key + " : " + field.Value);
-            TemUtils.AlertError("All fields for current type:");
-            foreach (var field in iter_type.GetRuntimeFields())
-                TemUtils.AlertError(field.ToString()!);
-
-            return;
-        }
-        // Log($"null base class for {iter_type}");
+        ModifierConfigHelper.ParseConfig(power, iter_type, cfg_unresolved);
     }
 
 

@@ -58,6 +58,18 @@ All `sp_*` commands require the `@css/root` permission unless noted otherwise.
 | `sp_pstats <player> [power]` | Show XP/level progression for a player's powers. |
 | `sp_setlevel <player> <power> <level>` | Admin override of a power's level (used e.g. to unlock supply_closet's helmet upgrade). |
 
+### Weapon modifiers
+
+| Command | Description |
+|---|---|
+| `sp_mod_add <player> <modifier>` | Apply a weapon modifier to the player's active weapon. |
+| `sp_mod_remove <player> <modifier>` | Remove a weapon modifier from the player's active weapon. |
+| `sp_mod_list` | List all available weapon modifiers. |
+| `sp_mod_status` | Show all currently applied weapon modifiers across all weapons. |
+| `sp_mod_querry <player>` | Show modifiers applied to a specific player's active weapon. |
+| `sp_mod_inspect <modifier>` | Dump all config values of a weapon modifier. |
+| `sp_mod_reconfigure <modifier> <key> <value> [...]` | Live-override modifier config values. |
+
 ### Debug / misc
 
 | Command | Description |
@@ -172,6 +184,26 @@ Rarity affects nothing mechanically yet beyond shop coloring; prices are used by
 
 Not obtainable in random/shop modes: `banana`, `bonus_armor`, `bot_disguise`, `bot_guesser`, `damage_bonus`, `dormant_power` (internal utility), plus unfinished experiments in `src/powers/disabled/`.
 
+## Weapon modifiers
+
+Weapon modifiers are persistent effects attached to individual weapons rather than players. They are tracked per-weapon entity and survive across rounds as long as the weapon exists. Configure them via `weapon_modifiers.json` (auto-generated on first launch) or live with `sp_mod_reconfigure`.
+
+| Modifier | Description |
+|---|---|
+| armor_piercing | 2x damage, 10% chance to jam on fire |
+| biocoded_weapon | Weapon only works for the original buyer |
+| infinite_ammo_weapon | Weapon never runs out of ammo |
+
+### Contributing a weapon modifier
+
+1. Create `src/weapon_modifiers/YourModifier.cs` extending `BaseWeaponModifier`.
+2. Set `Triggers` to the game events you care about, override `Execute(GameEvent, WeaponModifierContext)`.
+3. Override `Update(CCSWeaponBase, CCSPlayerController)` for per-tick logic (runs every tick — keep light).
+4. Override `OnTakeDamage(DamageContext)` to modify incoming damage when this weapon is used.
+5. Add `cfg_`-prefixed public fields for tunable values.
+6. Register it in the constructor list in `src/models/WeaponModifierManager.cs`.
+7. Override `GetDescriptionColored()` for player-facing text.
+
 ## Leveling
 
 Powers with `SupportsLeveling` (currently `supply_closet`) gain XP as they trigger. Levels scale their effect (see each power) and unlock upgrades. Progression is stored per player in the configured database. Inspect with `sp_pstats`, override with `sp_setlevel`.
@@ -202,5 +234,6 @@ make release_full    # package a release zip
 3. Add `cfg_`-prefixed public fields for anything servers should be able to tune.
 4. Register it in the constructor list in `src/models/controller.cs`.
 5. Override `GetDescriptionColored()` — this is what players see in chat/shop.
+6. Override `OnTakeDamage(DamageContext)` to react to or modify damage dealt by or to the power's users.
 
 See any file in `src/powers/` for examples; `Radiation.cs` shows ray tracing, `BountyHunter.cs` shows multi-event state tracking.

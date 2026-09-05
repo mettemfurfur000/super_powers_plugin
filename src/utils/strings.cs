@@ -120,4 +120,24 @@ public static class StringHelpers
         return StringFilterColorCodes(v);
     }
 
+    public static string GetWeaponModifierName(BaseWeaponModifier modifier)
+    {
+        return ToSnakeCase(modifier.GetType().ToString().Split(".").Last());
+    }
+
+    public static string GetWeaponModifierNameReadable(BaseWeaponModifier modifier)
+    {
+        return ToReadableCase(modifier.GetType().ToString().Split(".").Last());
+    }
+
+    public static string GetWeaponModifierColoredName(BaseWeaponModifier modifier)
+    {
+        return $" {GetWeaponModifierRarityColor(modifier)}{GetWeaponModifierNameReadable(modifier)} {ChatColors.Default}";
+    }
+
+    public static string GetWeaponModifierRarityColor(BaseWeaponModifier modifier)
+    {
+        return ChatColors.LightBlue.ToString();
+    }
+
 }

@@ -499,7 +499,7 @@ public class TemUtils
             var activeWeapon = weaponServices.ActiveWeapon.Value;
             if (activeWeapon != null && activeWeapon.IsValid)
             {
-                var realWeapon = activeWeapon as CCSWeaponBase;
+                var realWeapon = activeWeapon.As<CCSWeaponBase>();
 
                 if (realWeapon == null)
                 {
@@ -527,12 +527,18 @@ public class TemUtils
             {
                 var weapon = gun.Value;
 
-                var realWeapon = weapon as CCSWeaponBase;
+                if(weapon == null || !weapon.IsValid)
+                {
+                    // TemUtils.Log("some weapons wer unavabialb to be cleared of its original owners");
+                    continue;
+                }
+
+                var realWeapon = weapon.As<CCSWeaponBase>();
 
                 if (realWeapon == null)
                 {
                     // TemUtils.Log("some weapons wer unavabialb to be cleared of its original owners");
-                    return;
+                    continue;
                 }
 
                 realWeapon.AttributeManager.Item.CustomName = "";

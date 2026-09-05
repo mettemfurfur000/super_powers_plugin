@@ -10,7 +10,7 @@
         "dependencies": {
           "Microsoft.Data.Sqlite": "10.0.9",
           "MySqlConnector": "2.6.1",
-          "CounterStrikeSharp.API": "1.0.372.0",
+          "CounterStrikeSharp.API": "1.0.373.0",
           "super_powers_plugin_api": "1.0.0.0"
         },
         "runtime": {
@@ -216,11 +216,11 @@
           }
         }
       },
-      "CounterStrikeSharp.API/1.0.372.0": {
+      "CounterStrikeSharp.API/1.0.373.0": {
         "runtime": {
           "CounterStrikeSharp.API.dll": {
-            "assemblyVersion": "1.0.372.0",
-            "fileVersion": "1.0.372.0"
+            "assemblyVersion": "1.0.373.0",
+            "fileVersion": "1.0.373.0"
           }
         }
       },
@@ -599,7 +599,7 @@
       "path": "sqlitepclraw.provider.e_sqlite3/2.1.11",
       "hashPath": "sqlitepclraw.provider.e_sqlite3.2.1.11.nupkg.sha512"
     },
-    "CounterStrikeSharp.API/1.0.372.0": {
+    "CounterStrikeSharp.API/1.0.373.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

@@ -19,9 +19,10 @@ namespace super_powers_plugin.src;
 public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 {
     public override string ModuleName => "super_powers_plugin";
-    public override string ModuleVersion => "0.4.0";
+    public override string ModuleVersion => "0.5.0";
     public override string ModuleAuthor => "tem";
     public SuperPowerConfig Config { get; set; } = new SuperPowerConfig();
+    public WeaponModifierConfig ModifierConfig { get; set; } = new WeaponModifierConfig();
     public List<BasePower> checkTransmitTargets = [];
     public static PluginCapability<ISuperPowersController> Capability_SuperPowersController { get; } = new("tem_sp:controllerapi");
     public override void Load(bool hotReload)
@@ -90,22 +91,73 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         // RegisterEventHandler<EventPlayerSpawned>((@event, info) => SuperPowerController.ExecutePower(@event));
         // RegisterEventHandler<EventBulletDamage>((@event, info) => SuperPowerController.ExecutePower(@event));
-        RegisterEventHandler<EventWeaponReload>((@event, info) => SuperPowerController.ExecutePower(@event));
+        RegisterEventHandler<EventWeaponReload>((@event, info) =>
+        {
+            var powerResult = SuperPowerController.ExecutePower(@event);
+            var modResult = WeaponModifierManager.ExecuteModifier(@event);
+            return powerResult == HookResult.Stop || modResult == HookResult.Stop
+                ? HookResult.Stop : HookResult.Continue;
+        });
 
         RegisterEventHandler<EventRoundStart>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventRoundEnd>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBegindefuse>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombBeginplant>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventBombPlanted>((@event, info) => SuperPowerController.ExecutePower(@event));
-        RegisterEventHandler<EventWeaponFire>((@event, info) => SuperPowerController.ExecutePower(@event));
+
+        RegisterEventHandler<EventWeaponFire>((@event, info) =>
+        {
+            var powerResult = SuperPowerController.ExecutePower(@event);
+            var modResult = WeaponModifierManager.ExecuteModifier(@event);
+            return powerResult == HookResult.Stop || modResult == HookResult.Stop
+                ? HookResult.Stop : HookResult.Continue;
+        });
+
         RegisterEventHandler<EventGrenadeThrown>((@event, info) => SuperPowerController.ExecutePower(@event));
-        RegisterEventHandler<EventItemPickup>((@event, info) => SuperPowerController.ExecutePower(@event));
-        RegisterEventHandler<EventPlayerHurt>((@event, info) => SuperPowerController.ExecutePower(@event));
+
+        RegisterEventHandler<EventItemPickup>((@event, info) =>
+        {
+            var powerResult = SuperPowerController.ExecutePower(@event);
+            var modResult = WeaponModifierManager.ExecuteModifier(@event);
+            return powerResult == HookResult.Stop || modResult == HookResult.Stop
+                ? HookResult.Stop : HookResult.Continue;
+        });
+
+        RegisterEventHandler<EventPlayerHurt>((@event, info) =>
+        {
+            var powerResult = SuperPowerController.ExecutePower(@event);
+            var modResult = WeaponModifierManager.ExecuteModifier(@event);
+            return powerResult == HookResult.Stop || modResult == HookResult.Stop
+                ? HookResult.Stop : HookResult.Continue;
+        });
+
+        RegisterListener<Listeners.OnEntityTakeDamagePre>((CBaseEntity entity, CTakeDamageInfo info) =>
+        {
+            // just type some debug data
+            // Server.PrintToChatAll($"damage event: {entity.DesignerName} took {info.Damage:F1} damage from {info.Attacker?.Value?.DesignerName ?? "null"}");
+            // confirmed, that works!
+            return HookResult.Continue;
+        });
+
         RegisterEventHandler<EventPlayerSound>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventPlayerJump>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventPlayerDeath>((@event, info) => SuperPowerController.ExecutePower(@event));
-        RegisterEventHandler<EventBulletImpact>((@event, info) => SuperPowerController.ExecutePower(@event));
-        RegisterEventHandler<EventItemEquip>((@event, info) => SuperPowerController.ExecutePower(@event));
+
+        RegisterEventHandler<EventBulletImpact>((@event, info) =>
+        {
+            var powerResult = SuperPowerController.ExecutePower(@event);
+            var modResult = WeaponModifierManager.ExecuteModifier(@event);
+            return powerResult == HookResult.Stop || modResult == HookResult.Stop
+                ? HookResult.Stop : HookResult.Continue;
+        });
+
+        RegisterEventHandler<EventItemEquip>((@event, info) =>
+        {
+            var powerResult = SuperPowerController.ExecutePower(@event);
+            var modResult = WeaponModifierManager.ExecuteModifier(@event);
+            return powerResult == HookResult.Stop || modResult == HookResult.Stop
+                ? HookResult.Stop : HookResult.Continue;
+        });
         RegisterEventHandler<EventPlayerSpawn>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventPlayerBlind>((@event, info) => SuperPowerController.ExecutePower(@event));
         RegisterEventHandler<EventSmokegrenadeDetonate>((@event, info) => SuperPowerController.ExecutePower(@event));
@@ -137,6 +189,7 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             if (Server.TickCount % 32 == 0)
                 SuperPowerController.CleanInvalidUsers();
             SuperPowerController.Update();
+            WeaponModifierManager.Update();
         });
 
         checkTransmitTargets = SuperPowerController.GetCheckTransmitEnabled();
@@ -176,8 +229,27 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         });
 
         SuperPowerController.RegisterHooks();
+        DamageListener.Register(this);
         if (hotReload)
             SuperPowerController.LoadAllConnectedProgressions();
+
+        // Load weapon modifier config
+        var modConfigDir = Path.Combine(ModuleDirectory, "..", "..", "configs", "plugins", ModuleName);
+        var modConfigPath = Path.GetFullPath(Path.Combine(modConfigDir, "weapon_modifiers.json"));
+        try
+        {
+            if (File.Exists(modConfigPath))
+            {
+                var json = File.ReadAllText(modConfigPath);
+                ModifierConfig = JsonSerializer.Deserialize<WeaponModifierConfig>(json) ?? new WeaponModifierConfig();
+            }
+            WeaponModifierManager.FeedConfig(ModifierConfig);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[super_powers_plugin] Failed to load weapon modifier config: {ex.Message}");
+            WeaponModifierManager.FeedConfig(ModifierConfig);
+        }
     }
 
     private void OnServerPrecacheResources(ResourceManifest manifest)
@@ -227,6 +299,15 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         commandInfo.ReplyToCommand($"  sp_status \t\t\t\t\t\t - prints status of all powers and its users");
         commandInfo.ReplyToCommand($"  sp_inspect {pw_format} \t\t\t\t\t - prints info about power and its parameters");
         commandInfo.ReplyToCommand($"  sp_reconfigure {pw_format} {pw_format} [key1] [value1] ... \t - reconfigures power");
+        const string mod_format = "<modifier>";
+        commandInfo.ReplyToCommand($"Weapon modifiers:");
+        commandInfo.ReplyToCommand($"  sp_mod_add {player_format} {mod_format} \t\t\t - applies modifier to active weapon");
+        commandInfo.ReplyToCommand($"  sp_mod_remove {player_format} {mod_format} \t\t\t - removes modifier from active weapon");
+        commandInfo.ReplyToCommand($"  sp_mod_list \t\t\t\t\t\t - lists available weapon modifiers");
+        commandInfo.ReplyToCommand($"  sp_mod_status \t\t\t\t\t - prints all applied weapon modifiers");
+        commandInfo.ReplyToCommand($"  sp_mod_querry {player_format} \t\t\t\t - prints modifiers for a player");
+        commandInfo.ReplyToCommand($"  sp_mod_inspect {mod_format} \t\t\t\t - dumps modifier config values");
+        commandInfo.ReplyToCommand($"  sp_mod_reconfigure {mod_format} [key1] [value1] ... \t - reconfigures modifier");
         commandInfo.ReplyToCommand($"Special:");
         commandInfo.ReplyToCommand($"  sp_signal / signal / s <any input> - pass a signal of arbitrary data to the plugin system");
     }
@@ -691,6 +772,133 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         }
     }
 
+    // ── Weapon Modifier Commands ──
+
+    [ConsoleCommand("sp_mod_add", "Applies a weapon modifier to player's active weapon")]
+    [CommandHelper(minArgs: 2, usage: "<player> <modifier>", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnModifierApply(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var playerNamePattern = commandInfo.GetArg(1);
+        var modifierNamePattern = commandInfo.GetArg(2);
+
+        var players = TemUtils.SelectPlayers(playerNamePattern);
+        if (players == null || !players.Any())
+        {
+            commandInfo.ReplyToCommand("No players found");
+            return;
+        }
+
+        foreach (var player in players)
+        {
+            commandInfo.ReplyToCommand(WeaponModifierManager.ApplyModifier(player, modifierNamePattern));
+        }
+    }
+
+    [ConsoleCommand("sp_mod_remove", "Removes a weapon modifier from player's active weapon")]
+    [CommandHelper(minArgs: 2, usage: "<player> <modifier>", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnModifierRemove(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var playerNamePattern = commandInfo.GetArg(1);
+        var modifierNamePattern = commandInfo.GetArg(2);
+
+        var players = TemUtils.SelectPlayers(playerNamePattern);
+        if (players == null || !players.Any())
+        {
+            commandInfo.ReplyToCommand("No players found");
+            return;
+        }
+
+        foreach (var player in players)
+        {
+            commandInfo.ReplyToCommand(WeaponModifierManager.RemoveModifier(player, modifierNamePattern));
+        }
+    }
+
+    [ConsoleCommand("sp_mod_list", "Lists available weapon modifiers")]
+    [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnModifierList(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var modifiers = WeaponModifierManager.GetModifiers();
+        commandInfo.ReplyToCommand($"\tweapon modifiers\n");
+
+        if (modifiers != null)
+            foreach (var mod in modifiers)
+                commandInfo.ReplyToCommand($"\t{StringHelpers.GetWeaponModifierName(mod)}\t{mod.GetDescriptionPlain()}"
+                + (mod.noShop ? "\t(No Shop)" : "") + "\n");
+    }
+
+    [ConsoleCommand("sp_mod_status", "Prints all applied weapon modifiers")]
+    [CommandHelper(minArgs: 0, usage: "", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnModifierStatus(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        commandInfo.ReplyToCommand(WeaponModifierManager.GetModifiersStatus());
+    }
+
+    [ConsoleCommand("sp_mod_querry", "Prints all applied weapon modifiers for a specific player")]
+    [CommandHelper(minArgs: 1, usage: "<player>", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnModifierStatusForPlayer(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var playerNamePattern = commandInfo.GetArg(1);
+        var players = TemUtils.SelectPlayers(playerNamePattern);
+        if (players == null || !players.Any())
+        {
+            commandInfo.ReplyToCommand("No players found");
+            return;
+        }
+
+        foreach (var player in players)
+        {
+            commandInfo.ReplyToCommand($"Weapon modifiers for {player.PlayerName}:\n" + WeaponModifierManager.GetModifiersStatusForPlayer(player));
+        }
+    }
+
+    [ConsoleCommand("sp_mod_inspect", "Reflects on a modifier class and dumps its values")]
+    [CommandHelper(minArgs: 1, usage: "[modifier]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnModifierInspect(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        var modifierNamePattern = commandInfo.GetArg(1);
+
+        var modifiers = WeaponModifierManager.SelectModifiers(modifierNamePattern);
+        if (!modifiers.Any())
+        {
+            commandInfo.ReplyToCommand($"No modifiers found for {modifierNamePattern}");
+            return;
+        }
+
+        foreach (var mod in modifiers)
+        {
+            string? mod_field_values = WeaponModifierManager.InspectModifierReflective(mod, mod.GetType());
+            if (mod_field_values != null)
+                commandInfo.ReplyToCommand(StringHelpers.GetWeaponModifierNameReadable(mod) + ":\n" + mod_field_values);
+            else
+                commandInfo.ReplyToCommand(StringHelpers.GetWeaponModifierNameReadable(mod) + ": No info");
+        }
+    }
+
+    [ConsoleCommand("sp_mod_reconfigure", "Reconfigures a weapon modifier")]
+    [CommandHelper(minArgs: 2, usage: "[modifier] [key1] [value1] ...", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnModifierReconfigure(CCSPlayerController? caller, CommandInfo commandInfo)
+    {
+        Dictionary<string, string> forced_cfg = [];
+        string resp = "";
+        for (int i = 2; i < commandInfo.ArgCount; i += 2)
+        {
+            var key = commandInfo.GetArg(i);
+            var value = commandInfo.GetArg(i + 1);
+            forced_cfg[key] = value;
+            resp += $"Set [{key}] to [{value}]" + (i < commandInfo.ArgCount - 2 ? ", " : "");
+        }
+        WeaponModifierManager.Reconfigure(forced_cfg, commandInfo.GetArg(1));
+        commandInfo.ReplyToCommand("Reconfigured!\n" + resp);
+    }
+
     public void OnConfigParsed(SuperPowerConfig config)
     {
         Config = config;
@@ -709,6 +917,25 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
         catch (Exception ex)
         {
             Console.WriteLine($"[super_powers_plugin] Failed to save merged config: {ex.Message}");
+        }
+    }
+
+    public void OnModifierConfigParsed(WeaponModifierConfig config)
+    {
+        ModifierConfig = config;
+        WeaponModifierManager.FeedConfig(ModifierConfig);
+
+        var configDir = Path.Combine(ModuleDirectory, "..", "..", "configs", "plugins", ModuleName);
+        var configPath = Path.GetFullPath(Path.Combine(configDir, "weapon_modifiers.json"));
+        try
+        {
+            Directory.CreateDirectory(configDir);
+            var json = JsonSerializer.Serialize(ModifierConfig, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(configPath, json);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[super_powers_plugin] Failed to save weapon modifier config: {ex.Message}");
         }
     }
 

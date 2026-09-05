@@ -172,4 +172,6 @@ public class BasePower : ShopPower
 
     public virtual void RegisterHooks() { }     // Custom hooks go here, but i dont use them much
     public virtual void UnRegisterHooks() { }   //
+
+    public virtual void OnTakeDamage(DamageContext ctx) { }
 }
