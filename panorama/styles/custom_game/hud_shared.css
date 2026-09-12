@@ -138,7 +138,7 @@
 
 .hud-title {
     width: fill-parent-flow(1.0);
-    font-family: Stratum2 Mono;
+    font-family: Consolas;
     font-size: 13px;
     color: #4caf6d;
     text-transform: uppercase;
@@ -147,7 +147,7 @@
 }
 
 .hud-tag {
-    font-family: Stratum2 Mono;
+    font-family: Consolas;
     font-size: 10px;
     color: #61686f;
     text-transform: uppercase;
@@ -185,7 +185,7 @@
 
 .hud-hint {
     width: fill-parent-flow(1.0);
-    font-family: Stratum2 Mono;
+    font-family: Consolas;
     font-size: 9px;
     color: #4b525a;
     text-transform: uppercase;

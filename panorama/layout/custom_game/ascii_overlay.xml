@@ -1,0 +1,50 @@
+<root>
+	<styles>
+		<include src="s2r://panorama/styles/custom_game/hud_shared.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/ascii_overlay.vcss_c" />
+	</styles>
+	<Panel class="ascii-root">
+		<Panel id="AsciiOverlayRoot" class="ascii-container">
+			<Label id="line_0" class="ascii-line" text="{s:line_0}" />
+			<Label id="line_1" class="ascii-line" text="{s:line_1}" />
+			<Label id="line_2" class="ascii-line" text="{s:line_2}" />
+			<Label id="line_3" class="ascii-line" text="{s:line_3}" />
+			<Label id="line_4" class="ascii-line" text="{s:line_4}" />
+			<Label id="line_5" class="ascii-line" text="{s:line_5}" />
+			<Label id="line_6" class="ascii-line" text="{s:line_6}" />
+			<Label id="line_7" class="ascii-line" text="{s:line_7}" />
+			<Label id="line_8" class="ascii-line" text="{s:line_8}" />
+			<Label id="line_9" class="ascii-line" text="{s:line_9}" />
+			<Label id="line_10" class="ascii-line" text="{s:line_10}" />
+			<Label id="line_11" class="ascii-line" text="{s:line_11}" />
+			<Label id="line_12" class="ascii-line" text="{s:line_12}" />
+			<Label id="line_13" class="ascii-line" text="{s:line_13}" />
+			<Label id="line_14" class="ascii-line" text="{s:line_14}" />
+			<Label id="line_15" class="ascii-line" text="{s:line_15}" />
+			<Label id="line_16" class="ascii-line" text="{s:line_16}" />
+			<Label id="line_17" class="ascii-line" text="{s:line_17}" />
+			<Label id="line_18" class="ascii-line" text="{s:line_18}" />
+			<Label id="line_19" class="ascii-line" text="{s:line_19}" />
+			<Label id="line_20" class="ascii-line" text="{s:line_20}" />
+			<Label id="line_21" class="ascii-line" text="{s:line_21}" />
+			<Label id="line_22" class="ascii-line" text="{s:line_22}" />
+			<Label id="line_23" class="ascii-line" text="{s:line_23}" />
+			<Label id="line_24" class="ascii-line" text="{s:line_24}" />
+			<Label id="line_25" class="ascii-line" text="{s:line_25}" />
+			<Label id="line_26" class="ascii-line" text="{s:line_26}" />
+			<Label id="line_27" class="ascii-line" text="{s:line_27}" />
+			<Label id="line_28" class="ascii-line" text="{s:line_28}" />
+			<Label id="line_29" class="ascii-line" text="{s:line_29}" />
+			<Label id="line_30" class="ascii-line" text="{s:line_30}" />
+			<Label id="line_31" class="ascii-line" text="{s:line_31}" />
+			<Label id="line_32" class="ascii-line" text="{s:line_32}" />
+			<Label id="line_33" class="ascii-line" text="{s:line_33}" />
+			<Label id="line_34" class="ascii-line" text="{s:line_34}" />
+			<Label id="line_35" class="ascii-line" text="{s:line_35}" />
+			<Label id="line_36" class="ascii-line" text="{s:line_36}" />
+			<Label id="line_37" class="ascii-line" text="{s:line_37}" />
+			<Label id="line_38" class="ascii-line" text="{s:line_38}" />
+			<Label id="line_39" class="ascii-line" text="{s:line_39}" />
+		</Panel>
+	</Panel>
+</root>

@@ -1,141 +1,142 @@
 <#
 .SYNOPSIS
-    Compiles Panorama HUD layouts and deploys them for development.
+    Compiles and prepares Panorama files for the CS2 Workshop addon.
 
 .DESCRIPTION
-    Compiles the super_powers_plugin Panorama resources using resourcecompiler.exe
-    and copies them to the CS2 overrides directory.
+    Compiles XML/CSS source files using resourcecompiler.exe and copies both
+    raw and compiled files to the Workshop content directory.
 
-        .\build_hud.ps1                    # compile and deploy
-        .\build_hud.ps1 -Watch             # recompile on save
-        .\build_hud.ps1 -NoDeploy          # compile only
-        .\build_hud.ps1 -Force             # force recompile all
-
-    Requires:
-    - Workshop Tools installed (for resourcecompiler.exe)
-    - gameinfo.gi with "Game csgo/overrides" entry for the client to load overrides
+        .\build_hud.ps1                    # compile and prepare workshop addon
 
 .NOTES
-    Adapted from PanoramaHUD-Skills build-hud.ps1
+    Workshop content: E:\SteamLibrary\steamapps\common\Counter-Strike Global Offensive\content\csgo_addons\super_powers_hud\
 #>
 [CmdletBinding()]
 param(
     [string] $Cs2Root = 'E:\SteamLibrary\steamapps\common\Counter-Strike Global Offensive',
-    [switch] $Watch,
-    [switch] $NoDeploy,
-    [switch] $Force
+    [string] $AddonName = 'super_powers_hud'
 )
 
 $ErrorActionPreference = 'Stop'
 
-$pluginDir  = $PSScriptRoot
-$compiler   = Join-Path $Cs2Root 'game\bin\win64\resourcecompiler.exe'
-$sourceDir  = Join-Path $pluginDir 'panorama'
-$contentDir = Join-Path $Cs2Root 'content\csgo_addons\super_powers_hud\panorama'
-$gameDir    = Join-Path $Cs2Root 'game\csgo_addons\super_powers_hud\panorama'
-$overrides  = Join-Path $Cs2Root 'game\csgo\overrides\panorama'
+$pluginDir = $PSScriptRoot
+$sourceDir = Join-Path $pluginDir 'panorama'
+$workshopDir = Join-Path $Cs2Root "content\csgo_addons\$AddonName"
+$compiler = Join-Path $Cs2Root 'game\bin\win64\resourcecompiler.exe'
 
-function Assert-Path([string] $path, [string] $what) {
-    if (-not (Test-Path $path)) {
-        throw "$what not found: $path`nPass -Cs2Root if your install is elsewhere."
-    }
+# Verify source directory exists
+if (-not (Test-Path $sourceDir)) {
+    throw "Panorama source directory not found: $sourceDir"
 }
 
-Assert-Path $compiler   'resourcecompiler.exe'
+# Verify compiler exists
+if (-not (Test-Path $compiler)) {
+    throw "resourcecompiler.exe not found: $compiler"
+}
 
-function Build {
-    # Ensure content directory exists
-    New-Item -ItemType Directory -Path $contentDir -Force | Out-Null
-    New-Item -ItemType Directory -Path (Join-Path $contentDir 'layout\custom_game') -Force | Out-Null
-    New-Item -ItemType Directory -Path (Join-Path $contentDir 'styles\custom_game') -Force | Out-Null
+# Clean workshop content directory
+if (Test-Path $workshopDir) {
+    Remove-Item $workshopDir -Recurse -Force
+    Write-Host "Cleaned: $workshopDir" -ForegroundColor DarkGray
+}
 
-    # Copy source files to content directory
-    $xmlFiles = Get-ChildItem -Path (Join-Path $sourceDir 'layout\custom_game') -Filter *.xml -File
-    $cssFiles = Get-ChildItem -Path (Join-Path $sourceDir 'styles\custom_game') -Filter *.css -File
+# Create directory structure
+New-Item -ItemType Directory -Path (Join-Path $workshopDir 'panorama\layout\custom_game') -Force | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $workshopDir 'panorama\styles\custom_game') -Force | Out-Null
 
-    if (-not $xmlFiles -and -not $cssFiles) {
-        throw "No .xml or .css files found under $sourceDir"
-    }
-
-    Write-Host "`n[1/3] Copying $($xmlFiles.Count) XML and $($cssFiles.Count) CSS files to content directory" -ForegroundColor Cyan
-
+# Auto-discover and copy XML files
+$xmlFiles = Get-ChildItem -Path (Join-Path $sourceDir 'layout\custom_game') -Filter *.xml -File -ErrorAction SilentlyContinue
+if ($xmlFiles) {
     foreach ($file in $xmlFiles) {
-        $target = Join-Path $contentDir "layout\custom_game\$($file.Name)"
+        $target = Join-Path $workshopDir "panorama\layout\custom_game\$($file.Name)"
         Copy-Item $file.FullName $target -Force
-        Write-Host "      $($file.Name)" -ForegroundColor DarkGray
+        Write-Host "  layout\$($file.Name)" -ForegroundColor Gray
     }
+} else {
+    Write-Warning "No XML files found in $($sourceDir)\layout\custom_game"
+}
 
+# Auto-discover and copy CSS files
+$cssFiles = Get-ChildItem -Path (Join-Path $sourceDir 'styles\custom_game') -Filter *.css -File -ErrorAction SilentlyContinue
+if ($cssFiles) {
     foreach ($file in $cssFiles) {
-        $target = Join-Path $contentDir "styles\custom_game\$($file.Name)"
+        $target = Join-Path $workshopDir "panorama\styles\custom_game\$($file.Name)"
         Copy-Item $file.FullName $target -Force
-        Write-Host "      $($file.Name)" -ForegroundColor DarkGray
+        Write-Host "  styles\$($file.Name)" -ForegroundColor Gray
     }
-
-    # Compile
-    $sources = Get-ChildItem -Path $contentDir -Recurse -Include *.xml, *.css -File
-
-    Write-Host "`n[2/3] Compiling $($sources.Count) file(s)" -ForegroundColor Cyan
-
-    foreach ($src in $sources) {
-        $rcArgs = @('-i', $src.FullName)
-        if ($Force) { $rcArgs += '-f' }
-
-        & $compiler @rcArgs | Out-Null
-
-        if ($LASTEXITCODE -ne 0) { throw "Compile failed: $($src.Name)" }
-
-        Write-Host "      $($src.Name)" -ForegroundColor DarkGray
-    }
-
-    $compiled = Get-ChildItem -Path $gameDir -Recurse -Include *.vxml_c, *.vcss_c -File -ErrorAction SilentlyContinue
-
-    if (-not $compiled) {
-        throw "Nothing compiled into $gameDir. Check resourcecompiler output above."
-    }
-
-    if ($NoDeploy) {
-        Write-Host "[3/3] Compiled to $gameDir (not deployed)" -ForegroundColor Green
-        return
-    }
-
-    # Deploy to overrides
-    Write-Host "[3/3] Copying $($compiled.Count) compiled file(s) to overrides" -ForegroundColor Cyan
-
-    foreach ($file in $compiled) {
-        $relative = $file.FullName.Substring($gameDir.Length).TrimStart('\')
-        $target   = Join-Path $overrides $relative
-
-        New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
-        Copy-Item $file.FullName $target -Force
-
-        Write-Host "      panorama\$relative" -ForegroundColor DarkGray
-    }
-
-    Write-Host "      -> $overrides" -ForegroundColor Green
-    Write-Host "`nDone! Restart CS2 to pick up changes (or just the game if using overrides)." -ForegroundColor Green
+} else {
+    Write-Warning "No CSS files found in $($sourceDir)\styles\custom_game"
 }
 
-Build
+# Compile all source files
+Write-Host "`nCompiling..." -ForegroundColor Cyan
+$sources = Get-ChildItem -Path (Join-Path $workshopDir 'panorama') -Recurse -Include *.xml, *.css -File
+$compiled = 0
+$failed = 0
 
-if ($Watch) {
-    Write-Host "`nWatching $sourceDir - Ctrl+C to stop.`n" -ForegroundColor Yellow
-
-    $watcher = New-Object System.IO.FileSystemWatcher $sourceDir, '*.*'
-    $watcher.IncludeSubdirectories = $true
-    $watcher.EnableRaisingEvents   = $true
-
-    while ($true) {
-        $change = $watcher.WaitForChanged([System.IO.WatcherChangeTypes]::All, 1000)
-
-        if ($change.TimedOut) { continue }
-        if ($change.Name -notmatch '\.(xml|css)$') { continue }
-
-        Start-Sleep -Milliseconds 250
-        while (-not $watcher.WaitForChanged([System.IO.WatcherChangeTypes]::All, 150).TimedOut) { }
-
-        Write-Host "changed: $($change.Name)" -ForegroundColor Yellow
-
-        try   { Build }
-        catch { Write-Host "  $_" -ForegroundColor Red }
+foreach ($src in $sources) {
+    & $compiler -i $src.FullName -f 2>&1 | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        $compiled++
+    } else {
+        $failed++
+        Write-Host "  FAIL: $($src.Name)" -ForegroundColor Red
     }
 }
+
+Write-Host "  Compiled: $compiled, Failed: $failed" -ForegroundColor $(if ($failed -eq 0) { 'Green' } else { 'Yellow' })
+
+# Copy compiled files from game directory to workshop content
+$gamePanorama = Join-Path $Cs2Root "game\csgo_addons\$AddonName\panorama"
+$compiledFiles = Get-ChildItem -Path $gamePanorama -Recurse -Include *.vxml_c, *.vcss_c -File -ErrorAction SilentlyContinue
+
+if ($compiledFiles) {
+    foreach ($file in $compiledFiles) {
+        $relative = $file.FullName.Substring($gamePanorama.Length).TrimStart('\')
+        $target = Join-Path (Join-Path $workshopDir 'panorama') $relative
+        New-Item -ItemType Directory -Path (Split-Path $target) -Force | Out-Null
+        Copy-Item $file.FullName $target -Force
+    }
+    Write-Host "  Copied $($compiledFiles.Count) compiled files" -ForegroundColor Gray
+}
+
+# Create addoninfo.txt
+$addonInfo = @"
+"AddonInfo"
+{
+    "title"		"Super Powers HUD"
+    "type"		"2"
+    "tags"		" gameplay "
+    "description"		"Terminal-style ASCII overlay for the Super Powers plugin. Provides 160x40 character grid for server-driven UI. Subscribe to enable ASCII overlay commands (sp_ascii, sp_ascii_close)."
+    "author_name"		"Super Powers Team"
+    "content_warning"	""
+    "major_version"		"1"
+    "minor_version"		"0"
+}
+"@
+Set-Content -Path (Join-Path $workshopDir 'addoninfo.txt') -Value $addonInfo -Encoding UTF8
+
+# Create build info file
+$commitHash = try { git -C $pluginDir rev-parse --short HEAD 2>$null } catch { 'unknown' }
+if (-not $commitHash) { $commitHash = 'unknown' }
+
+$buildInfo = @"
+Build Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+Plugin Version: 0.5.0
+Build Machine: $env:COMPUTERNAME
+Source Commit: $commitHash
+Files:
+  Layouts: $($xmlFiles.Count) XML files
+  Styles: $($cssFiles.Count) CSS files
+  Compiled: $compiled files
+"@
+Set-Content -Path (Join-Path $workshopDir 'build_info.txt') -Value $buildInfo -Encoding UTF8
+
+# Summary
+$totalFiles = (Get-ChildItem -Path $workshopDir -Recurse -File | Measure-Object).Count
+$size = (Get-ChildItem -Path $workshopDir -Recurse -File | Measure-Object -Property Length -Sum).Sum
+
+Write-Host "`nWorkshop addon ready:" -ForegroundColor Green
+Write-Host "  $workshopDir" -ForegroundColor Green
+Write-Host "  $totalFiles files, $([math]::Round($size / 1KB, 1)) KB" -ForegroundColor Green
+Write-Host "`nUse CS2 Workshop Tools to publish." -ForegroundColor Yellow

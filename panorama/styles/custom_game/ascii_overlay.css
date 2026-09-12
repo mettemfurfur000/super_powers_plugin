@@ -1,0 +1,169 @@
+/*
+    ascii_overlay - full-screen ASCII/TUI overlay (160x40 grid)
+
+    A reusable, project-agnostic overlay for rendering text-based UIs.
+    Uses Consolas monospace font for character alignment.
+
+    PANORAMA IS NOT THE WEB. No display, no flex, no calc(), no rgb().
+    Check any unfamiliar property against the reference before using.
+*/
+
+/* ---------------------------------------------------------------- full-screen wrapper */
+
+/*
+    Full-screen wrapper. The root panel may not carry an id, so this is the anonymous one.
+
+    z-index is deliberately enormous to ensure the overlay renders above all other UI.
+    overflow: noclip lets children draw outside bounds if needed.
+*/
+.ascii-screen {
+    width: 100%;
+    height: 100%;
+    overflow: noclip;
+    z-index: 99999;
+}
+
+/* ---------------------------------------------------------------- root panel */
+
+/*
+    The root panel with reveal animation.
+    Use LayoutContract { RevealClass = "show" } to animate in/out.
+*/
+.ascii-root {
+    width: 100%;
+    height: 100%;
+}
+
+/* ---------------------------------------------------------------- container */
+
+/*
+    The main container with semi-transparent background.
+    Positioned to cover the entire screen with padding for the text area.
+*/
+.ascii-container {
+    width: 100%;
+    height: 100%;
+    flow-children: down;
+    horizontal-align: left;
+    vertical-align: top;
+
+    /* Semi-transparent black background */
+    background-color: #000000bb;
+
+    /* Optional: world-blur for a frosted glass effect */
+    /* Uncomment if you want the game scene blurred behind the overlay */
+    /* world-blur: gaussian(2.0); */
+
+    padding: 10px;
+
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out;
+}
+
+.ascii-container.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ---------------------------------------------------------------- line styling */
+
+/*
+    Each line is a Label with monospace font.
+    The font size determines the character grid dimensions.
+
+    For 160 columns at 100% width:
+    - Font size ~10-12px works well on 1920px screens
+    - Font size ~7-8px works well on 2560px screens
+
+    For 40 rows at 100% height:
+    - Font size ~10-12px gives ~40 rows on 1080p screens
+    - Font size ~7-8px gives ~40 rows on 1440p screens
+
+    The monospace font ensures all characters have equal width.
+*/
+.ascii-line {
+    width: 100%;
+    height: fill-parent-flow(1.0);
+    font-family: Consolas;
+    font-size: 10px;
+    color: #4caf6d;
+    white-space: nowrap;
+    text-overflow: clip;
+    overflow: noclip;
+}
+
+/* ---------------------------------------------------------------- color variants */
+
+/*
+    Color classes for different text styles.
+    Use SetClassFor() or SetVariant() to apply these.
+*/
+.ascii-line.color-green  { color: #4caf6d; }
+.ascii-line.color-red    { color: #e0432f; }
+.ascii-line.color-blue   { color: #56a0dd; }
+.ascii-line.color-gold   { color: #f0a531; }
+.ascii-line.color-purple { color: #9b6cd6; }
+.ascii-line.color-white  { color: #ffffff; }
+.ascii-line.color-gray   { color: #6b737c; }
+
+/* Bright variants for emphasis */
+.ascii-line.bright-green  { color: #6ddf8d; }
+.ascii-line.bright-red    { color: #ff6347; }
+.ascii-line.bright-blue   { color: #7dc4ff; }
+.ascii-line.bright-gold   { color: #ffc107; }
+
+/* ---------------------------------------------------------------- visibility */
+
+/*
+    Contract classes for C# to toggle visibility.
+    Use .hidden to collapse the entire overlay.
+*/
+.ascii-line.hidden {
+    visibility: collapse;
+}
+
+/* ---------------------------------------------------------------- background variants */
+
+/*
+    Optional background colors per line.
+    Use sparingly - the main background is on the container.
+*/
+.ascii-line.bg-dark {
+    background-color: #00000088;
+}
+
+.ascii-line.bg-highlight {
+    background-color: #ffffff11;
+}
+
+/* ---------------------------------------------------------------- border variants */
+
+/*
+    Optional borders for visual separation.
+*/
+.ascii-line.border-top {
+    border-top: 1px solid #ffffff22;
+}
+
+.ascii-line.border-bottom {
+    border-bottom: 1px solid #ffffff22;
+}
+
+/* ---------------------------------------------------------------- animation */
+
+/*
+    Optional fade-in animation for individual lines.
+    Apply via CSS class toggles from C#.
+*/
+.ascii-line.fade-in {
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-in;
+}
+
+.ascii-line.fade-in.visible {
+    opacity: 1;
+}

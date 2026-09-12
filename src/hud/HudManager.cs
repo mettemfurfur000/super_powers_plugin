@@ -19,18 +19,8 @@ public class SuperPowerHudManager : IDisposable
     {
         _plugin = plugin;
 
-        try
-        {
-            Panorama.UseGlobalDialogVariables = true;
-            Panorama.Init(plugin);
-            Console.WriteLine($"[SP-HUD] Panorama.Init OK. CanReceiveClicks={Panorama.CanReceiveClicks}, CanWritePerPlayerText={Panorama.CanWritePerPlayerText}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[SP-HUD] Panorama.Init FAILED: {ex}");
-            return;
-        }
-
+        // Panorama.Init() is now called once in main.cs Load()
+        // Just spawn the panel
         try
         {
             _hud = Panorama.Spawn(

@@ -17,6 +17,20 @@ A Counter-Strike 2 plugin for [CounterStrikeSharp](https://github.com/roflmuffin
 3. Restart the server or run `css_plugins reload super_powers_plugin`.
 4. A default config is generated at `addons/counterstrikesharp/configs/plugins/super_powers_plugin/super_powers_plugin.json` on first launch.
 
+### Custom HUD (Workshop Addon)
+
+The plugin includes a custom terminal-style HUD that displays active powers.
+
+**For players:**
+1. Subscribe to the Super Powers HUD on the Steam Workshop
+2. The server will automatically mount the addon
+3. Use `sp_hud` command to toggle the HUD display
+
+**For server operators:**
+- The HUD addon is required for players to see the custom HUD
+- Mount the addon via workshop collection or direct subscription
+- Players without the addon will see no HUD (graceful degradation)
+
 ## Game modes
 
 Set with `sp_mode <mode>` (console, requires `@css/root`):
@@ -65,6 +79,15 @@ All `sp_*` commands require the `@css/root` permission unless noted otherwise.
 | `sp_trace [flags] [-exclude flags] [self]` | Ray trace test from your eyes along your view. No args = sweep of common masks. Example: `sp_trace solid,window -player`. |
 | `sp_signal <args>` / `b` | Pass arbitrary input to powers (also used by the shopper UI). |
 | `sp_force_signal <player> <args>` | Same, but targeted at a specific player. |
+
+### HUD controls
+
+| Command | Description |
+|---|---|
+| `sp_hud` | Toggle the custom HUD display for yourself |
+| `sp_hud_debug` | Debug HUD entity state (shows custom_hud_layout entities) |
+
+**Note:** The custom HUD requires the Super Powers HUD workshop addon to be subscribed and mounted. Without it, these commands will have no visible effect.
 
 ### Player selectors
 

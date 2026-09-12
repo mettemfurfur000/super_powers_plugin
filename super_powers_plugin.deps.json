@@ -10,7 +10,7 @@
         "dependencies": {
           "Microsoft.Data.Sqlite": "10.0.9",
           "MySqlConnector": "2.6.1",
-          "PanoramaManager": "0.1.2",
+          "PanoramaManager": "0.3.1",
           "super_powers_plugin_api": "1.0.0.0"
         },
         "runtime": {
@@ -66,11 +66,11 @@
           }
         }
       },
-      "PanoramaManager/0.1.2": {
+      "PanoramaManager/0.3.1": {
         "runtime": {
           "lib/net10.0/PanoramaManager.dll": {
-            "assemblyVersion": "0.1.2.0",
-            "fileVersion": "0.1.2.0"
+            "assemblyVersion": "0.3.1.0",
+            "fileVersion": "0.3.1.0"
           }
         }
       },
@@ -275,12 +275,12 @@
       "path": "mysqlconnector/2.6.1",
       "hashPath": "mysqlconnector.2.6.1.nupkg.sha512"
     },
-    "PanoramaManager/0.1.2": {
+    "PanoramaManager/0.3.1": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-WMJ91L3ocoXKZtFnf/Qy7LuCQrKHzweHbMAB5eP+vnI+MFRKoI3/sZ3uamPZc/v+msPO0/wTNWM50QK95iZEyA==",
-      "path": "panoramamanager/0.1.2",
-      "hashPath": "panoramamanager.0.1.2.nupkg.sha512"
+      "sha512": "sha512-ANpcPdL5FisYAT1eOz9n80RZelQvXuqnIjCZXqOne9GNg4ahYGKRbu2UqfxROrVYnnyq8MaGy42kiY64YYHw0g==",
+      "path": "panoramamanager/0.3.1",
+      "hashPath": "panoramamanager.0.3.1.nupkg.sha512"
     },
     "SQLitePCLRaw.bundle_e_sqlite3/2.1.11": {
       "type": "package",
