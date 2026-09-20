@@ -12,7 +12,6 @@ using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
-using PanoramaManager;
 using SuperPowersPlugin.Utils;
 using super_powers_plugin.src.hud;
 
@@ -146,12 +145,14 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
 
         RegisterListener<Listeners.CheckTransmit>(infoList =>
         {
-            if (checkTransmitTargets.Count == 0)
-                return;
-
             foreach ((CCheckTransmitInfo info, CCSPlayerController? player) in infoList)
             {
                 if (player == null || !player.IsValid) // if player is not real he can see the models
+                    continue;
+
+                AsciiOverlay?.AddToTransmit(info);
+
+                if (checkTransmitTargets.Count == 0)
                     continue;
 
                 foreach (BasePower power in checkTransmitTargets)
@@ -174,34 +175,15 @@ public class super_powers_plugin : BasePlugin, IPluginConfig<SuperPowerConfig>
             // Server globals are ready here — safe to call Utilities.GetPlayers()
             SuperPowerController.LoadAllConnectedProgressions();
             // SuperPowerController.CleanInvalidUsers();
+            AsciiOverlay?.OnWorldReady();
             Server.PrintToConsole("Server spawned");
             return HookResult.Continue;
         });
 
         SuperPowerController.RegisterHooks();
 
-        // Initialize Panorama ONCE for the entire plugin
-        try
-        {
-            Panorama.UseGlobalDialogVariables = true;
-            Panorama.Init(this);
-            Console.WriteLine("[super_powers_plugin] Panorama.Init OK");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[super_powers_plugin] Panorama.Init FAILED: {ex.Message}");
-        }
-
-        try
-        {
-            AsciiOverlay = new AsciiOverlayManager();
-            AsciiOverlay.Init(this);
-            Console.WriteLine("[super_powers_plugin] ASCII overlay initialized");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[super_powers_plugin] ASCII overlay init failed: {ex.Message}");
-        }
+        AsciiOverlay = new AsciiOverlayManager();
+        AsciiOverlay.Init(this);
 
         if (hotReload)
             SuperPowerController.LoadAllConnectedProgressions();

@@ -1,12 +1,14 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using PanoramaManager;
+using CounterStrikeSharp.API.Modules.Extensions;
+using CounterStrikeSharp.API.Modules.Utils;
 
 namespace super_powers_plugin.src.hud;
 
 /// <summary>
 /// A reusable, project-agnostic ASCII/TUI overlay manager.
-/// Drives a 160x40 character grid via PanoramaManager dialog variables.
+/// Drives a 160x40 character grid via a CS2 custom_hud_layout entity
+/// using the official CounterStrikeSharp API (no PanoramaManager dependency).
 /// 
 /// Usage:
 ///   var overlay = new AsciiOverlayManager();
@@ -24,10 +26,13 @@ namespace super_powers_plugin.src.hud;
 /// </summary>
 public class AsciiOverlayManager : IDisposable
 {
-    private PanelHandle? _overlay;
     private super_powers_plugin? _plugin;
+    private CCSCustomHudLayout? _layout;
+    private bool _spawning;
     private const int GRID_WIDTH = 160;
     private const int GRID_HEIGHT = 40;
+    private const string ROOT_PANEL = "AsciiOverlayRoot";
+    private const string REVEAL_CLASS = "show";
     private const string LAYOUT_PATH = "panorama/layout/custom_game/ascii_overlay.vxml_c";
 
     private readonly HashSet<ulong> _openPlayers = [];
@@ -36,40 +41,122 @@ public class AsciiOverlayManager : IDisposable
     /// <summary>
     /// Initialize the ASCII overlay.
     /// Must be called once during plugin load.
+    /// Does NOT touch the engine: the layout entity is spawned lazily
+    /// on first use or when the world is ready.
     /// </summary>
     public void Init(super_powers_plugin plugin)
     {
         _plugin = plugin;
+        Console.WriteLine("[ASCII-Overlay] Manager initialized (official CCSCustomHudLayout API)");
+    }
 
-        // Panorama.Init() is now called once in main.cs Load()
-        // Just spawn the panel
+    /// <summary>
+    /// Called when the server world is ready (EventServerSpawn) so the
+    /// layout entity is (re)spawned on every map.
+    /// </summary>
+    public void OnWorldReady()
+    {
+        EnsureSpawned();
+    }
+
+    /// <summary>
+    /// Ensure the custom_hud_layout entity exists. Reuses an already-spawned
+    /// one; otherwise creates it with the layout path as a spawn keyvalue.
+    /// </summary>
+    private void EnsureSpawned()
+    {
+        if (_layout != null && _layout.IsValid) return;
+        if (_spawning) return;
+        _spawning = true;
         try
         {
-            _overlay = Panorama.Spawn(
-                LAYOUT_PATH,
-                new LayoutContract
-                {
-                    RootPanelId = "AsciiOverlayRoot",
-                    RevealClass = "show",
-                    CaptureInput = false,
-                });
+            _layout = Utilities.FindAllEntitiesByDesignerName<CCSCustomHudLayout>("custom_hud_layout").FirstOrDefault();
+            if (_layout != null && _layout.IsValid)
+                return;
 
-            Console.WriteLine($"[ASCII-Overlay] Panorama.Spawn OK");
+            var e = Utilities.CreateEntityByName<CCSCustomHudLayout>("custom_hud_layout");
+            if (e == null || e.Handle == IntPtr.Zero)
+            {
+                Console.WriteLine("[ASCII-Overlay] ERROR: CreateEntityByName returned null");
+                return;
+            }
+
+            var kv = new CEntityKeyValues();
+            kv.SetVector("origin", 0f, 0f, 0f);
+            kv.SetString("layout", LAYOUT_PATH);
+            e.DispatchSpawn(kv);
+            kv.Dispose();
+
+            _layout = e;
+            Console.WriteLine($"[ASCII-Overlay] custom_hud_layout spawned (index {e.Index})");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ASCII-Overlay] Panorama.Spawn FAILED: {ex}");
-            return;
+            Console.WriteLine($"[ASCII-Overlay] EnsureSpawned FAILED: {ex}");
+            _layout = null;
         }
+        finally
+        {
+            _spawning = false;
+        }
+    }
 
-        if (_overlay != null)
-        {
-            Console.WriteLine("[ASCII-Overlay] Spawned panel OK");
-        }
+    /// <summary>
+    /// Returns true when the layout entity is alive (creating it if needed).
+    /// </summary>
+    private bool HasLayout()
+    {
+        EnsureSpawned();
+        return _layout != null && _layout.IsValid;
+    }
+
+    /// <summary>
+    /// Whether the engine has allocated per-player layout state for this slot.
+    /// The managed per-player setters write into m_vecPlayerLayoutStates[slot];
+    /// writing when that vector is empty/out-of-range is unsafe.
+    /// </summary>
+    private bool HasPlayerState(CCSPlayerController? player)
+    {
+        if (_layout == null || !_layout.IsValid) return false;
+        if (player == null || !player.IsValid) return false;
+
+        var states = _layout.PlayerLayoutStates;
+        int slot = player.Slot;
+        return slot >= 0 && states.Count > slot;
+    }
+
+    /// <summary>
+    /// Write a dialog variable globally (shared text across all viewers).
+    /// Matches the old "UseGlobalDialogVariables = true" behavior.
+    /// </summary>
+    private void SetVariable(string name, string value)
+    {
+        if (!HasLayout()) return;
+        _layout!.SetDialogVariableString(ROOT_PANEL, name, value);
+    }
+
+    /// <summary>
+    /// Toggle a class on a panel. Uses the per-player setter when the engine
+    /// has per-player state for the slot; otherwise falls back to the global
+    /// setter so the overlay still renders.
+    /// </summary>
+    private void SetClass(CCSPlayerController? player, string panel, string className, bool on)
+    {
+        if (!HasLayout()) return;
+        if (HasPlayerState(player))
+            _layout!.SetHasClassForPlayer(player!, panel, className, on);
         else
-        {
-            Console.WriteLine("[ASCII-Overlay] ERROR: _overlay is null after Spawn");
-        }
+            _layout!.SetHasClass(panel, className, on);
+    }
+
+    /// <summary>
+    /// Add the layout entity to a player's transmit set so their client
+    /// actually receives and renders it. Called from the CheckTransmit listener.
+    /// </summary>
+    public void AddToTransmit(CCheckTransmitInfo info)
+    {
+        if (HasLayout())
+            info.TransmitEntities.Add(_layout!);
     }
 
     /// <summary>
@@ -78,14 +165,13 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void Shutdown()
     {
-        if (_overlay != null)
+        if (_layout != null && _layout.IsValid)
         {
-            _overlay.Dispose();
-            _overlay = null;
+            try { _layout.Remove(); }
+            catch (Exception ex) { Console.WriteLine($"[ASCII-Overlay] Remove FAILED: {ex}"); }
         }
 
-        // Don't call Panorama.Shutdown() here - let the main plugin handle it
-        // since HudManager might still be using Panorama
+        _layout = null;
         _openPlayers.Clear();
         _lineBuffers.Clear();
     }
@@ -95,8 +181,6 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void Toggle(CCSPlayerController player)
     {
-        if (_overlay == null) return;
-
         if (_openPlayers.Contains(player.SteamID))
             Close(player);
         else
@@ -108,16 +192,16 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void Open(CCSPlayerController player)
     {
-        if (_overlay == null)
+        if (!HasLayout())
         {
-            Console.WriteLine("[ASCII-Overlay] Cannot open: _overlay is null");
+            Console.WriteLine("[ASCII-Overlay] Cannot open: layout entity unavailable");
             return;
         }
 
         Console.WriteLine($"[ASCII-Overlay] Opening for {player.PlayerName}");
         _openPlayers.Add(player.SteamID);
         _lineBuffers[player.SteamID] = new string[GRID_HEIGHT];
-        _overlay.Open(player);
+        SetClass(player, ROOT_PANEL, REVEAL_CLASS, true);
         ClearScreen(player);
     }
 
@@ -126,11 +210,9 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void Close(CCSPlayerController player)
     {
-        if (_overlay == null) return;
-
         _openPlayers.Remove(player.SteamID);
         _lineBuffers.Remove(player.SteamID);
-        _overlay.Close(player);
+        SetClass(player, ROOT_PANEL, REVEAL_CLASS, false);
     }
 
     /// <summary>
@@ -146,11 +228,11 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void ClearScreen(CCSPlayerController player)
     {
-        if (_overlay == null || !_openPlayers.Contains(player.SteamID)) return;
+        if (!_openPlayers.Contains(player.SteamID)) return;
 
         for (int i = 0; i < GRID_HEIGHT; i++)
         {
-            _overlay.SetVariableFor(player, $"line_{i}", string.Empty.PadRight(GRID_WIDTH));
+            SetVariable($"line_{i}", string.Empty.PadRight(GRID_WIDTH));
         }
 
         if (_lineBuffers.ContainsKey(player.SteamID))
@@ -167,7 +249,7 @@ public class AsciiOverlayManager : IDisposable
     /// <param name="text">Text to display (will be truncated or padded to GRID_WIDTH)</param>
     public void SetLine(CCSPlayerController player, int row, string text)
     {
-        if (_overlay == null || !_openPlayers.Contains(player.SteamID)) return;
+        if (!_openPlayers.Contains(player.SteamID)) return;
         if (row < 0 || row >= GRID_HEIGHT) return;
 
         // Pad or truncate to exact width
@@ -175,7 +257,7 @@ public class AsciiOverlayManager : IDisposable
             ? text.Substring(0, GRID_WIDTH)
             : text.PadRight(GRID_WIDTH);
 
-        _overlay.SetVariableFor(player, $"line_{row}", padded);
+        SetVariable($"line_{row}", padded);
 
         if (_lineBuffers.ContainsKey(player.SteamID))
         {
@@ -188,11 +270,11 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void SetLineWithClass(CCSPlayerController player, int row, string text, string cssClass, bool enable)
     {
-        if (_overlay == null || !_openPlayers.Contains(player.SteamID)) return;
+        if (!_openPlayers.Contains(player.SteamID)) return;
         if (row < 0 || row >= GRID_HEIGHT) return;
 
         SetLine(player, row, text);
-        _overlay.SetClassFor(player, $"line_{row}", cssClass, enable);
+        SetClass(player, $"line_{row}", cssClass, enable);
     }
 
     /// <summary>
@@ -200,7 +282,7 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void SetLineColored(CCSPlayerController player, int row, string text, string color)
     {
-        if (_overlay == null || !_openPlayers.Contains(player.SteamID)) return;
+        if (!_openPlayers.Contains(player.SteamID)) return;
         if (row < 0 || row >= GRID_HEIGHT) return;
 
         SetLine(player, row, text);
@@ -209,13 +291,13 @@ public class AsciiOverlayManager : IDisposable
         string[] colors = ["green", "red", "blue", "gold", "purple", "white", "gray"];
         foreach (var c in colors)
         {
-            _overlay.SetClassFor(player, $"line_{row}", $"color-{c}", false);
+            SetClass(player, $"line_{row}", $"color-{c}", false);
         }
 
         // Apply requested color
         if (!string.IsNullOrEmpty(color))
         {
-            _overlay.SetClassFor(player, $"line_{row}", $"color-{color}", true);
+            SetClass(player, $"line_{row}", $"color-{color}", true);
         }
     }
 
@@ -224,7 +306,7 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void SetLines(CCSPlayerController player, int startRow, string[] lines)
     {
-        if (_overlay == null || !_openPlayers.Contains(player.SteamID)) return;
+        if (!_openPlayers.Contains(player.SteamID)) return;
 
         for (int i = 0; i < lines.Length && (startRow + i) < GRID_HEIGHT; i++)
         {
@@ -237,7 +319,7 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void SetScreen(CCSPlayerController player, char[,] screen)
     {
-        if (_overlay == null || !_openPlayers.Contains(player.SteamID)) return;
+        if (!_openPlayers.Contains(player.SteamID)) return;
 
         int rows = Math.Min(screen.GetLength(0), GRID_HEIGHT);
         int cols = Math.Min(screen.GetLength(1), GRID_WIDTH);
@@ -263,7 +345,7 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void SetScreen(CCSPlayerController player, string[] lines)
     {
-        if (_overlay == null || !_openPlayers.Contains(player.SteamID)) return;
+        if (!_openPlayers.Contains(player.SteamID)) return;
 
         for (int row = 0; row < GRID_HEIGHT; row++)
         {
@@ -283,7 +365,7 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void DrawRect(CCSPlayerController player, int x, int y, int width, int height, char fillChar = ' ')
     {
-        if (_overlay == null || !_openPlayers.Contains(player.SteamID)) return;
+        if (!_openPlayers.Contains(player.SteamID)) return;
 
         for (int row = y; row < y + height && row < GRID_HEIGHT; row++)
         {
@@ -308,7 +390,7 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void DrawBox(CCSPlayerController player, int x, int y, int width, int height, char borderChar = '*')
     {
-        if (_overlay == null || !_openPlayers.Contains(player.SteamID)) return;
+        if (!_openPlayers.Contains(player.SteamID)) return;
 
         // Top and bottom borders
         for (int col = x; col < x + width && col < GRID_WIDTH; col++)
@@ -338,7 +420,7 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void DrawCharAt(CCSPlayerController player, int x, int y, char c)
     {
-        if (_overlay == null || !_openPlayers.Contains(player.SteamID)) return;
+        if (!_openPlayers.Contains(player.SteamID)) return;
         if (x < 0 || x >= GRID_WIDTH || y < 0 || y >= GRID_HEIGHT) return;
 
         string line = _lineBuffers.ContainsKey(player.SteamID) && _lineBuffers[player.SteamID][y] != null
@@ -357,7 +439,7 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void DrawTextAt(CCSPlayerController player, int x, int y, string text)
     {
-        if (_overlay == null || !_openPlayers.Contains(player.SteamID)) return;
+        if (!_openPlayers.Contains(player.SteamID)) return;
 
         for (int i = 0; i < text.Length && (x + i) < GRID_WIDTH; i++)
         {
@@ -449,7 +531,7 @@ public class AsciiOverlayManager : IDisposable
     /// </summary>
     public void UpdateAll()
     {
-        if (_overlay == null) return;
+        if (!HasLayout()) return;
 
         foreach (var steamId in _openPlayers)
         {
@@ -464,7 +546,7 @@ public class AsciiOverlayManager : IDisposable
                     {
                         if (!string.IsNullOrEmpty(lines[i]))
                         {
-                            _overlay.SetVariableFor(player, $"line_{i}", lines[i]);
+                            SetVariable($"line_{i}", lines[i]);
                         }
                     }
                 }
